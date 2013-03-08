@@ -12,7 +12,7 @@ form#df-searchbox-form label{
     margin-bottom: 1px
 }
 
-form#df-searchbox-form input#df-searchbox {
+form#df-searchbox-form #df-searchbox {
     font-size: 11px;
     min-width: 140px;
     border: 1px solid #CCCCCC;
@@ -23,7 +23,7 @@ form#df-searchbox-form input#df-searchbox {
     padding-left: 4px;
 }
 
-form#df-searchbox-form input#search_button{
+form#df-searchbox-form #search_button{
     padding: 1px 4px;
 }
 
@@ -36,7 +36,11 @@ form#df-searchbox-form input#search_button{
     text-align: center;
 }
 
-#df-searchbox-wrap.top input#df-searchbox {
+#df-searchbox-wrap.top form {
+    top: 13px;
+}
+
+#df-searchbox-wrap.top #df-searchbox {
     width: 396px;
 }
 

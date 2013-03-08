@@ -106,9 +106,21 @@ class Doofinder extends Module
 
   public function uninstall()
   {
-    // Configuration::deleteByName(...)
-    // return parent::uninstall() && Configuration::deleteByName('DOOFINDER_HASHID');
-    return parent::uninstall();
+    $total = 0;
+    $uninstalled = 0;
+
+    foreach (Language::getLanguages() as $lang)
+    {
+      $total++;
+      $optname = 'DOOFINDER_SCRIPT_'.strtoupper($lang['iso_code']);
+      if (Configuration::deleteByName($optname))
+        $uninstalled++;
+    }
+
+    return parent::uninstall() && ($total == $uninstalled) &&
+           Configuration::deleteByName('DF_SC_TESTMODE') &&
+           Configuration::deleteByName('DF_GS_DESCRIPTION_TYPE') &&
+           Configuration::deleteByName('DF_GS_IMAGE_SIZE');
   }
 
 
@@ -150,7 +162,7 @@ class Doofinder extends Module
 
     if (!$found)
     {
-      $this->_html .= $this->displayError($this->l('You forgot to setup your Doofinder script!'));
+      $this->_html .= $this->displayError($this->l("Don't forget to setup your Doofinder script!"));
     }
     elseif ($found < $total)
     {
