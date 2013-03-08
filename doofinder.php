@@ -47,9 +47,10 @@ class Doofinder extends Module
 
   private function configureHookCommon($params)
   {
+    $lang = strtoupper($this->context->language->iso_code);
     $this->smarty->assign(array(
       'ENT_QUOTES' => ENT_QUOTES,
-      'script' => Configuration::get('DOOFINDER_SCRIPT'),
+      'script' => Configuration::get("DOOFINDER_SCRIPT_$lang"),
       'enabled' => !(bool)Configuration::get('DF_SC_TESTMODE'),
       'self' => dirname(__FILE__),
     ));
@@ -135,9 +136,23 @@ class Doofinder extends Module
       }
     }
 
-    if (!Configuration::get('DOOFINDER_SCRIPT'))
+    $found = 0;
+    $total = 0;
+    foreach (Language::getLanguages() as $lang)
+    {
+      $total++;
+      $optname = 'DOOFINDER_SCRIPT_'.strtoupper($lang['iso_code']);
+      if (Configuration::get($optname))
+        $found++;
+    }
+
+    if (!$found)
     {
       $this->_html .= $this->displayError($this->l('You forgot to setup your Doofinder script!'));
+    }
+    elseif ($found < $total)
+    {
+      $this->_html .= $this->displayError($this->l('Doofinder will only work for the configured languages.'));
     }
 
     $this->_displayForm();
@@ -206,8 +221,11 @@ class Doofinder extends Module
       }
     }
 
-    Configuration::updateValue('DOOFINDER_SCRIPT', Tools::getValue('DOOFINDER_SCRIPT'), true);
-
+    foreach (Language::getLanguages() as $lang)
+    {
+      $optname = 'DOOFINDER_SCRIPT_'.strtoupper($lang['iso_code']);
+      Configuration::updateValue($optname, Tools::getValue($optname), true);
+    }
   }
 
 
@@ -288,20 +306,25 @@ class Doofinder extends Module
       );
 
     // DOOFINDER_SCRIPT
-    $optname = 'DOOFINDER_SCRIPT';
+    $optname = 'DOOFINDER_SCRIPT_';
 
-    $fields[] = array(
-      'label' => $this->l('Doofinder script'),
-      'desc' => $this->l("Copy the script as you got it from Doofinder."),
+    foreach (Language::getLanguages(true) as $lang)
+    {
+      $realoptname = $optname.strtoupper($lang['iso_code']);
+      $fields[] = array(
+        'label' => $lang['name'],
+        'desc' => $this->l("Copy the script as you got it from Doofinder."),
 
-      'type' => 'textarea',
-      'cols' => 100,
-      'rows' => 10,
-      'name' => $optname,
-      'required' => true,
-      );
+        'type' => 'textarea',
+        'cols' => 100,
+        'rows' => 10,
+        'name' => $realoptname,
+        'class' => 'doofinder_script',
+        'required' => false,
+        );
 
-    $helper->fields_value[$optname] = Configuration::get($optname);
+      $helper->fields_value[$realoptname] = Configuration::get($realoptname);
+    }
 
     // DF_SC_TESTMODE
     $optname = 'DF_SC_TESTMODE';
