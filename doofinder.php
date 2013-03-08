@@ -48,9 +48,11 @@ class Doofinder extends Module
   private function configureHookCommon($params)
   {
     $lang = strtoupper($this->context->language->iso_code);
+    $script = Configuration::get("DOOFINDER_SCRIPT_$lang");
+
     $this->smarty->assign(array(
       'ENT_QUOTES' => ENT_QUOTES,
-      'script' => Configuration::get("DOOFINDER_SCRIPT_$lang"),
+      'script' => $script,
       'enabled' => !(bool)Configuration::get('DF_SC_TESTMODE'),
       'self' => dirname(__FILE__),
     ));

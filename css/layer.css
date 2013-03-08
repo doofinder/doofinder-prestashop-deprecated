@@ -20,7 +20,6 @@ form#df-searchbox-form input#df-searchbox {
     -moz-border-radius:3px !important;
     border-radius:3px !important;
     height: 24px;
-    margin-top:10px;
     padding-left: 4px;
 }
 
@@ -40,3 +39,14 @@ form#df-searchbox-form input#search_button{
 #df-searchbox-wrap.top input#df-searchbox {
     width: 396px;
 }
+
+#df-searchbox-wrap.block form {
+    padding: 10px 11px 0;
+}
+    #df-searchbox-wrap.block form #df-searchbox {
+        margin: 5px 0 0;
+        width: 100%;
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+    }
