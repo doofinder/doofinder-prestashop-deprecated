@@ -73,21 +73,30 @@ class Doofinder extends Module
   public function hookTop($params)
   {
     $this->configureHookCommon($params);
-    $this->smarty->assign(array('hook_top' => true));
+    $this->smarty->assign(array(
+      'hook_top' => true,
+      'placeholder' => $this->l('Enter a product name to search'),
+      ));
     return $this->display(__FILE__, 'searchbox-top.tpl');
   }
 
   public function hookLeftColumn($params)
   {
     $this->configureHookCommon($params);
-    $this->smarty->assign('searchbox_type', 'left');
+    $this->smarty->assign(array(
+      'searchbox_type' => 'left',
+      'placeholder' => $this->l('Search'),
+      ));
     return $this->display(__FILE__, 'searchbox-block.tpl');
   }
 
   public function hookRightColumn($params)
   {
     $this->configureHookCommon($params);
-    $this->smarty->assign('searchbox_type', 'right');
+    $this->smarty->assign(array(
+          'searchbox_type' => 'right',
+          'placeholder' => $this->l('Search'),
+          ));
     return $this->display(__FILE__, 'searchbox-block.tpl');
   }
 
