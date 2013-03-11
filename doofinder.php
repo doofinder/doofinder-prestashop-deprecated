@@ -17,6 +17,10 @@ class Doofinder extends Module
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
 
+  const DEFAULT_LAYER_WIDTH = 533;
+  const DEFAULT_LAYER_OFFSET_TOP = 94;
+  const DEFAULT_LAYER_OFFSET_LEFT = -67;
+
 
   public function __construct()
   {
@@ -49,12 +53,16 @@ class Doofinder extends Module
   {
     $lang = strtoupper($this->context->language->iso_code);
 
+    $width = Configuration::get("DOOFINDER_LAYER_WIDTH");
+    $dtop = Configuration::get("DOOFINDER_LAYER_DTOP");
+    $dleft = Configuration::get("DOOFINDER_LAYER_DLEFT");
+
     $this->smarty->assign(array(
       'ENT_QUOTES' => ENT_QUOTES,
       'lang' => strtolower($lang),
-      'width' => Configuration::get("DOOFINDER_LAYER_WIDTH"),
-      'dtop' => Configuration::get("DOOFINDER_LAYER_DTOP"),
-      'dleft' => Configuration::get("DOOFINDER_LAYER_DLEFT"),
+      'width' => $width ? $width : self::DEFAULT_LAYER_WIDTH,
+      'dtop' => $dtop ? $dtop : self::DEFAULT_LAYER_OFFSET_TOP,
+      'dleft' => $dleft ? $dleft : self::DEFAULT_LAYER_OFFSET_LEFT,
       'hashid' => Configuration::get("DOOFINDER_HASHID_$lang"),
       'script' => Configuration::get("DOOFINDER_SCRIPT_$lang"),
       'self' => dirname(__FILE__),
@@ -184,7 +192,7 @@ class Doofinder extends Module
 
     foreach ($cfgIntValues as $optname => $optname_alt)
     {
-      $optvalue = intval((Tools::getValue($optname)));
+      $optvalue = Tools::getValue($optname);
 
       if (Validate::isGenericName($optvalue))
       {
@@ -336,7 +344,6 @@ class Doofinder extends Module
       'name' => $optname,
       'type' => 'text',
       'class' => 'doofinder_dimensions',
-      'required' => true,
       );
     $helper->fields_value[$optname] = Configuration::get($optname, 500);
 
@@ -347,7 +354,6 @@ class Doofinder extends Module
       'name' => $optname,
       'type' => 'text',
       'class' => 'doofinder_dimensions',
-      'required' => true,
       );
     $helper->fields_value[$optname] = Configuration::get($optname, 0);
 
@@ -358,7 +364,6 @@ class Doofinder extends Module
       'name' => $optname,
       'type' => 'text',
       'class' => 'doofinder_dimensions',
-      'required' => true,
       );
     $helper->fields_value[$optname] = Configuration::get($optname, 0);
 
