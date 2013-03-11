@@ -194,7 +194,7 @@ class Doofinder extends Module
     {
       $optvalue = Tools::getValue($optname);
 
-      if (Validate::isGenericName($optvalue))
+      if (Validate::isGenericName($optvalue) && (empty($optvalue) || is_numeric($optvalue)))
       {
         Configuration::updateValue($optname, $optvalue);
       }
@@ -326,8 +326,10 @@ class Doofinder extends Module
     foreach (Language::getLanguages(true) as $lang)
     {
       $realoptname = $optname.strtoupper($lang['iso_code']);
+      $url = $this->feedURLforLang($lang['iso_code']);
       $fields[] = array(
         'label' => sprintf($this->l('Search Engine ID for %s'), $lang['name']),
+        'desc' => sprintf('<b>%s [%s]:</b> <a href="%s" target="_blank">%s</a>', $this->l('Data Feed URL'), strtoupper($lang['iso_code']), $url, $url),
         'name' => $realoptname,
         'type' => 'text',
         'class' => 'doofinder_hashid',
@@ -456,5 +458,10 @@ class Doofinder extends Module
         ),
       'name' => $optname,
       );
+  }
+
+  protected function feedURLforLang($iso_code)
+  {
+    return Tools::getShopDomain(true, true).__PS_BASE_URI__.'modules/'.$this->name.'/feed.php?lang='.$iso_code;
   }
 }

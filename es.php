@@ -20,6 +20,7 @@ $_MODULE['<{doofinder}prestashop>doofinder_30bb747c98bccdd11b3f89e644c4d0ad'] = 
 $_MODULE['<{doofinder}prestashop>doofinder_8394f0347c184cf156ac5924dccb773b'] = 'Larga';
 $_MODULE['<{doofinder}prestashop>doofinder_ff5e4971a8dac70514c68e907555805c'] = 'Capa de Doofinder';
 $_MODULE['<{doofinder}prestashop>doofinder_6ffb196498bce5858b60ced1994f4e93'] = 'ID del buscador para %s';
+$_MODULE['<{doofinder}prestashop>doofinder_be44871f19df76aeefb9209e1b164bd6'] = 'URL Feed de Datos';
 $_MODULE['<{doofinder}prestashop>doofinder_8912b41dc370f04b051b4178f1a5633c'] = 'Anchura Capa';
 $_MODULE['<{doofinder}prestashop>doofinder_c97d8dd93883673d67502bb8fb9844ad'] = 'Desplazamiento Vertical Capa';
 $_MODULE['<{doofinder}prestashop>doofinder_658c2446861543078db43f85c531926f'] = 'Desplazamiento Horizontal Capa';
