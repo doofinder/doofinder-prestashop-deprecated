@@ -1,4 +1,17 @@
-#fieldset_1 textarea {
+.doofinder_hashid {
+    font-family: Monaco, 'Lucida Console', 'Courier New', monospace;
+    font-size: 11px;
+    width: 250px;
+}
+
+.doofinder_dimensions {
+    text-align: right;
+    font-family: Monaco, 'Lucida Console', 'Courier New', monospace;
+    font-size: 11px;
+    width: 40px;
+}
+
+#fieldset_2 textarea {
     width: 640px;
     min-height: 320px;
     font-family: Monaco, 'Lucida Console', 'Courier New', monospace;
