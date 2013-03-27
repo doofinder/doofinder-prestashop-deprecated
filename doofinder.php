@@ -52,6 +52,7 @@ class Doofinder extends Module
     $this->smarty->assign(array(
       'ENT_QUOTES' => ENT_QUOTES,
       'lang' => strtolower($lang),
+      'searchbox_enabled' => (int) Configuration::get('DOOFINDER_INPUT_ENABLED'),
       'script' => Configuration::get("DOOFINDER_SCRIPT_$lang"),
       'self' => dirname(__FILE__),
     ));

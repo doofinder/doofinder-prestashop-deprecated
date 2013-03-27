@@ -1,4 +1,4 @@
-{if isset($script)}
+{if $searchbox_enabled && isset($script)}
   {if isset($hook_mobile)}
     <div class="input_search" data-role="fieldcontain">
   {else}
