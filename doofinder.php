@@ -17,10 +17,6 @@ class Doofinder extends Module
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
 
-  const DEFAULT_LAYER_WIDTH = 533;
-  const DEFAULT_LAYER_OFFSET_TOP = 94;
-  const DEFAULT_LAYER_OFFSET_LEFT = -67;
-
 
   public function __construct()
   {
@@ -53,17 +49,9 @@ class Doofinder extends Module
   {
     $lang = strtoupper($this->context->language->iso_code);
 
-    $width = Configuration::get("DOOFINDER_LAYER_WIDTH");
-    $dtop = Configuration::get("DOOFINDER_LAYER_DTOP");
-    $dleft = Configuration::get("DOOFINDER_LAYER_DLEFT");
-
     $this->smarty->assign(array(
       'ENT_QUOTES' => ENT_QUOTES,
       'lang' => strtolower($lang),
-      'width' => $width ? $width : self::DEFAULT_LAYER_WIDTH,
-      'dtop' => $dtop ? $dtop : self::DEFAULT_LAYER_OFFSET_TOP,
-      'dleft' => $dleft ? $dleft : self::DEFAULT_LAYER_OFFSET_LEFT,
-      'hashid' => Configuration::get("DOOFINDER_HASHID_$lang"),
       'script' => Configuration::get("DOOFINDER_SCRIPT_$lang"),
       'self' => dirname(__FILE__),
     ));
@@ -75,6 +63,7 @@ class Doofinder extends Module
   {
     $this->context->controller->addCSS(($this->_path).'css/layer.css', 'all');
     $this->configureHookCommon($params);
+
     return $this->display(__FILE__, 'script.tpl');
   }
 
@@ -86,11 +75,21 @@ class Doofinder extends Module
 
   public function hookTop($params)
   {
+    $width = Configuration::get("DOOFINDER_INPUT_WIDTH");
+    $top = Configuration::get("DOOFINDER_INPUT_TOP");
+    $left = Configuration::get("DOOFINDER_INPUT_LEFT");
+    $customized = !empty($width) || !empty($top) || !empty($left);
+
     $this->configureHookCommon($params);
     $this->smarty->assign(array(
       'hook_top' => true,
+      'customized' => $customized,
       'placeholder' => $this->l('Enter a product name to search'),
+      'width' => $width ? $width : false,
+      'top' => $top ? $top : false,
+      'left' => $left ? $left : false,
       ));
+
     return $this->display(__FILE__, 'searchbox-top.tpl');
   }
 
@@ -101,6 +100,7 @@ class Doofinder extends Module
       'searchbox_type' => 'left',
       'placeholder' => $this->l('Search'),
       ));
+
     return $this->display(__FILE__, 'searchbox-block.tpl');
   }
 
@@ -111,6 +111,7 @@ class Doofinder extends Module
           'searchbox_type' => 'right',
           'placeholder' => $this->l('Search'),
           ));
+
     return $this->display(__FILE__, 'searchbox-block.tpl');
   }
 
@@ -119,7 +120,7 @@ class Doofinder extends Module
   {
     $total = 0;
     $uninstalled = 0;
-    $cfgLangStrValues = array('DOOFINDER_HASHID_', 'DOOFINDER_SCRIPT_');
+    $cfgLangStrValues = array('DOOFINDER_SCRIPT_');
 
     foreach (Language::getLanguages() as $lang)
     {
@@ -185,9 +186,7 @@ class Doofinder extends Module
 
     $cfgIntValues = array(
       'DF_GS_DESCRIPTION_TYPE' => $this->l('Product Description Length'),
-      'DOOFINDER_LAYER_WIDTH' => $this->l('Doofinder Layer Width'),
-      'DOOFINDER_LAYER_DTOP' => $this->l('Doofinder Layer Offset Top'),
-      'DOOFINDER_LAYER_DLEFT' => $this->l('Doofinder Layer Offset Left'),
+      'DOOFINDER_INPUT_ENABLED' => $this->l('Doofinder Searchbox Enabled'),
       );
 
     foreach ($cfgIntValues as $optname => $optname_alt)
@@ -232,13 +231,33 @@ class Doofinder extends Module
       }
     }
 
-    $cfgLangStrValues = array('DOOFINDER_HASHID_' => false, 'DOOFINDER_SCRIPT_' => true);
+    $cfgLangStrValues = array('DOOFINDER_SCRIPT_' => true);
     foreach ($cfgLangStrValues as $prefix => $html)
     {
       foreach (Language::getLanguages() as $lang)
       {
         $optname = $prefix.strtoupper($lang['iso_code']);
         Configuration::updateValue($optname, Tools::getValue($optname), $html);
+      }
+    }
+
+    $cfgStrValues = array(
+      'DOOFINDER_INPUT_WIDTH' => $this->l('Doofinder Searchbox Width'),
+      'DOOFINDER_INPUT_TOP' => $this->l('Doofinder Searchbox Offset Top'),
+      'DOOFINDER_INPUT_LEFT' => $this->l('Doofinder Searchbox Offset Left'),
+      );
+
+    foreach ($cfgStrValues as $optname => $optname_alt)
+    {
+      $optvalue = Tools::getValue($optname);
+
+      if (Validate::isGenericName($optvalue) || empty($optvalue))
+      {
+        Configuration::updateValue($optname, $optvalue);
+      }
+      else
+      {
+        $this->_postErrors[] = sprintf($df_invalid_msg, $optname_alt);
       }
     }
   }
@@ -250,15 +269,112 @@ class Doofinder extends Module
   protected function _displayForm()
   {
     $helper = new HelperForm();
+    $default_lang_id = (int) Configuration::get('PS_LANG_DEFAULT');
+
+    //
+    // DOOFINDER LAYER
+    //
+
     $fields = array();
 
-    $default_lang_id = (int) Configuration::get('PS_LANG_DEFAULT');
+    $fields_form[0]['form'] = array(
+      'legend' => array('title' => $this->l('Doofinder Layer')),
+      'input'  => null,
+      'submit' => array('title' => $this->l('Save'), 'class' => 'button'),
+      );
+
+
+    // DOOFINDER_SCRIPT
+    $optname = 'DOOFINDER_SCRIPT_';
+    $desc = $this->l('Paste the script as you got it from Doofinder.');
+
+    foreach (Language::getLanguages(true) as $lang)
+    {
+      $realoptname = $optname.strtoupper($lang['iso_code']);
+      $url = $this->feedURLforLang($lang['iso_code']);
+      $fields[] = array(
+        'label' => $lang['name'],
+        'desc' => sprintf('<span class="df-notice"><b>%s [%s]:</b> <a href="%s" target="_blank">%s</a></span>%s', $this->l('Data Feed URL'), strtoupper($lang['iso_code']), $url, $url, $desc),
+
+        'type' => 'textarea',
+        'cols' => 100,
+        'rows' => 10,
+        'name' => $realoptname,
+        'required' => false,
+        );
+
+      $helper->fields_value[$realoptname] = Configuration::get($realoptname);
+    }
+
+
+    $fields_form[0]['form']['input'] = $fields;
+
+
+
+    //
+    // SEARCH BOX
+    //
+
+    $fields = array();
+
+    $fields_form[1]['form'] = array(
+      'legend' => array('title' => $this->l('Searchbox in Page Top')),
+      'input'  => null,
+      'submit' => array('title' => $this->l('Save'), 'class' => 'button'),
+      );
+
+    $optname = 'DOOFINDER_INPUT_ENABLED';
+    $field = $this->getYesNoSelectFor($optname, $this->l('Enable Module\'s Searchbox'));
+    $field['desc'] = sprintf($this->l("<span class='df-notice'>If <b>YES</b> remember to update the script's queryInput value to <b>'%s'</b>.</span>"), '#df-searchbox');
+    $fields[] = $field;
+    $helper->fields_value[$optname] = Configuration::get($optname);
+
+    $position_warning = $this->l("<span class='df-notice'><b>WARNING:</b> This can modify the position of the layer. Adjust the <b>dtop</b> and <b>dleft</b> values in your script.</span>");
+
+    $optname = 'DOOFINDER_INPUT_WIDTH';
+    $fields[] = array(
+      'label' => $this->l('Searchbox Width'),
+      'desc' => $position_warning,
+      'name' => $optname,
+      'type' => 'text',
+      'class' => 'doofinder_dimensions',
+      );
+    $helper->fields_value[$optname] = Configuration::get($optname, '');
+
+
+    $optname = 'DOOFINDER_INPUT_TOP';
+    $fields[] = array(
+      'label' => $this->l('Top Position'),
+      'desc' => $position_warning,
+      'name' => $optname,
+      'type' => 'text',
+      'class' => 'doofinder_dimensions',
+      );
+    $helper->fields_value[$optname] = Configuration::get($optname, '');
+
+
+    $optname = 'DOOFINDER_INPUT_LEFT';
+    $fields[] = array(
+      'label' => $this->l('Left Position'),
+      'desc' => $position_warning,
+      'name' => $optname,
+      'type' => 'text',
+      'class' => 'doofinder_dimensions',
+      );
+    $helper->fields_value[$optname] = Configuration::get($optname, '');
+
+
+    $fields_form[1]['form']['input'] = $fields;
+
+
 
     //
     // DATA FEED SETTINGS
     //
 
-    $fields_form[0]['form'] = array(
+    $fields = array();
+
+    $fields_form[2]['form'] = array(
       'legend' => array('title' => $this->l('Data Feed Settings')),
       'input'  => null,
       'submit' => array('title' => $this->l('Save'), 'class' => 'button'),
@@ -305,105 +421,8 @@ class Doofinder extends Module
     $helper->fields_value[$optname] = Configuration::get($optname);
 
 
-    $fields_form[0]['form']['input'] = $fields;
-
-
-    //
-    // DOOFINDER LAYER SETTINGS
-    //
-
-    $fields = array();
-
-    $fields_form[1]['form'] = array(
-      'legend' => array('title' => $this->l('Doofinder Layer')),
-      'input'  => null,
-      'submit' => array('title' => $this->l('Save'), 'class' => 'button'),
-      );
-
-
-    // DOOFINDER_HASHID
-    $optname = 'DOOFINDER_HASHID_';
-    foreach (Language::getLanguages(true) as $lang)
-    {
-      $realoptname = $optname.strtoupper($lang['iso_code']);
-      $url = $this->feedURLforLang($lang['iso_code']);
-      $fields[] = array(
-        'label' => sprintf($this->l('Search Engine ID for %s'), $lang['name']),
-        'desc' => sprintf('<b>%s [%s]:</b> <a href="%s" target="_blank">%s</a>', $this->l('Data Feed URL'), strtoupper($lang['iso_code']), $url, $url),
-        'name' => $realoptname,
-        'type' => 'text',
-        'class' => 'doofinder_hashid',
-        'required' => true,
-        );
-
-      $helper->fields_value[$realoptname] = Configuration::get($realoptname);
-    }
-
-
-    $optname = 'DOOFINDER_LAYER_WIDTH';
-    $fields[] = array(
-      'label' => $this->l('Layer Width'),
-      'name' => $optname,
-      'type' => 'text',
-      'class' => 'doofinder_dimensions',
-      );
-    $helper->fields_value[$optname] = Configuration::get($optname, 500);
-
-
-    $optname = 'DOOFINDER_LAYER_DTOP';
-    $fields[] = array(
-      'label' => $this->l('Layer Offset Top'),
-      'name' => $optname,
-      'type' => 'text',
-      'class' => 'doofinder_dimensions',
-      );
-    $helper->fields_value[$optname] = Configuration::get($optname, 0);
-
-
-    $optname = 'DOOFINDER_LAYER_DLEFT';
-    $fields[] = array(
-      'label' => $this->l('Layer Offset Left'),
-      'name' => $optname,
-      'type' => 'text',
-      'class' => 'doofinder_dimensions',
-      );
-    $helper->fields_value[$optname] = Configuration::get($optname, 0);
-
-
-    $fields_form[1]['form']['input'] = $fields;
-
-
-    $fields = array();
-
-    $fields_form[2]['form'] = array(
-      'legend' => array('title' => $this->l('Doofinder Layer (Advanced)')),
-      'input'  => null,
-      'submit' => array('title' => $this->l('Save'), 'class' => 'button'),
-      );
-
-    // DOOFINDER_SCRIPT
-    $optname = 'DOOFINDER_SCRIPT_';
-    $desc = $this->l('Copy the script as you got it from Doofinder. This setting overrides the ones defined above.');
-
-    foreach (Language::getLanguages(true) as $lang)
-    {
-      $realoptname = $optname.strtoupper($lang['iso_code']);
-      $fields[] = array(
-        'label' => $lang['name'],
-        'desc' => $desc,
-
-        'type' => 'textarea',
-        'cols' => 100,
-        'rows' => 10,
-        'name' => $realoptname,
-        'required' => false,
-        );
-
-      $helper->fields_value[$realoptname] = Configuration::get($realoptname);
-    }
-
-
     $fields_form[2]['form']['input'] = $fields;
+
 
 
     //
@@ -450,8 +469,8 @@ class Doofinder extends Module
       'type' => 'select',
       'options' => array(
         'query' => array(
-          array($optname => 0, 'name' => $this->l('No')),
-          array($optname => 1, 'name' => $this->l('Yes')),
+          array($optname => '0', 'name' => $this->l('No')),
+          array($optname => '1', 'name' => $this->l('Yes')),
           ),
         'id' => $optname,
         'name' => 'name',

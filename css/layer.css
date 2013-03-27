@@ -29,15 +29,11 @@ form#df-searchbox-form #search_button{
 
 #df-searchbox-wrap.top {
     position: absolute;
-    top: 25px;
+    top: 48px;
     left: 50%;
     margin-bottom: 20px;
     margin-left: -200px;
     text-align: center;
-}
-
-#df-searchbox-wrap.top form {
-    top: 13px;
 }
 
 #df-searchbox-wrap.top #df-searchbox {
@@ -54,3 +50,10 @@ form#df-searchbox-form #search_button{
         -webkit-box-sizing: border-box;
         box-sizing: border-box;
     }
+
+.df-warning {
+    background: #c00;
+    color: white;
+    font-weight: bold;
+    padding: 10px;
+}

@@ -12,5 +12,6 @@
   <input type="hidden" name="orderby" value="position" />
   <input type="hidden" name="orderway" value="desc" />
   <input id="df-searchbox" type="text" name="search_query" placeholder="{$placeholder}"
+    {if isset($hook_top) && isset($customized) && $customized} style="{if $width}width: {$width};{/if}"{/if}
     value="{if isset($smarty.get.search_query)}{$smarty.get.search_query|htmlentities:$ENT_QUOTES:'utf-8'|stripslashes}{/if}" />
 </form>
