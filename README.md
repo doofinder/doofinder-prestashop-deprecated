@@ -50,8 +50,11 @@ Said this, you must be sure that the module is attached to two of these hooks, b
 
 In the admin backend go to *Modules > Positions*. You will see a select box labeled *Show:* with a value of *All modules* selected. Select *Doofinder* to display only the information of our interest.
 
-Scroll down to the position labeled *Header of pages* or *displayHeader*. If Doofinder is not there you will have to *transplant* the module there.
+Scroll down to the position labeled *Header of pages* or *displayHeader*. If Doofinder is not there you will have to *transplant* the module there. This position is mandatory to make Doofinder work.
 
+Do the same with the positions labeled *Top of pages* or *Right Column Blocks* or *Left Column Blocks* and transplant the module to the desired position if the module is not there. Remember to use only one of these three positions.
+
+To transplant a module click on the button with a *tick* icon and labeled *Transplant a module*. Check that the selected module is *Doofinder* and in the *Hook into* selector select the desired position. Then click *Save*.
 
 ### The Data Feed
 
