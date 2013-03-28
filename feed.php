@@ -50,7 +50,7 @@ $sql = dfTools::prepareSQL($sql, array('_ID_LANG_' => $id_lang));
 header("Content-Type:text/plain; charset=utf-8");
 
 $header = array('id', 'title', 'link', 'description', 'price', 'sale_price', 'image_link', 'categories', 'availability', 'brand', 'gtin', 'mpn');
-$categories = array();
+$categoriesCache = array();
 
 $res = Db::getInstance(_PS_USE_SQL_SLAVE_)->query($sql);
 
@@ -58,20 +58,6 @@ echo implode(TXT_SEPARATOR, $header).PHP_EOL;
 
 while ($row = Db::getInstance()->nextRow($res))
 {
-  $row['details'] = new Product($row['id_product'], false, $lang->id);
-
-  $category = new Category($row['id_category_default'], $lang->id, $shop->id);
-  $cat_link_rew = Category::getLinkRewrite($row['id_category_default'], $lang->id);
-
-  if (!array_key_exists($cat_link_rew, $categories))
-  {
-    $tmp = array();
-    foreach ($category->getParentsCategories($lang->id) as $cat)
-      if (!$cat['is_root_category'])
-        $tmp[] = $cat['name'];
-    $categories[$cat_link_rew] = implode(' > ', array_reverse($tmp));
-  }
-
   $product = array();
 
   // ID
@@ -81,6 +67,7 @@ while ($row = Db::getInstance()->nextRow($res))
   $product[] = mb_convert_case(dfTools::cleanString($row['name']), MB_CASE_TITLE, 'UTF-8');
 
   // LINK
+  $cat_link_rew = Category::getLinkRewrite($row['id_category_default'], $lang->id);
   $product[] = $context->link->getProductLink(intval($row['id_product']),
                                               $row['link_rewrite'],
                                               $cat_link_rew,
@@ -105,8 +92,33 @@ while ($row = Db::getInstance()->nextRow($res))
                                             $row['id_product'] .'-'. $image['id_image'],
                                             $cfg_image_size);
 
-  // PRODUCT CATEGORY
-  $product[] = dfTools::cleanString($categories[$cat_link_rew]);
+  // PRODUCT CATEGORIES
+
+  $productCategories = array();
+
+  foreach (Product::getProductCategories($row['id_product']) as $categoryId)
+  {
+    $category = new Category($categoryId, $lang->id, $shop->id);
+    $cat_link_rew = Category::getLinkRewrite($categoryId, $lang->id);
+
+    if (!array_key_exists($cat_link_rew, $categoriesCache))
+    {
+      $tmp = array();
+      foreach ($category->getParentsCategories($lang->id) as $cat)
+        if (!$cat['is_root_category'])
+          $tmp[] = $cat['name'];
+
+      $tmp = trim(dfTools::cleanString(implode(' > ', array_reverse($tmp))));
+
+      if (!empty($tmp))
+        $categoriesCache[$cat_link_rew] = $tmp;
+    }
+
+    if (isset($categoriesCache[$cat_link_rew]))
+      $productCategories[] = $categoriesCache[$cat_link_rew];
+  }
+
+  $product[] = implode(' / ', $productCategories);
 
   // AVAILABILITY
   $product[] = intval($row['quantity']) ? 'in stock' : 'out of stock';
