@@ -22,7 +22,7 @@ class Doofinder extends Module
   {
     $this->name = "doofinder";
     $this->tab = "search_filter";
-    $this->version = "1.0";
+    $this->version = "1.1.2";
     $this->author = "Doofinder (http://www.doofinder.com)";
     $this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.6');
 
@@ -272,44 +272,6 @@ class Doofinder extends Module
     $helper = new HelperForm();
     $default_lang_id = (int) Configuration::get('PS_LANG_DEFAULT');
 
-    //
-    // DOOFINDER LAYER
-    //
-
-    $fields = array();
-
-    $fields_form[0]['form'] = array(
-      'legend' => array('title' => $this->l('Doofinder Layer')),
-      'input'  => null,
-      'submit' => array('title' => $this->l('Save'), 'class' => 'button'),
-      );
-
-
-    // DOOFINDER_SCRIPT
-    $optname = 'DOOFINDER_SCRIPT_';
-    $desc = $this->l('Paste the script as you got it from Doofinder.');
-
-    foreach (Language::getLanguages(true) as $lang)
-    {
-      $realoptname = $optname.strtoupper($lang['iso_code']);
-      $url = $this->feedURLforLang($lang['iso_code']);
-      $fields[] = array(
-        'label' => $lang['name'],
-        'desc' => sprintf('<span class="df-notice"><b>%s [%s]:</b> <a href="%s" target="_blank">%s</a></span>%s', $this->l('Data Feed URL'), strtoupper($lang['iso_code']), $url, $url, $desc),
-
-        'type' => 'textarea',
-        'cols' => 100,
-        'rows' => 10,
-        'name' => $realoptname,
-        'required' => false,
-        );
-
-      $helper->fields_value[$realoptname] = Configuration::get($realoptname);
-    }
-
-
-    $fields_form[0]['form']['input'] = $fields;
-
 
 
     //
@@ -318,7 +280,7 @@ class Doofinder extends Module
 
     $fields = array();
 
-    $fields_form[1]['form'] = array(
+    $fields_form[0]['form'] = array(
       'legend' => array('title' => $this->l('Searchbox in Page Top')),
       'input'  => null,
       'submit' => array('title' => $this->l('Save'), 'class' => 'button'),
@@ -326,16 +288,15 @@ class Doofinder extends Module
 
     $optname = 'DOOFINDER_INPUT_ENABLED';
     $field = $this->getYesNoSelectFor($optname, $this->l('Enable Module\'s Searchbox'));
-    $field['desc'] = sprintf($this->l("<span class='df-notice'>If <b>YES</b> remember to update the script's queryInput value to <b>'%s'</b>.</span>"), '#df-searchbox');
+    // $field['desc'] = $this->l("<span class='df-notice'>If <b>YES</b> remember to execute the layer installer again.</span>"); // TODO
     $fields[] = $field;
     $helper->fields_value[$optname] = Configuration::get($optname);
 
-    $position_warning = $this->l("<span class='df-notice'><b>WARNING:</b> This can modify the position of the layer. Adjust the <b>dtop</b> and <b>dleft</b> values in your script.</span>");
 
     $optname = 'DOOFINDER_INPUT_WIDTH';
     $fields[] = array(
       'label' => $this->l('Searchbox Width'),
-      'desc' => $position_warning,
+      'desc' => 'i.e: 396px',
       'name' => $optname,
       'type' => 'text',
       'class' => 'doofinder_dimensions',
@@ -346,7 +307,7 @@ class Doofinder extends Module
     $optname = 'DOOFINDER_INPUT_TOP';
     $fields[] = array(
       'label' => $this->l('Top Position'),
-      'desc' => $position_warning,
+      'desc' => 'i.e: 48px',
       'name' => $optname,
       'type' => 'text',
       'class' => 'doofinder_dimensions',
@@ -357,7 +318,7 @@ class Doofinder extends Module
     $optname = 'DOOFINDER_INPUT_LEFT';
     $fields[] = array(
       'label' => $this->l('Left Position'),
-      'desc' => $position_warning,
+      'desc' => 'i.e: 50%',
       'name' => $optname,
       'type' => 'text',
       'class' => 'doofinder_dimensions',
@@ -365,7 +326,7 @@ class Doofinder extends Module
     $helper->fields_value[$optname] = Configuration::get($optname, '');
 
 
-    $fields_form[1]['form']['input'] = $fields;
+    $fields_form[0]['form']['input'] = $fields;
 
 
 
@@ -375,7 +336,7 @@ class Doofinder extends Module
 
     $fields = array();
 
-    $fields_form[2]['form'] = array(
+    $fields_form[1]['form'] = array(
       'legend' => array('title' => $this->l('Data Feed Settings')),
       'input'  => null,
       'submit' => array('title' => $this->l('Save'), 'class' => 'button'),
@@ -420,6 +381,46 @@ class Doofinder extends Module
       );
 
     $helper->fields_value[$optname] = Configuration::get($optname);
+
+
+    $fields_form[1]['form']['input'] = $fields;
+
+
+
+    //
+    // DOOFINDER SCRIPTS
+    //
+
+    $fields = array();
+
+    $fields_form[2]['form'] = array(
+      'legend' => array('title' => $this->l('Doofinder Script')),
+      'input'  => null,
+      'submit' => array('title' => $this->l('Save'), 'class' => 'button'),
+      );
+
+
+    // DOOFINDER_SCRIPT
+    $optname = 'DOOFINDER_SCRIPT_';
+    $desc = $this->l('Paste the script as you got it from Doofinder.');
+
+    foreach (Language::getLanguages(true) as $lang)
+    {
+      $realoptname = $optname.strtoupper($lang['iso_code']);
+      $url = $this->feedURLforLang($lang['iso_code']);
+      $fields[] = array(
+        'label' => $lang['name'],
+        'desc' => sprintf('<span class="df-notice"><b>%s [%s]:</b> <a href="%s" target="_blank">%s</a></span>%s', $this->l('Data Feed URL'), strtoupper($lang['iso_code']), $url, $url, $desc),
+
+        'type' => 'textarea',
+        'cols' => 100,
+        'rows' => 10,
+        'name' => $realoptname,
+        'required' => false,
+        );
+
+      $helper->fields_value[$realoptname] = Configuration::get($realoptname);
+    }
 
 
     $fields_form[2]['form']['input'] = $fields;

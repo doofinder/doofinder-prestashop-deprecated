@@ -1,9 +1,7 @@
-{if $searchbox_enabled && isset($script)}
-  {if isset($hook_mobile)}
-    <div class="input_search" data-role="fieldcontain">
-  {else}
-    <div id="df-searchbox-wrap" class="top"{if $customized} style="{if $top}top: {$top};{/if}{if $left}left: {$left};{/if}"{/if}>
-  {/if}
-      {include file="$self/form.tpl"}
-    </div>
+{if isset($hook_mobile)}
+  <div class="input_search" data-role="fieldcontain">
+{else}
+  <div id="df-searchbox-wrap" class="top"{if $customized} style="{if $top}top: {$top};{/if}{if $left}left: {$left};{/if}"{/if}>
 {/if}
+    {include file="$self/form.tpl"}
+  </div>
