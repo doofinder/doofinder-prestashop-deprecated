@@ -41,7 +41,7 @@ form#df-searchbox-form #search_button{
 }
 
 #df-searchbox-wrap.block form {
-    padding: 10px 11px 0;
+    padding: 10px 11px;
 }
     #df-searchbox-wrap.block form #df-searchbox {
         margin: 5px 0 0;

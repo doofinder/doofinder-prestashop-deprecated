@@ -1,3 +1,8 @@
+#doofinder-options label { width: 250px; }
+#doofinder-options fieldset + fieldset { margin-top: 20px; }
+#doofinder-options .margin-form { padding-left: 260px;}
+#doofinder-options .submit { text-align: center; margin-top: 20px; }
+
 .doofinder_hashid {
     font-family: Monaco, 'Lucida Console', 'Courier New', monospace;
     font-size: 11px;
@@ -11,12 +16,15 @@
     width: 40px;
 }
 
-#fieldset_2 textarea {
-    width: 640px;
+textarea.df-script {
+    width: 600px;
     min-height: 320px;
     font-family: Monaco, 'Lucida Console', 'Courier New', monospace;
     font-size: 11px;
     resize: vertical;
+}
+textarea.df-script:focus {
+    background-color: white;
 }
 
 .df-notice {
@@ -27,7 +35,7 @@
     border: 1px dotted #CCCED7;
     padding: 5px;
     margin-bottom: 0.5em;
-    width: 638px;
+    width: 598px;
 }
 
 .df-notice b {

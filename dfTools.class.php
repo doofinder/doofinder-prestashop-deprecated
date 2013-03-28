@@ -35,13 +35,12 @@ class dfTools
   public static function getAvailableImageSizes()
   {
     $sizes = array();
-    $sql = self::prepareSQL("SELECT `name` DF_GS_IMAGE_SIZE, `name` FROM `_DB_PREFIX_image_type` WHERE `products` = 1 ORDER BY `name`;");
+    $sql = self::prepareSQL("SELECT `name` FROM `_DB_PREFIX_image_type` WHERE `products` = 1 ORDER BY `name`;");
 
     foreach (Db::getInstance()->ExecuteS($sql) as $size)
     {
-      $sizes[$size['DF_GS_IMAGE_SIZE']] = $size;
+      $sizes[$size['name']] = $size['name'];
     }
-
     return $sizes;
   }
 
