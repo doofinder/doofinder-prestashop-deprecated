@@ -62,12 +62,19 @@ Doofinder needs your product information to be read from a data file located in 
 
     http://www.example.com/modules/doofinder/feed.php?lang=es
 
-![Data Feed Settings](http://f.cl.ly/items/2d2k0W0W3w17360t2v0Y/the-data-feed.png)
+![Data Feed Settings](http://f.cl.ly/items/0G2I2T1J3G3r2I3X0T0o/the-data-feed.png)
 
-In the Data Feed section you can configure two parameters:
+In the Data Feed section you can configure these parameters:
 
 - **Product Image Size:** The image size to be displayed in the layer from those defined in your store.
 - **Product Description Length:** Index the short description or the long one. The latter is recommended.
+- **Currency for each active language:** The price of the products will be converted to the selected currency using the internal conversion rates.
+
+You can also force a different currency conversion by passing a `currency` parameter to the feed URL:
+
+	http://www.example.com/modules/doofinder/feed.php?lang=es&currency=USD
+
+The value must be the ISO alpha code for the currency and the currency must be active in your system. If not, then the default active currency will be used instead.
 
 ### The Doofinder Scripts
 
