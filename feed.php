@@ -24,11 +24,19 @@ $id_lang = intval($id_lang ? Language::getIdByIso($id_lang) : (int) $context->la
 $lang = new Language($id_lang);
 
 $id_currency = Tools::getValue('currency');
-$id_currency = intval($id_currency ? Currency::getIdByIsoCode(strtoupper($id_currency)) : $context->currency->id);
 if ($id_currency)
-  $currency = new Currency($id_currency);
+{
+  $id_currency = Currency::getIdByIsoCode(strtoupper($id_currency));
+}
 else
-  $currency = new Currency($context->currency->id);
+{
+  $optname = 'DF_GS_CURRENCY_'.strtoupper($lang->iso_code);
+  $id_currency = Currency::getIdByIsoCode(Configuration::get($optname));
+
+  if (!$id_currency)
+    $id_currency = $context->currency->id;
+}
+$currency = new Currency($id_currency);
 
 $cfg_short_desc = (intval(Configuration::get('DF_GS_DESCRIPTION_TYPE')) == Doofinder::GS_SHORT_DESCRIPTION);
 $cfg_image_size = Configuration::get('DF_GS_IMAGE_SIZE');

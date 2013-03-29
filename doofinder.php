@@ -22,7 +22,7 @@ class Doofinder extends Module
   {
     $this->name = "doofinder";
     $this->tab = "search_filter";
-    $this->version = "1.1.3";
+    $this->version = "1.1.4";
     $this->author = "Doofinder (http://www.doofinder.com)";
     $this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.6');
 
@@ -232,7 +232,7 @@ class Doofinder extends Module
       }
     }
 
-    $cfgLangStrValues = array('DOOFINDER_SCRIPT_' => true);
+    $cfgLangStrValues = array('DOOFINDER_SCRIPT_' => true, 'DF_GS_CURRENCY_' => false);
     foreach ($cfgLangStrValues as $prefix => $html)
     {
       foreach (Language::getLanguages() as $lang)
@@ -271,8 +271,7 @@ class Doofinder extends Module
   {
     $helper = new HelperForm();
     $default_lang_id = (int) Configuration::get('PS_LANG_DEFAULT');
-
-
+    $default_currency = Currency::getDefaultCurrency();
 
     //
     // SEARCH BOX
@@ -345,7 +344,6 @@ class Doofinder extends Module
 
     // DF_GS_IMAGE_SIZE
     $optname = 'DF_GS_IMAGE_SIZE';
-
     $fields[] = array(
       'label' => $this->l('Product Image Size'),
 
@@ -358,13 +356,11 @@ class Doofinder extends Module
       'name' => $optname,
       'required' => true,
       );
-
     $helper->fields_value[$optname] = Configuration::get($optname);
 
 
     // DF_GS_DESCRIPTION_TYPE
     $optname = 'DF_GS_DESCRIPTION_TYPE';
-
     $fields[] = array(
       'label' => $this->l('Product Description Length'),
 
@@ -379,8 +375,27 @@ class Doofinder extends Module
         ),
       'name' => $optname,
       );
-
     $helper->fields_value[$optname] = Configuration::get($optname);
+
+
+    // DF_GS_CURRENCY_<LANG>
+    $optname = 'DF_GS_CURRENCY_';
+    foreach (Language::getLanguages(true) as $lang)
+    {
+      $realoptname = $optname.strtoupper($lang['iso_code']);
+      $fields[] = array(
+        'label' => sprintf($this->l("Currency for %s"), $lang['name']),
+        'type' => 'select',
+        'options' => array(
+          'query' => dfTools::getAvailableCurrencies(),
+          'id' => 'iso_code',
+          'name' => 'name',
+          ),
+        'name' => $realoptname,
+        'required' => true,
+        );
+      $helper->fields_value[$realoptname] = Configuration::get($realoptname, $default_currency->iso_code);
+    }
 
 
     $fields_form[1]['form']['input'] = $fields;
