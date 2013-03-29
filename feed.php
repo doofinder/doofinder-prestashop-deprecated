@@ -23,7 +23,12 @@ $id_lang = Tools::getValue('lang');
 $id_lang = intval($id_lang ? Language::getIdByIso($id_lang) : (int) $context->language->id);
 $lang = new Language($id_lang);
 
-$currency = new Currency((int) $context->currency->id);
+$id_currency = Tools::getValue('currency');
+$id_currency = intval($id_currency ? Currency::getIdByIsoCode(strtoupper($id_currency)) : $context->currency->id);
+if ($id_currency)
+  $currency = new Currency($id_currency);
+else
+  $currency = new Currency($context->currency->id);
 
 $cfg_short_desc = (intval(Configuration::get('DF_GS_DESCRIPTION_TYPE')) == Doofinder::GS_SHORT_DESCRIPTION);
 $cfg_image_size = Configuration::get('DF_GS_IMAGE_SIZE');
@@ -83,8 +88,8 @@ while ($row = Db::getInstance()->nextRow($res))
   $product_price = Product::getPriceStatic($row['id_product'], true, null, 2, null, false, false);
   $onsale_price = Product::getPriceStatic($row['id_product'], true, null, 2);
 
-  $product[] = $product_price;
-  $product[] = ($product_price != $onsale_price) ? $onsale_price : "";
+  $product[] = Tools::convertPrice($product_price, $currency);
+  $product[] = ($product_price != $onsale_price) ? Tools::convertPrice($onsale_price, $currency) : "";
 
   // IMAGE LINK
   $image = Image::getCover($row['id_product']);
