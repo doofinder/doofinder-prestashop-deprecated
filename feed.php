@@ -20,7 +20,10 @@ $lang = new Language($id_lang);
 
 $id_currency = Tools::getValue('currency');
 $id_currency = intval($id_currency ? Currency::getIdByIsoCode(strtoupper($id_currency)) : $cookie->id_currency);
-$currency = new Currency($id_currency);
+if ($id_currency)
+  $currency = new Currency($id_currency);
+else
+  $currency = new Currency($cookie->id_currency);
 
 $link = new Link();
 
