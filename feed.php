@@ -19,11 +19,19 @@ $id_lang = intval($id_lang ? Language::getIdByIso($id_lang) : (int) $cookie->id_
 $lang = new Language($id_lang);
 
 $id_currency = Tools::getValue('currency');
-$id_currency = intval($id_currency ? Currency::getIdByIsoCode(strtoupper($id_currency)) : $cookie->id_currency);
 if ($id_currency)
-  $currency = new Currency($id_currency);
+{
+  $id_currency = Currency::getIdByIsoCode(strtoupper($id_currency));
+}
 else
-  $currency = new Currency($cookie->id_currency);
+{
+  $optname = 'DF_GS_CURRENCY_'.strtoupper($lang->iso_code);
+  $id_currency = Currency::getIdByIsoCode(Configuration::get($optname));
+
+  if (!$id_currency)
+    $id_currency = $cookie->id_currency;
+}
+$currency = new Currency($id_currency);
 
 $link = new Link();
 

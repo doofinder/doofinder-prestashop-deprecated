@@ -44,6 +44,20 @@ class dfTools
     return $sizes;
   }
 
+  public static function getAvailableCurrencies()
+  {
+    $currencies = array();
+
+    $sql = self::prepareSQL("SELECT `iso_code`, `name` FROM `_DB_PREFIX_currency` WHERE `active` = 1 ORDER BY `name`;");
+
+    foreach (Db::getInstance()->ExecuteS($sql) as $currency)
+    {
+      $currencies[$currency['iso_code']] = $currency['name'];
+    }
+
+    return $currencies;
+  }
+
   //
   // Text Tools
   //

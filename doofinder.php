@@ -25,7 +25,7 @@ class Doofinder extends Module
   {
     $this->name = "doofinder";
     $this->tab = "search_filter";
-    $this->version = "1.0.2";
+    $this->version = "1.0.3";
     $this->author = "Doofinder (http://www.doofinder.com)";
     $this->ps_versions_compliancy = array('min' => '1.4', 'max' => '1.4');
 
@@ -238,11 +238,14 @@ class Doofinder extends Module
       }
     }
 
-    $prefix = 'DOOFINDER_SCRIPT_';
-    foreach (Language::getLanguages() as $lang)
+    $cfgLangStrValues = array('DOOFINDER_SCRIPT_' => true, 'DF_GS_CURRENCY_' => false);
+    foreach ($cfgLangStrValues as $prefix => $html)
     {
-      $optname = $prefix.strtoupper($lang['iso_code']);
-      Configuration::updateValue($optname, Tools::getValue($optname), true);
+      foreach (Language::getLanguages() as $lang)
+      {
+        $optname = $prefix.strtoupper($lang['iso_code']);
+        Configuration::updateValue($optname, Tools::getValue($optname), $html);
+      }
     }
 
     // If I don't do this the DOOFINDER_SCRIPT_* values loose PHP_EOLs.
@@ -278,6 +281,7 @@ class Doofinder extends Module
     global $currentIndex;
 
     $defaultLanguage = intval(Configuration::get('PS_LANG_DEFAULT'));
+    $default_currency = Currency::getDefaultCurrency();
     $languages = Language::getLanguages();
     $yesNoChoices = array(
       '0' => $this->l('No'),
@@ -361,6 +365,17 @@ class Doofinder extends Module
     $field = dfForm::getSelectFor($optname, $optvalue, $choices);
     $label = $this->l('Product Description Length');
     $this->_html .= dfForm::wrapField($optname, $label, $field);
+
+
+    $baseoptname = 'DF_GS_CURRENCY_';
+    foreach (Language::getLanguages(true) as $lang)
+    {
+      $optname = $baseoptname.strtoupper($lang['iso_code']);
+      $optvalue = Configuration::get($optname, $default_currency->iso_code);
+      $field = dfForm::getSelectFor($optname, $optvalue, dfTools::getAvailableCurrencies());
+      $label = sprintf($this->l("Currency for %s"), $lang['name']);
+      $this->_html .= dfForm::wrapField($optname, $label, $field);
+    }
 
     $this->_html .= $submitButton;
     $this->_html .= '</fieldset>';
