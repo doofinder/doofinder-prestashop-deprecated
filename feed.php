@@ -6,8 +6,7 @@ require_once(dirname(__FILE__).'/../../config/config.inc.php');
 require_once(dirname(__FILE__).'/../../init.php');
 require_once(dirname(__FILE__).'/doofinder.php');
 
-$context = Context::getContext();
-
+global $cookie;
 
 //
 // Configure script
@@ -15,15 +14,15 @@ $context = Context::getContext();
 
 define('TXT_SEPARATOR', '|');
 
-$shop = new Shop((int) $context->shop->id);
-if (!$shop->id)
-  die('NOT PROPERLY CONFIGURED');
-
 $id_lang = Tools::getValue('lang');
-$id_lang = intval($id_lang ? Language::getIdByIso($id_lang) : (int) $context->language->id);
+$id_lang = intval($id_lang ? Language::getIdByIso($id_lang) : (int) $cookie->id_lang);
 $lang = new Language($id_lang);
 
-$currency = new Currency((int) $context->currency->id);
+$id_currency = Tools::getValue('currency');
+$id_currency = intval($id_currency ? Currency::getIdByIsoCode(strtoupper($id_currency)) : $cookie->id_currency);
+$currency = new Currency($id_currency);
+
+$link = new Link();
 
 $cfg_short_desc = (intval(Configuration::get('DF_GS_DESCRIPTION_TYPE')) == Doofinder::GS_SHORT_DESCRIPTION);
 $cfg_image_size = Configuration::get('DF_GS_IMAGE_SIZE');
@@ -36,7 +35,6 @@ $sql = "SELECT *
           AND pl.id_lang = _ID_LANG_
         ORDER BY p.id_product;";
 $sql = dfTools::prepareSQL($sql, array('_ID_LANG_' => $id_lang));
-
 
 //
 // Output
@@ -52,11 +50,9 @@ header("Content-Type:text/plain; charset=utf-8");
 $header = array('id', 'title', 'link', 'description', 'price', 'sale_price', 'image_link', 'categories', 'availability', 'brand', 'gtin', 'mpn');
 $categoriesCache = array();
 
-$res = Db::getInstance(_PS_USE_SQL_SLAVE_)->query($sql);
-
 echo implode(TXT_SEPARATOR, $header).PHP_EOL;
 
-while ($row = Db::getInstance()->nextRow($res))
+foreach(Db::s($sql) as $row)
 {
   $product = array();
 
@@ -68,13 +64,11 @@ while ($row = Db::getInstance()->nextRow($res))
 
   // LINK
   $cat_link_rew = Category::getLinkRewrite($row['id_category_default'], $lang->id);
-  $product[] = $context->link->getProductLink(intval($row['id_product']),
-                                              $row['link_rewrite'],
-                                              $cat_link_rew,
-                                              $row['ean13'],
-                                              intval($row['id_lang']),
-                                              $shop->id,
-                                              0, true);
+  $product[] = $link->getProductLink(intval($row['id_product']),
+                                     $row['link_rewrite'],
+                                     $cat_link_rew,
+                                     $row['ean13'],
+                                     intval($row['id_lang']));
 
   // DESCRIPTION
   $product[] = dfTools::cleanString($row['description'.($cfg_short_desc ? '_short' : '')]);
@@ -83,14 +77,14 @@ while ($row = Db::getInstance()->nextRow($res))
   $product_price = Product::getPriceStatic($row['id_product'], true, null, 2, null, false, false);
   $onsale_price = Product::getPriceStatic($row['id_product'], true, null, 2);
 
-  $product[] = $product_price;
-  $product[] = ($product_price != $onsale_price) ? $onsale_price : "";
+  $product[] = Tools::convertPrice($product_price, $currency);
+  $product[] = ($product_price != $onsale_price) ? Tools::convertPrice($onsale_price, $currency) : "";
 
   // IMAGE LINK
   $image = Image::getCover($row['id_product']);
-  $product[] = $context->link->getImageLink($row['link_rewrite'],
-                                            $row['id_product'] .'-'. $image['id_image'],
-                                            $cfg_image_size);
+  $product[] = $link->getImageLink($row['link_rewrite'],
+                                   $row['id_product'] .'-'. $image['id_image'],
+                                   $cfg_image_size);
 
   // PRODUCT CATEGORIES
 
