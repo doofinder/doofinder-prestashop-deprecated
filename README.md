@@ -26,7 +26,7 @@ If you decide to disable the entire Prestshop default module and use our searchb
 
 The same must be done if you want to use this plugin as a block in the left or right columns.
 
-![Searchbox configuration](http://f.cl.ly/items/1J292G3G0N0o1j1U1T17/the-searchbox.png)
+![Searchbox configuration](http://f.cl.ly/items/0v1H1c3n3K3p2q44383K/the-searchbox.png)
 
 To enable the search box in the top of the page select `Yes` in the select box and update the `queryInput` value in all the scripts.
 
@@ -62,7 +62,7 @@ Doofinder needs your product information to be read from a data file located in 
 
     http://www.example.com/modules/doofinder/feed.php?lang=es
 
-![Data Feed Settings](http://f.cl.ly/items/2d2k0W0W3w17360t2v0Y/the-data-feed.png)
+![Data Feed Settings](http://f.cl.ly/items/2y373R2V2c203M3y3T36/the-data-feed.png)
 
 In the Data Feed section you can configure two parameters:
 
@@ -77,7 +77,7 @@ In Doofinder you can have multiple search engines for one website but each searc
 
 Once you have the init scripts for each of your store languages, you have to paste them in the corresponding text boxes.
 
-![Doofinder Script Configuration](http://f.cl.ly/items/2D0N1w2V1e2q2l2j2b0I/the-script.png)
+![Doofinder Script Configuration](http://f.cl.ly/items/0b3Q3n1d24341Y0M392j/the-script.png)
 
 It is possible that you have to adjust the scripts to match your design preferences. Don't worry, it's a matter of changing some text values.
 
