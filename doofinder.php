@@ -25,7 +25,7 @@ class Doofinder extends Module
   {
     $this->name = "doofinder";
     $this->tab = "search_filter";
-    $this->version = "1.0.5";
+    $this->version = "1.0.6";
     $this->author = "Doofinder (http://www.doofinder.com)";
     $this->ps_versions_compliancy = array('min' => '1.4', 'max' => '1.4');
 

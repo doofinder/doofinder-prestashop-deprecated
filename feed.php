@@ -62,6 +62,7 @@ $header = array('id', 'title', 'link', 'description', 'price', 'sale_price', 'im
 $categoriesCache = array();
 
 echo implode(TXT_SEPARATOR, $header).PHP_EOL;
+flush(); ob_flush();
 
 foreach(Db::s($sql) as $row)
 {
@@ -138,5 +139,6 @@ foreach(Db::s($sql) as $row)
   $product[] = dfTools::cleanString($row['supplier_reference']);
 
   echo implode(TXT_SEPARATOR, $product).PHP_EOL;
+  flush(); ob_flush();
 }
 
