@@ -94,7 +94,7 @@ class dfTools
     $text = preg_replace('#<br ?/?>#isU', $blank, $text);
     $text = preg_replace('/(\r\n|\n|\r)/', $blank, $text);
     $text = strip_tags(html_entity_decode($text, ENT_QUOTES, 'UTF-8'));
-    $text = ereg_replace("&euro;", "€", $text);
+    $text = preg_replace("/&euro;/", "€", $text);
     $text = preg_replace('#\t+#', $blank, $text);
     $text = preg_replace('#\t+#', $blank, $text);
     $text = preg_replace('#'.CHR(10).'+#', $blank,$text);
