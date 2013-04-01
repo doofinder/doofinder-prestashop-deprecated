@@ -68,6 +68,7 @@ $categoriesCache = array();
 $res = Db::getInstance(_PS_USE_SQL_SLAVE_)->query($sql);
 
 echo implode(TXT_SEPARATOR, $header).PHP_EOL;
+flush(); ob_flush();
 
 while ($row = Db::getInstance()->nextRow($res))
 {
@@ -146,5 +147,6 @@ while ($row = Db::getInstance()->nextRow($res))
   $product[] = dfTools::cleanString($row['supplier_reference']);
 
   echo implode(TXT_SEPARATOR, $product).PHP_EOL;
+  flush(); ob_flush();
 }
 
