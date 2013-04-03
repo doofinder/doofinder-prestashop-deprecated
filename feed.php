@@ -1,7 +1,8 @@
 <?php
-/*
-LICENCIA
-*/
+
+if (!ini_get('safe_mode'))
+  @set_time_limit(0);
+
 require_once(dirname(__FILE__).'/../../config/config.inc.php');
 require_once(dirname(__FILE__).'/../../init.php');
 require_once(dirname(__FILE__).'/doofinder.php');
@@ -51,15 +52,9 @@ $sql = dfTools::prepareSQL($sql, array('_ID_LANG_' => $id_lang));
 // Output
 //
 
-// if (substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip'))
-//   ob_start("ob_gzhandler");
-// else
-//   ob_start();
-
 header("Content-Type:text/plain; charset=utf-8");
 
 $header = array('id', 'title', 'link', 'description', 'price', 'sale_price', 'image_link', 'categories', 'availability', 'brand', 'gtin', 'mpn');
-$categoriesCache = array();
 
 echo implode(TXT_SEPARATOR, $header).PHP_EOL;
 flush(); ob_flush();
@@ -107,21 +102,13 @@ foreach(Db::s($sql) as $row)
     $category = new Category($categoryId, $lang->id, $shop->id);
     $cat_link_rew = Category::getLinkRewrite($categoryId, $lang->id);
 
-    if (!array_key_exists($cat_link_rew, $categoriesCache))
-    {
-      $tmp = array();
-      foreach ($category->getParentsCategories($lang->id) as $cat)
-        if (!$cat['is_root_category'])
-          $tmp[] = $cat['name'];
+    $tmp = array();
+    foreach ($category->getParentsCategories($lang->id) as $cat)
+      if (!$cat['is_root_category'])
+        $tmp[] = $cat['name'];
 
-      $tmp = trim(dfTools::cleanString(implode(' > ', array_reverse($tmp))));
-
-      if (!empty($tmp))
-        $categoriesCache[$cat_link_rew] = $tmp;
-    }
-
-    if (isset($categoriesCache[$cat_link_rew]))
-      $productCategories[] = $categoriesCache[$cat_link_rew];
+    $productCategories[] = trim(dfTools::cleanString(
+      implode(' > ', array_reverse($tmp))));
   }
 
   $product[] = implode(' / ', $productCategories);
