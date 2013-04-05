@@ -149,7 +149,7 @@ while ($row = Db::getInstance()->nextRow($res))
   echo $categories.TXT_SEPARATOR;
 
   // AVAILABILITY
-  echo intval($row['quantity']) ? 'in stock' : 'out of stock'.TXT_SEPARATOR;
+  echo (intval($row['quantity']) ? 'in stock' : 'out of stock').TXT_SEPARATOR;
 
   // BRAND
   echo dfTools::cleanString(Manufacturer::getNameById(intval($row['id_manufacturer']))).TXT_SEPARATOR;
