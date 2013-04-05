@@ -93,4 +93,17 @@ class dfTools
     $text = str_replace(array(chr(9), chr(10)), " ", $text);
     return trim(preg_replace('/[\t\s]+|[|\r\n]/', " ", $text));
   }
+
+  /**
+   * Cleans a string in an extreme way to deal with conflictive strings like
+   * titles that contains references that can be searched with or without
+   * certain characters.
+   *
+   * TODO: Make it configurable from the admin.
+   */
+  public static function purgeString($text)
+  {
+    $forbidden = array('-');
+    return str_replace($forbidden, "", $text);
+  }
 }
