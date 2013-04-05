@@ -89,18 +89,8 @@ class dfTools
 
   public static function cleanString($text)
   {
-    $blank = " ";
-    $text = trim($text);
-    $text = preg_replace('#<br ?/?>#isU', $blank, $text);
-    $text = preg_replace('/(\r\n|\n|\r)/', $blank, $text);
     $text = strip_tags(html_entity_decode($text, ENT_QUOTES, 'UTF-8'));
-    $text = preg_replace("/&euro;/", "€", $text);
-    $text = preg_replace('#\t+#', $blank, $text);
-    $text = preg_replace('#\t+#', $blank, $text);
-    $text = preg_replace('#'.CHR(10).'+#', $blank,$text);
-    $text = str_replace(CHR(9), $blank, $text);
-    $text = preg_replace('# +#', $blank, $text);
-    $text = str_replace('|', $blank, $text);
-    return trim($text);
+    $text = str_replace(array(chr(9), chr(10)), " ", $text);
+    return trim(preg_replace('/[\t\s]+|[|\r\n]/', " ", $text));
   }
 }
