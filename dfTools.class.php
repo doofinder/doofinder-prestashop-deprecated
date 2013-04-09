@@ -59,6 +59,44 @@ class dfTools
     return $currencies;
   }
 
+  public static function countAvailableProductsForLanguage($id_lang)
+  {
+    $sql = "SELECT COUNT(*) AS total
+            FROM _DB_PREFIX_product p
+            LEFT JOIN _DB_PREFIX_product_lang pl
+              ON p.id_product = pl.id_product
+            WHERE p.active = 1
+              AND pl.id_lang = _ID_LANG_;";
+    $sql = self::prepareSQL($sql, array('_ID_LANG_' => $id_lang));
+    $res = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+    return intval($res[0]['total']);
+  }
+
+  public static function getAvailableProductsForLanguage($id_lang, $limit=false, $offset=false)
+  {
+    $sql = "SELECT *
+            FROM _DB_PREFIX_product p
+            LEFT JOIN _DB_PREFIX_product_lang pl
+              ON p.id_product = pl.id_product
+            WHERE p.active = 1
+              AND pl.id_lang = _ID_LANG_
+            ORDER BY p.id_product";
+
+    if (false !== $limit && is_numeric($limit))
+    {
+      $sql .= " LIMIT ".intval($limit);
+    }
+
+    if (false !== $offset && is_numeric($offset))
+    {
+      $sql .= " OFFSET ".intval($offset);
+    }
+
+    $sql = self::prepareSQL($sql, array('_ID_LANG_' => $id_lang)).";";
+
+    return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+  }
+
   //
   // Text Tools
   //
@@ -105,5 +143,49 @@ class dfTools
   {
     $forbidden = array('-');
     return str_replace($forbidden, "", $text);
+  }
+
+  public static function getLanguageFromRequest($param = 'lang')
+  {
+    $context = Context::getContext();
+
+    $id_lang = Tools::getValue($param);
+    if (!is_numeric($id_lang))
+      $id_lang = intval($id_lang ? Language::getIdByIso($id_lang) : (int) $context->language->id);
+
+    return new Language($id_lang);
+  }
+
+  public static function getCurrencyForLanguageFromRequest(Language $lang, $param = 'currency')
+  {
+    if ($id_currency = Tools::getValue($param))
+    {
+      if (is_numeric($id_currency))
+        $id_currency = intval($id_currency);
+      else
+        $id_currency = Currency::getIdByIsoCode(strtoupper($id_currency));
+    }
+    else
+    {
+      $optname = 'DF_GS_CURRENCY_'.strtoupper($lang->iso_code);
+      $id_currency = Currency::getIdByIsoCode(Configuration::get($optname));
+    }
+
+    if (!$id_currency)
+    {
+      $context = Context::getContext();
+      $id_currency = $context->currency->id;
+    }
+
+    return new Currency($id_currency);
+  }
+
+  public static function getBaseUrl(array $serverInfo)
+  {
+    $baseUrl = isset($serverInfo['HTTPS']) ? "https://" : "http://";
+    $baseUrl .= $serverInfo['SERVER_NAME'];
+    $baseUrl .= dirname($serverInfo['REQUEST_URI']);
+
+    return $baseUrl;
   }
 }
