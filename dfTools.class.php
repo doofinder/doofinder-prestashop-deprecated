@@ -141,7 +141,7 @@ class dfTools
               AND image_shop.cover = 1
             ORDER BY p.id_product";
     $sql = self::limitSQL($sql, $limit, $offset);
-    $sql = dfTools::prepareSQL($sql, array('_ID_LANG_' => $id_lang));
+    $sql = self::prepareSQL($sql, array('_ID_LANG_' => $id_lang));
 
     return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
   }
@@ -208,7 +208,7 @@ class dfTools
     if (isset(self::$cached_category_paths[$id_category]))
       return self::$cached_category_paths[$id_category];
 
-    $excluded_ids = dfTools::getRootCategoryIds($id_lang);
+    $excluded_ids = self::getRootCategoryIds($id_lang);
     if ($excluded_ids)
     {
       $excluded_ids = implode(', ', $excluded_ids);
