@@ -32,7 +32,7 @@ $offset = intval($offset);
 
 if (!$offset)
 {
-  $header = array('id', 'title', 'link', 'description', 'price', 'sale_price', 'image_link', 'categories', 'availability', 'brand', 'gtin', 'mpn', 'extra_title');
+  $header = array('id', 'title', 'link', 'description', 'price', 'sale_price', 'image_link', 'categories', 'availability', 'brand', 'gtin', 'mpn', 'extra_title_1', 'extra_title_2');
   echo implode(TXT_SEPARATOR, $header).PHP_EOL;
   flush();ob_flush();
 }
@@ -90,8 +90,11 @@ foreach ($rows as $row)
   // MPN
   echo dfTools::cleanString($row['supplier_reference']).TXT_SEPARATOR;
 
-  // EXTRA_TITLE
-  echo dfTools::purgeString($product_title);
+  // EXTRA_TITLE_1
+  echo dfTools::cleanReferences($product_title).TXT_SEPARATOR;
+
+  // EXTRA_TITLE_2
+  echo dfTools::splitReferences($product_title);
 
   echo PHP_EOL;
   flush(); ob_flush();

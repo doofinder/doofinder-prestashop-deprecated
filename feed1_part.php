@@ -12,8 +12,6 @@ $context = Context::getContext();
 //
 
 define('TXT_SEPARATOR', '|');
-define('CATEGORY_SEPARATOR', '/');
-define('CATEGORY_TREE_SEPARATOR', '>');
 
 $shop = new Shop((int) $context->shop->id);
 if (!$shop->id)
@@ -87,9 +85,6 @@ $output = array();
 foreach ($cache['products'] as $z => $row) {
 
     // ID
-
-
-
     $output[$z] = $row['id_product'] . TXT_SEPARATOR;
 
     // TITLE
@@ -183,7 +178,10 @@ foreach ($cache['products'] as $z => $row) {
     $output[$z] .= dfTools::cleanString($row['supplier_reference']) . TXT_SEPARATOR;
 
     // EXTRA_TITLE
-    $output[$z] .= dfTools::purgeString($product_title).PHP_EOL;
+    $output[$z] .= dfTools::cleanReferences($product_title) . TXT_SEPARATOR;
+
+    // EXTRA_TITLE
+    $output[$z] .= dfTools::splitReferences($product_title) . PHP_EOL;
 }
 
 header("Content-Type:text/plain; charset=utf-8");

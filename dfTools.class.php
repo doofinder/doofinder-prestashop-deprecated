@@ -1,4 +1,5 @@
 <?php
+
 define('CATEGORY_SEPARATOR', ' / ');
 define('CATEGORY_TREE_SEPARATOR', ' > ');
 
@@ -356,10 +357,15 @@ class dfTools
    *
    * TODO: Make it configurable from the admin.
    */
-  public static function purgeString($text)
+  public static function cleanReferences($text)
   {
     $forbidden = array('-');
     return str_replace($forbidden, "", $text);
+  }
+
+  public static function splitReferences($text)
+  {
+    return preg_replace("/([^\d\s])([\d])/", "$1 $2", $text);
   }
 
   //

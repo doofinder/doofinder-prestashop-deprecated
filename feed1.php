@@ -22,7 +22,7 @@ foreach($blocks as $k => $rows){
 
 header("Content-Type:text/plain; charset=utf-8");
 
-$header = array('id', 'title', 'link', 'description', 'price', 'sale_price', 'image_link', 'categories', 'availability', 'brand', 'gtin', 'mpn', 'extra_title');
+$header = array('id', 'title', 'link', 'description', 'price', 'sale_price', 'image_link', 'categories', 'availability', 'brand', 'gtin', 'mpn', 'extra_title_1', 'extra_title_2');
 echo implode(TXT_SEPARATOR, $header) . PHP_EOL;
 
 foreach($a as $ids){
