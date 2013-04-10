@@ -1,4 +1,7 @@
 <?php
+define('CATEGORY_SEPARATOR', ' / ');
+define('CATEGORY_TREE_SEPARATOR', ' > ');
+
 class dfTools
 {
   //
@@ -28,10 +31,30 @@ class dfTools
     return str_replace($keys, $values, $sql);
   }
 
+  public static function limitSQL($sql, $limit = false, $offset = false)
+  {
+    if (false !== $limit && is_numeric($limit))
+    {
+      $sql .= " LIMIT ".intval($limit);
+
+      if (false !== $offset && is_numeric($offset))
+      {
+        $sql .= " OFFSET ".intval($offset);
+      }
+    }
+
+    return $sql;
+  }
+
   //
-  // General Shop Info
+  // SQL Queries
   //
 
+  /**
+   * Returns an array of image size names to be used in a <select> box.
+   *
+   * @return array (assoc) with the value of each key as value for it.
+   */
   public static function getAvailableImageSizes()
   {
     $sizes = array();
@@ -45,6 +68,11 @@ class dfTools
     return $sizes;
   }
 
+  /**
+   * Returns an assoc. array. Keys are currency ISO codes. Values are currency
+   * names.
+   * @return array.
+   */
   public static function getAvailableCurrencies()
   {
     $currencies = array();
@@ -59,6 +87,9 @@ class dfTools
     return $currencies;
   }
 
+  /**
+   * Returns the # of products available for a language.
+   */
   public static function countAvailableProductsForLanguage($id_lang)
   {
     $sql = "SELECT COUNT(*) AS total
@@ -72,9 +103,58 @@ class dfTools
     return intval($res[0]['total']);
   }
 
-  public static function getAvailableProductsForLanguage($id_lang, $limit=false, $offset=false)
+  /**
+   * Returns the products available for a language
+   * @param int Language ID.
+   * @param int Optional. Default false. Number of products to get.
+   * @param int Optional. Default false. Offset to start the select from.
+   * @param string Optional. Fields to select.
+   * @return array of rows (assoc arrays).
+   */
+  public static function getAvailableProductsForLanguage($id_lang, $limit=false, $offset=false, $fields=null)
   {
-    $sql = "SELECT *
+    if (null === $fields)
+    {
+      // $fields = "p.*, pl.*, cl.link_rewrite as cat_link_rew, i.id_image";
+      $fields = "pl.id_product, p.id_category_default, m.name AS manufacturer, pl.name, pl.description, pl.description_short, pl.link_rewrite, p.quantity, p.supplier_reference, p.upc, p.ean13, cl.link_rewrite as cat_link_rew, i.id_image";
+    }
+
+    $shopSqlJoin = Shop::addSqlAssociation('image', 'i');
+
+    $sql = "SELECT $fields
+            FROM
+              _DB_PREFIX_product p
+              LEFT JOIN _DB_PREFIX_product_lang pl
+                ON p.id_product = pl.id_product
+              LEFT JOIN _DB_PREFIX_category_lang cl
+                ON cl.id_category = p.id_category_default
+              LEFT JOIN _DB_PREFIX_image i
+                ON i.id_product = p.id_product
+              LEFT JOIN _DB_PREFIX_manufacturer m
+                ON m.id_manufacturer = p.id_manufacturer
+              $shopSqlJoin
+            WHERE
+              p.active = 1
+              AND pl.id_lang = _ID_LANG_
+              AND cl.id_lang = _ID_LANG_
+              AND image_shop.cover = 1
+            ORDER BY p.id_product";
+    $sql = self::limitSQL($sql, $limit, $offset);
+    $sql = dfTools::prepareSQL($sql, array('_ID_LANG_' => $id_lang));
+
+    return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+  }
+
+  /**
+   * Returns the product IDs available for a language
+   * @param int Language ID.
+   * @param int Optional. Default false. Number of products to get.
+   * @param int Optional. Default false. Offset to start the select from.
+   * @return array of int
+   */
+  public static function getAvailableProductIdsForLanguage($id_lang, $limit=false, $offset=false)
+  {
+    $sql = "SELECT p.id_product AS id
             FROM _DB_PREFIX_product p
             LEFT JOIN _DB_PREFIX_product_lang pl
               ON p.id_product = pl.id_product
@@ -82,19 +162,156 @@ class dfTools
               AND pl.id_lang = _ID_LANG_
             ORDER BY p.id_product";
 
-    if (false !== $limit && is_numeric($limit))
-    {
-      $sql .= " LIMIT ".intval($limit);
-    }
-
-    if (false !== $offset && is_numeric($offset))
-    {
-      $sql .= " OFFSET ".intval($offset);
-    }
-
+    $sql = self::limitSQL($sql, $limit, $offset);
     $sql = self::prepareSQL($sql, array('_ID_LANG_' => $id_lang)).";";
 
-    return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+    $ids = array();
+    foreach (Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql) as $value)
+      $ids[] = $value['id'];
+    return $ids;
+  }
+
+  protected static
+    $root_category_ids = null,
+    $cached_category_paths = array();
+
+  /**
+   * Returns an array of "root" categories in Prestashop for a language.
+   * The results are cached in a protected, static variable.
+   * @return array.
+   */
+  public static function getRootCategoryIds($id_lang)
+  {
+    if (null === self::$root_category_ids)
+    {
+      self::$root_category_ids = array();
+      foreach (Category::getRootCategories($id_lang) as $category)
+        self::$root_category_ids[] = $category['id_category'];
+    }
+
+    return self::$root_category_ids;
+  }
+
+  /**
+   * Returns the path to the first, no root ancestor category for the selected
+   * category ID in a language for the selected shop.
+   * Results are cached by category ID.
+   *
+   * @param int Category ID
+   * @param int Language ID
+   * @param int Shop ID
+   * @return string
+   */
+  public static function getCategoryPath($id_category, $id_lang, $id_shop)
+  {
+    if (isset(self::$cached_category_paths[$id_category]))
+      return self::$cached_category_paths[$id_category];
+
+    $excluded_ids = dfTools::getRootCategoryIds($id_lang);
+    if ($excluded_ids)
+    {
+      $excluded_ids = implode(', ', $excluded_ids);
+      $excluded_ids = "AND parent.id_category NOT IN ($excluded_ids)";
+    }
+
+    $sql = "SELECT DISTINCT cl.name AS name
+            FROM
+                _DB_PREFIX_category AS node,
+                (
+                  _DB_PREFIX_category AS parent
+                  INNER JOIN _DB_PREFIX_category_lang AS cl
+                    ON parent.id_category = cl.id_category
+                )
+            WHERE
+                node.nleft BETWEEN parent.nleft AND parent.nright
+                AND node.id_category = $id_category
+                AND cl.id_shop = $id_shop
+                AND cl.id_lang = $id_lang
+                AND parent.level_depth <> 0
+                $excluded_ids
+            ORDER BY parent.nleft;";
+    $sql = self::prepareSQL($sql);
+
+    $path = array();
+    foreach (Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql) as $row)
+      $path[] = $row['name'];
+    $path = implode(CATEGORY_TREE_SEPARATOR, $path);
+
+    self::$cached_category_paths[$id_category] = $path;
+    return $path;
+  }
+
+  /**
+   * Returns a string with all the paths for categories for a product in a language
+   * for the selected shop. If $flat == false then returns them as an array.
+   * @param int Product ID
+   * @param int Language ID
+   * @param int Shop ID
+   * @param bool Optional implode values.
+   * @return string or array
+   */
+  public static function getCategoriesForProductIdAndLanguage($id_product, $id_lang, $id_shop, $flat=true)
+  {
+    $sql = "SELECT c.id_category, c.id_parent, c.level_depth, c.nleft, c.nright
+            FROM _DB_PREFIX_category_product AS pc
+            INNER JOIN _DB_PREFIX_category AS c
+              ON pc.id_category = c.id_category
+            WHERE
+              pc.id_product = $id_product
+            ORDER BY
+              c.nleft DESC, c.nright ASC;";
+    $sql = self::prepareSQL($sql);
+
+    $categories = array();
+    $last_saved = 0;
+    $id_category0 = 0;
+    $nleft0 = 0;
+    $nright0 = 0;
+
+    foreach (Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql) as $i => $row)
+    {
+      if (!$i)
+      {
+        $id_category0 = intval($row['id_category']);
+        $nleft0 = intval($row['nleft']);
+        $nright0 = intval($row['nright']);
+      }
+      else
+      {
+        $id_category1 = intval($row['id_category']);
+        $nleft1 = intval($row['nleft']);
+        $nright1 = intval($row['nright']);
+
+        if ($nleft1 < $nleft0 && $nright1 > $nright0)
+        {
+          // $id_category1 is an ancestor of $id_category0
+        }
+        elseif ($nleft1 < $nleft0 && $nright1 > $nright0)
+        {
+          // $id_category1 is a child of $id_category0 so be replace $id_category0
+          $id_category0 = $id_category1;
+          $nleft0 = $nleft1;
+          $nright0 = $nright1;
+        }
+        else
+        {
+          // $id_category1 is not a relative of $id_category0 so we save
+          // $id_category0 now and make $id_category1 the current category.
+          $categories[] = self::getCategoryPath($id_category0, $id_lang, $id_shop);
+          $last_saved = $id_category0;
+
+          $id_category0 = $id_category1;
+          $nleft0 = $nleft1;
+          $nright0 = $nright1;
+        }
+      }
+    } // endforeach
+
+    if ($last_saved != $id_category0)
+      // The last item in loop didn't trigger the $id_category0 saving event.
+      $categories[] = self::getCategoryPath($id_category0, $id_lang, $id_shop);
+
+    return $flat ? implode(CATEGORY_SEPARATOR, $categories) : $categories;
   }
 
   //
@@ -145,6 +362,10 @@ class dfTools
     return str_replace($forbidden, "", $text);
   }
 
+  //
+  // Things from request / URL Tools
+  //
+
   public static function getLanguageFromRequest($param = 'lang')
   {
     $context = Context::getContext();
@@ -188,4 +409,5 @@ class dfTools
 
     return $baseUrl;
   }
+
 }

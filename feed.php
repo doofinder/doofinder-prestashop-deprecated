@@ -12,7 +12,7 @@ if (!$shop->id)
 $lang = dfTools::getLanguageFromRequest();
 $currency = dfTools::getCurrencyForLanguageFromRequest($lang);
 
-$limit = intval(Tools::getValue('limit', 100));
+$limit = intval(Tools::getValue('limit', 500));
 $nb_rows = dfTools::countAvailableProductsForLanguage($lang->id);
 
 $baseUrl = dfTools::getBaseUrl($_SERVER)."/feed_part.php";

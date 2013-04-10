@@ -4,8 +4,6 @@ require_once(dirname(__FILE__) . '/../../init.php');
 require_once(dirname(__FILE__) . '/doofinder.php');
 
 define('TXT_SEPARATOR', '|');
-define('CATEGORY_SEPARATOR', '/');
-define('CATEGORY_TREE_SEPARATOR', '>');
 
 $context = Context::getContext();
 
@@ -30,6 +28,8 @@ if (false === $limit || false === $offset)
 $limit = intval($limit);
 $offset = intval($offset);
 
+// HEADER
+
 if (!$offset)
 {
   $header = array('id', 'title', 'link', 'description', 'price', 'sale_price', 'image_link', 'categories', 'availability', 'brand', 'gtin', 'mpn', 'extra_title');
@@ -37,6 +37,7 @@ if (!$offset)
   flush();ob_flush();
 }
 
+// PRODUCTS
 $rows = dfTools::getAvailableProductsForLanguage($lang->id, $limit, $offset);
 $cfg_short_desc = (intval(Configuration::get('DF_GS_DESCRIPTION_TYPE')) == Doofinder::GS_SHORT_DESCRIPTION);
 $cfg_image_size = Configuration::get('DF_GS_IMAGE_SIZE');
@@ -51,12 +52,11 @@ foreach ($rows as $row)
   echo $product_title.TXT_SEPARATOR;
 
   // LINK
-  $cat_link_rew = Category::getLinkRewrite($row['id_category_default'], $lang->id);
   echo $context->link->getProductLink(intval($row['id_product']),
                                       $row['link_rewrite'],
-                                      $cat_link_rew,
+                                      $row['cat_link_rew'],
                                       $row['ean13'],
-                                      intval($row['id_lang']),
+                                      $lang->id,
                                       $shop->id,
                                       0, true).TXT_SEPARATOR;
 
@@ -71,62 +71,18 @@ foreach ($rows as $row)
   echo (($product_price != $onsale_price) ? Tools::convertPrice($onsale_price, $currency) : "").TXT_SEPARATOR;
 
   // IMAGE LINK
-  $image = Image::getCover($row['id_product']);
   echo $context->link->getImageLink($row['link_rewrite'],
-                                    $row['id_product'] .'-'. $image['id_image'],
+                                    $row['id_product'] .'-'. $row['id_image'],
                                     $cfg_image_size).TXT_SEPARATOR;
 
   // PRODUCT CATEGORIES
-
-  $categories = "";
-  $categoryIds = Product::getProductCategories($row['id_product']);
-  $nbcategories = count($categoryIds);
-  $i = 0;
-
-  foreach ($categoryIds as $categoryId)
-  {
-    $category = new Category($categoryId, $lang->id, $shop->id);
-    $cat_link_rew = Category::getLinkRewrite($categoryId, $lang->id);
-
-    $tree = "";
-    $parents = array_reverse($category->getParentsCategories($lang->id));
-    $nbparents = count($parents);
-    $j = 0;
-
-    foreach ($parents as $cat)
-    {
-      if ($cat['is_root_category'])
-      {
-        // It's not going to be visible so it doesn't count.
-        $nbparents--;
-        continue;
-      }
-
-      $tree .= $cat['name'];
-      if (++$j < $nbparents)
-        $tree .= CATEGORY_TREE_SEPARATOR;
-    }
-
-    if ($tree = trim($tree))
-    {
-      $categories .= dfTools::cleanString($tree);
-      if (++$i < $nbcategories)
-        $categories .= CATEGORY_SEPARATOR;
-    }
-    else
-    {
-      // It's not going to be visible so it doesn't count.
-      $nbcategories--;
-    }
-  }
-
-  echo $categories.TXT_SEPARATOR;
+  echo dfTools::getCategoriesForProductIdAndLanguage($row['id_product'], $lang->id, $shop->id).TXT_SEPARATOR;
 
   // AVAILABILITY
   echo (intval($row['quantity']) ? 'in stock' : 'out of stock').TXT_SEPARATOR;
 
   // BRAND
-  echo dfTools::cleanString(Manufacturer::getNameById(intval($row['id_manufacturer']))).TXT_SEPARATOR;
+  echo $row['manufacturer'].TXT_SEPARATOR;
 
   // GTIN
   echo dfTools::cleanString($row['ean13']).TXT_SEPARATOR;
