@@ -17,6 +17,7 @@ class Doofinder extends Module
   protected $_html = '';
   protected $_postErrors = array();
 
+  const VERSION = "1.1.1";
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
 
@@ -25,7 +26,7 @@ class Doofinder extends Module
   {
     $this->name = "doofinder";
     $this->tab = "search_filter";
-    $this->version = "1.1.0";
+    $this->version = self::VERSION;
     $this->author = "Doofinder (http://www.doofinder.com)";
     $this->ps_versions_compliancy = array('min' => '1.4', 'max' => '1.4');
 
@@ -120,29 +121,6 @@ class Doofinder extends Module
           ));
 
     return $this->display(__FILE__, 'searchbox-block.tpl');
-  }
-
-
-  public function uninstall()
-  {
-    $total = 0;
-    $uninstalled = 0;
-    $cfgLangStrValues = array('DOOFINDER_SCRIPT_');
-
-    foreach (Language::getLanguages() as $lang)
-    {
-      foreach ($cfgLangStrValues as $prefix)
-      {
-        $total++;
-        $optname = $prefix.strtoupper($lang['iso_code']);
-        if (Configuration::deleteByName($optname))
-          $uninstalled++;
-      }
-    }
-
-    return parent::uninstall() && ($total == $uninstalled) &&
-           Configuration::deleteByName('DF_GS_DESCRIPTION_TYPE') &&
-           Configuration::deleteByName('DF_GS_IMAGE_SIZE');
   }
 
 
