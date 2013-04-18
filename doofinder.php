@@ -43,7 +43,11 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "1.2.1";
+  const VERSION = "1.2.2";
+
+  const FETCH_MODE_FAST = 'fast';
+  const FETCH_MODE_ALT1 = 'alt1';
+  const FETCH_MODE_ALT2 = 'alt2';
 
 
   public function __construct()
@@ -214,6 +218,10 @@ class Doofinder extends Module
         'valid' => array_keys(dfTools::getAvailableImageSizes()),
         'label' => $this->l('Product Image Size'),
         ),
+      'DF_FETCH_FEED_MODE' => array(
+        'valid' => array(self::FETCH_MODE_FAST, self::FETCH_MODE_ALT1, self::FETCH_MODE_ALT2),
+        'label' => $this->l('Feed Generation Mode'),
+        )
       );
 
     foreach ($cfgStrSelectValues as $optname => $cfg)
@@ -401,6 +409,27 @@ class Doofinder extends Module
         );
       $helper->fields_value[$realoptname] = Configuration::get($realoptname, $default_currency->iso_code);
     }
+
+
+    // DF_FETCH_FEED_MODE
+    $optname = 'DF_FETCH_FEED_MODE';
+    $fields[] = array(
+      'label' => $this->l('Feed Generation Mode'),
+      'desc' => $this->l('If the feed is not generated try changing this value.'),
+
+      'type' => 'select',
+      'options' => array(
+        'query' => array(
+          array($optname => self::FETCH_MODE_FAST, 'name' => $this->l('Fastest (default)')),
+          array($optname => self::FETCH_MODE_ALT1, 'name' => $this->l('Normal')),
+          array($optname => self::FETCH_MODE_ALT2, 'name' => $this->l('Slower')),
+          ),
+        'id' => $optname,
+        'name' => 'name',
+        ),
+      'name' => $optname,
+      );
+    $helper->fields_value[$optname] = Configuration::get($optname, self::FETCH_MODE_FAST);
 
 
     $fields_form[1]['form']['input'] = $fields;
