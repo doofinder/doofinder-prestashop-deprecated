@@ -44,7 +44,7 @@ class Doofinder extends Module
   protected $_html = '';
   protected $_postErrors = array();
 
-  const VERSION = "1.1.1";
+  const VERSION = "1.1.2";
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
 

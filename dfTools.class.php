@@ -255,6 +255,8 @@ class dfTools
       $path[] = $row['name'];
     $path = implode(CATEGORY_TREE_SEPARATOR, $path);
 
+    $path = self::cleanString($path);
+
     self::$cached_category_paths[$id_category] = $path;
     return $path;
   }
