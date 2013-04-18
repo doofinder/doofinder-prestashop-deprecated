@@ -34,28 +34,54 @@ require_once(dirname(__FILE__) . '/../../config/config.inc.php');
 require_once(dirname(__FILE__) . '/../../init.php');
 require_once(dirname(__FILE__) . '/doofinder.php');
 
-$lang = dfTools::getLanguageFromRequest();
-$currency = dfTools::getCurrencyForLanguageFromRequest($lang);
+$fetchMode = Doofinder::cfg('DF_FETCH_FEED_MODE', Doofinder::FETCH_MODE_FAST);
 
-$limit = intval(Tools::getValue('limit', 500));
-$nb_rows = dfTools::countAvailableProductsForLanguage($lang->id);
-
-$baseUrl = dfTools::getBaseUrl($_SERVER)."/feed_part.php";
-
-if (isset($_SERVER['HTTPS']))
+if ($fetchMode == Doofinder::FETCH_MODE_FAST)
 {
-  header('Strict-Transport-Security: max-age=500');
-}
-header("Content-Type:text/plain; charset=utf-8");
+  $lang = dfTools::getLanguageFromRequest();
+  $currency = dfTools::getCurrencyForLanguageFromRequest($lang);
 
-for ($offset = 0; $offset < $nb_rows; $offset += $limit)
-{
-  $url = $baseUrl."?lang=".$lang->id."&currency=".$currency->id."&limit=".$limit."&offset=".$offset;
-  $fp = fopen($url, "r");
-  while (false !== ($line = fgets($fp)))
+  $limit = intval(Tools::getValue('limit', 500));
+  $nb_rows = dfTools::countAvailableProductsForLanguage($lang->id);
+
+  $baseUrl = dfTools::getBaseUrl($_SERVER)."/feed_part.php";
+
+  for ($offset = 0; $offset < $nb_rows; $offset += $limit)
   {
-    echo $line;
-    flush();ob_flush();
+    $url = $baseUrl."?lang=".$lang->id."&currency=".$currency->id."&limit=".$limit."&offset=".$offset;
+    $fp = fopen($url, "r");
+
+    if ($offset == 0)
+    {
+      if ($fp === false)
+      {
+        $fetchMode = Doofinder::FETCH_MODE_ALT1;
+        break;
+      }
+      else
+      {
+        if (isset($_SERVER['HTTPS']))
+          header('Strict-Transport-Security: max-age=500');
+
+        header("Content-Type:text/plain; charset=utf-8");
+      }
+    }
+
+    while (false !== ($line = fgets($fp)))
+    {
+      echo $line;
+      flush();ob_flush();
+    }
+    fclose($fp);
   }
-  fclose($fp);
+}
+
+if ($fetchMode == Doofinder::FETCH_MODE_ALT1)
+{
+  require_once(dirname(__FILE__) . '/feed_alt1.php');
+}
+
+if ($fetchMode == Doofinder::FETCH_MODE_ALT2)
+{
+  require_once(dirname(__FILE__) . '/feed_alt2.php');
 }

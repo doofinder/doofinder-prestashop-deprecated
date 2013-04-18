@@ -44,9 +44,16 @@ class Doofinder extends Module
   protected $_html = '';
   protected $_postErrors = array();
 
-  const VERSION = "1.1.2";
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
+  const VERSION = "1.1.2";
+
+  const YES = 1;
+  const NO = 0;
+
+  const FETCH_MODE_FAST = 'fast';
+  const FETCH_MODE_ALT1 = 'alt1';
+  const FETCH_MODE_ALT2 = 'alt2';
 
 
   public function __construct()
@@ -86,8 +93,8 @@ class Doofinder extends Module
     $smarty->assign(array(
       'ENT_QUOTES' => ENT_QUOTES,
       'lang' => strtolower($lang),
-      'searchbox_enabled' => (int) Configuration::get('DOOFINDER_INPUT_ENABLED'),
-      'script' => Configuration::get("DOOFINDER_SCRIPT_$lang"),
+      'searchbox_enabled' => (int) self::cfg('DOOFINDER_INPUT_ENABLED'),
+      'script' => self::cfg("DOOFINDER_SCRIPT_$lang"),
       'self' => dirname(__FILE__),
     ));
 
@@ -106,9 +113,9 @@ class Doofinder extends Module
   {
     global $smarty;
 
-    $width = Configuration::get("DOOFINDER_INPUT_WIDTH");
-    $top = Configuration::get("DOOFINDER_INPUT_TOP");
-    $left = Configuration::get("DOOFINDER_INPUT_LEFT");
+    $width = self::cfg("DOOFINDER_INPUT_WIDTH");
+    $top = self::cfg("DOOFINDER_INPUT_TOP");
+    $left = self::cfg("DOOFINDER_INPUT_LEFT");
     $customized = !empty($width) || !empty($top) || !empty($left);
 
     $this->configureHookCommon($params);
@@ -199,6 +206,8 @@ class Doofinder extends Module
     $cfgIntValues = array(
       'DF_GS_DESCRIPTION_TYPE' => $this->l('Product Description Length'),
       'DOOFINDER_INPUT_ENABLED' => $this->l('Doofinder Searchbox Enabled'),
+      'DF_GS_DISPLAY_PRICES' => $this->l('Display Prices in Data Feed'),
+      'DF_GS_PRICES_USE_TAX' => $this->l('Display Prices With Taxes'),
       );
 
     foreach ($cfgIntValues as $optname => $optname_alt)
@@ -220,6 +229,10 @@ class Doofinder extends Module
         'valid' => array_keys(dfTools::getAvailableImageSizes()),
         'label' => $this->l('Product Image Size'),
         ),
+      'DF_FETCH_FEED_MODE' => array(
+        'valid' => array(self::FETCH_MODE_FAST, self::FETCH_MODE_ALT1, self::FETCH_MODE_ALT2),
+        'label' => $this->l('Feed Generation Mode'),
+        )
       );
 
     foreach ($cfgStrSelectValues as $optname => $cfg)
@@ -285,12 +298,12 @@ class Doofinder extends Module
   {
     global $currentIndex;
 
-    $defaultLanguage = intval(Configuration::get('PS_LANG_DEFAULT'));
+    $defaultLanguage = intval(self::cfg('PS_LANG_DEFAULT'));
     $default_currency = Currency::getDefaultCurrency();
     $languages = Language::getLanguages();
     $yesNoChoices = array(
-      '0' => $this->l('No'),
-      '1' => $this->l('Yes'),
+      self::NO  => $this->l('No'),
+      self::YES => $this->l('Yes'),
       );
 
     $this->_html .= '
@@ -312,14 +325,14 @@ class Doofinder extends Module
     $this->_html .= dfForm::fieldset($this->l('Searchbox in Page Top'));
 
     $optname = 'DOOFINDER_INPUT_ENABLED';
-    $optvalue = Configuration::get($optname, '0');
+    $optvalue = self::cfg($optname, '0');
     $field = dfForm::getSelectFor($optname, $optvalue, $yesNoChoices);
     $label = $this->l('Enable Module\'s Searchbox');
     $this->_html .= dfForm::wrapField($optname, $label, $field);
 
 
     $optname = 'DOOFINDER_INPUT_WIDTH';
-    $optvalue = Configuration::get($optname, '0');
+    $optvalue = self::cfg($optname, '0');
     $extra = array('desc' => 'i.e: 396px');
     $attrs = array('type' => 'text', 'class' => 'doofinder_dimensions');
     $field = dfForm::getInputFor($optname, $optvalue, $attrs);
@@ -328,7 +341,7 @@ class Doofinder extends Module
 
 
     $optname = 'DOOFINDER_INPUT_TOP';
-    $optvalue = Configuration::get($optname, '');
+    $optvalue = self::cfg($optname, '');
     $extra = array('desc' => 'i.e: 48px');
     $attrs = array('type' => 'text', 'class' => 'doofinder_dimensions');
     $field = dfForm::getInputFor($optname, $optvalue, $attrs);
@@ -337,7 +350,7 @@ class Doofinder extends Module
 
 
     $optname = 'DOOFINDER_INPUT_LEFT';
-    $optvalue = Configuration::get($optname, '');
+    $optvalue = self::cfg($optname, '');
     $extra = array('desc' => 'i.e: 50%');
     $attrs = array('type' => 'text', 'class' => 'doofinder_dimensions');
     $field = dfForm::getInputFor($optname, $optvalue, $attrs);
@@ -355,14 +368,14 @@ class Doofinder extends Module
     $this->_html .= dfForm::fieldset($this->l('Data Feed Settings'));
 
     $optname = 'DF_GS_IMAGE_SIZE';
-    $optvalue = Configuration::get($optname);
+    $optvalue = self::cfg($optname);
     $field = dfForm::getSelectFor($optname, $optvalue, dfTools::getAvailableImageSizes());
     $label = $this->l('Product Image Size');
     $this->_html .= dfForm::wrapField($optname, $label, $field);
 
 
     $optname = 'DF_GS_DESCRIPTION_TYPE';
-    $optvalue = Configuration::get($optname);
+    $optvalue = self::cfg($optname);
     $choices = array(
       self::GS_SHORT_DESCRIPTION => $this->l('Short'),
       self::GS_LONG_DESCRIPTION => $this->l('Long'),
@@ -376,11 +389,40 @@ class Doofinder extends Module
     foreach (Language::getLanguages(true) as $lang)
     {
       $optname = $baseoptname.strtoupper($lang['iso_code']);
-      $optvalue = Configuration::get($optname, $default_currency->iso_code);
+      $optvalue = self::cfg($optname, $default_currency->iso_code);
       $field = dfForm::getSelectFor($optname, $optvalue, dfTools::getAvailableCurrencies());
       $label = sprintf($this->l("Currency for %s"), $lang['name']);
       $this->_html .= dfForm::wrapField($optname, $label, $field);
     }
+
+    // DF_FETCH_FEED_MODE
+    $optname = 'DF_FETCH_FEED_MODE';
+    $optvalue = self::cfg($optname, self::FETCH_MODE_FAST);
+    $choices = array(
+      self::FETCH_MODE_FAST => $this->l('Fastest (default)'),
+      self::FETCH_MODE_ALT1 => $this->l('Normal'),
+      self::FETCH_MODE_ALT2 => $this->l('Slower'),
+      );
+    $field = dfForm::getSelectFor($optname, $optvalue, $choices);
+    $label = $this->l('Feed Generation Mode');
+    $options = array('desc' => $this->l('If the feed is not generated try changing this value.'));
+    $this->_html .= dfForm::wrapField($optname, $label, $field, $options);
+
+
+    // DF_GS_DISPLAY_PRICES
+    $optname = 'DF_GS_DISPLAY_PRICES';
+    $optvalue = self::cfg($optname, self::YES);
+    $field = dfForm::getSelectFor($optname, $optvalue, $yesNoChoices);
+    $label = $this->l('Display Prices in Data Feed');
+    $this->_html .= dfForm::wrapField($optname, $label, $field);
+
+
+    // DF_GS_PRICES_USE_TAX
+    $optname = 'DF_GS_PRICES_USE_TAX';
+    $optvalue = self::cfg($optname, self::YES);
+    $field = dfForm::getSelectFor($optname, $optvalue, $yesNoChoices);
+    $label = $this->l('Display Prices With Taxes');
+    $this->_html .= dfForm::wrapField($optname, $label, $field);
 
     $this->_html .= $submitButton;
     $this->_html .= '</fieldset>';
@@ -402,7 +444,7 @@ class Doofinder extends Module
       $url = $this->feedURLforLang($lang['iso_code']);
 
       $optname = $baseoptname.strtoupper($lang['iso_code']);
-      $optvalue = Configuration::get($optname);
+      $optvalue = self::cfg($optname);
       $attrs = array('cols' => 100, 'rows' => 10, 'class' => 'df-script');
       $extra = array('desc' => sprintf('<span class="df-notice"><b>%s [%s]:</b> <a href="%s" target="_blank">%s</a></span>%s', $this->l('Data Feed URL'), strtoupper($lang['iso_code']), $url, $url, $desc));
       $field = dfForm::getTextareaFor($optname, $optvalue, $attrs);
@@ -456,5 +498,13 @@ class Doofinder extends Module
   protected function feedURLforLang($iso_code)
   {
     return Tools::getShopDomain(true, true).__PS_BASE_URI__.'modules/'.$this->name.'/feed.php?lang='.$iso_code;
+  }
+
+  public static function cfg($key, $default=null)
+  {
+    $v = Configuration::get($key);
+    if ($v !== false)
+      return $v;
+    return $default;
   }
 }
