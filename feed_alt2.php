@@ -68,9 +68,31 @@ else
 }
 $currency = new Currency($id_currency);
 
+// CONFIG
 $cfg_short_desc = (intval(Configuration::get('DF_GS_DESCRIPTION_TYPE')) == Doofinder::GS_SHORT_DESCRIPTION);
 $cfg_image_size = Configuration::get('DF_GS_IMAGE_SIZE');
+$cfg_display_prices = (bool) Doofinder::cfg('DF_GS_DISPLAY_PRICES', Doofinder::YES);
+$cfg_prices_w_taxes = (bool) Doofinder::cfg('DF_GS_PRICES_USE_TAX', Doofinder::YES);
 
+// OUTPUT
+if (isset($_SERVER['HTTPS']))
+  header('Strict-Transport-Security: max-age=500');
+
+header("Content-Type:text/plain; charset=utf-8");
+
+// HEADER
+$header = array('id', 'title', 'link', 'description', 'image_link', 'categories', 'availability', 'brand', 'gtin', 'mpn', 'extra_title_1', 'extra_title_2');
+
+if ($cfg_display_prices)
+{
+  $header[] = 'price';
+  $header[] = 'sale_price';
+}
+
+echo implode(TXT_SEPARATOR, $header).PHP_EOL;
+flush(); ob_flush();
+
+// PRODUCTS
 $sql = "SELECT *
         FROM _DB_PREFIX_product p
         LEFT JOIN _DB_PREFIX_product_lang pl
@@ -80,19 +102,7 @@ $sql = "SELECT *
         ORDER BY p.id_product;";
 $sql = dfTools::prepareSQL($sql, array('_ID_LANG_' => $id_lang));
 
-
-//
-// Output
-//
-
-header("Content-Type:text/plain; charset=utf-8");
-
-$header = array('id', 'title', 'link', 'description', 'price', 'sale_price', 'image_link', 'categories', 'availability', 'brand', 'gtin', 'mpn', 'extra_title_1', 'extra_title_2');
-
 $res = Db::getInstance(_PS_USE_SQL_SLAVE_)->query($sql);
-
-echo implode(TXT_SEPARATOR, $header).PHP_EOL;
-flush(); ob_flush();
 
 while ($row = Db::getInstance()->nextRow($res))
 {
@@ -116,13 +126,6 @@ while ($row = Db::getInstance()->nextRow($res))
   // DESCRIPTION
   echo dfTools::cleanString($row['description'.($cfg_short_desc ? '_short' : '')]).TXT_SEPARATOR;
 
-  // PRODUCT PRICE & ON SALE PRICE
-  $product_price = Product::getPriceStatic($row['id_product'], true, null, 2, null, false, false);
-  $onsale_price = Product::getPriceStatic($row['id_product'], true, null, 2);
-
-  echo Tools::convertPrice($product_price, $currency).TXT_SEPARATOR;
-  echo (($product_price != $onsale_price) ? Tools::convertPrice($onsale_price, $currency) : "").TXT_SEPARATOR;
-
   // IMAGE LINK
   $image = Image::getCover($row['id_product']);
   echo $context->link->getImageLink($row['link_rewrite'],
@@ -131,51 +134,6 @@ while ($row = Db::getInstance()->nextRow($res))
 
   // PRODUCT CATEGORIES
   echo dfTools::getCategoriesForProductIdAndLanguage($row['id_product'], $lang->id, $shop->id).TXT_SEPARATOR;
-  /*
-  $categories = "";
-  $categoryIds = Product::getProductCategories($row['id_product']);
-  $nbcategories = count($categoryIds);
-  $i = 0;
-
-  foreach ($categoryIds as $categoryId)
-  {
-    $category = new Category($categoryId, $lang->id, $shop->id);
-    $cat_link_rew = Category::getLinkRewrite($categoryId, $lang->id);
-
-    $tree = "";
-    $parents = array_reverse($category->getParentsCategories($lang->id));
-    $nbparents = count($parents);
-    $j = 0;
-
-    foreach ($parents as $cat)
-    {
-      if ($cat['is_root_category'])
-      {
-        // It's not going to be visible so it doesn't count.
-        $nbparents--;
-        continue;
-      }
-
-      $tree .= $cat['name'];
-      if (++$j < $nbparents)
-        $tree .= CATEGORY_TREE_SEPARATOR;
-    }
-
-    if ($tree = trim($tree))
-    {
-      $categories .= dfTools::cleanString($tree);
-      if (++$i < $nbcategories)
-        $categories .= CATEGORY_SEPARATOR;
-    }
-    else
-    {
-      // It's not going to be visible so it doesn't count.
-      $nbcategories--;
-    }
-  }
-
-  echo $categories.TXT_SEPARATOR;
-  */
 
   // AVAILABILITY
   echo (intval($row['quantity']) ? 'in stock' : 'out of stock').TXT_SEPARATOR;
@@ -194,6 +152,18 @@ while ($row = Db::getInstance()->nextRow($res))
 
   // EXTRA_TITLE_2
   echo dfTools::splitReferences($product_title);
+
+  // PRODUCT PRICE & ON SALE PRICE
+  if ($cfg_display_prices)
+  {
+    echo TXT_SEPARATOR;
+
+    $product_price = Product::getPriceStatic($row['id_product'], $cfg_prices_w_taxes, null, 2, null, false, false);
+    $onsale_price = Product::getPriceStatic($row['id_product'], $cfg_prices_w_taxes, null, 2);
+
+    echo Tools::convertPrice($product_price, $currency).TXT_SEPARATOR;
+    echo (($product_price != $onsale_price) ? Tools::convertPrice($onsale_price, $currency) : "");
+  }
 
   echo PHP_EOL;
   flush(); ob_flush();

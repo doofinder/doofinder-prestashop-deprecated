@@ -45,6 +45,9 @@ class Doofinder extends Module
   const GS_LONG_DESCRIPTION = 2;
   const VERSION = "1.2.2";
 
+  const YES = 1;
+  const NO = 0;
+
   const FETCH_MODE_FAST = 'fast';
   const FETCH_MODE_ALT1 = 'alt1';
   const FETCH_MODE_ALT2 = 'alt2';
@@ -84,8 +87,8 @@ class Doofinder extends Module
     $this->smarty->assign(array(
       'ENT_QUOTES' => ENT_QUOTES,
       'lang' => strtolower($lang),
-      'searchbox_enabled' => (int) Configuration::get('DOOFINDER_INPUT_ENABLED'),
-      'script' => Configuration::get("DOOFINDER_SCRIPT_$lang"),
+      'searchbox_enabled' => (int) self::cfg('DOOFINDER_INPUT_ENABLED'),
+      'script' => self::cfg("DOOFINDER_SCRIPT_$lang"),
       'self' => dirname(__FILE__),
     ));
 
@@ -108,9 +111,9 @@ class Doofinder extends Module
 
   public function hookTop($params)
   {
-    $width = Configuration::get("DOOFINDER_INPUT_WIDTH");
-    $top = Configuration::get("DOOFINDER_INPUT_TOP");
-    $left = Configuration::get("DOOFINDER_INPUT_LEFT");
+    $width = self::cfg("DOOFINDER_INPUT_WIDTH");
+    $top = self::cfg("DOOFINDER_INPUT_TOP");
+    $left = self::cfg("DOOFINDER_INPUT_LEFT");
     $customized = !empty($width) || !empty($top) || !empty($left);
 
     $this->configureHookCommon($params);
@@ -197,6 +200,8 @@ class Doofinder extends Module
     $cfgIntValues = array(
       'DF_GS_DESCRIPTION_TYPE' => $this->l('Product Description Length'),
       'DOOFINDER_INPUT_ENABLED' => $this->l('Doofinder Searchbox Enabled'),
+      'DF_GS_DISPLAY_PRICES' => $this->l('Display Prices in Data Feed'),
+      'DF_GS_PRICES_USE_TAX' => $this->l('Display Prices With Taxes'),
       );
 
     foreach ($cfgIntValues as $optname => $optname_alt)
@@ -283,7 +288,7 @@ class Doofinder extends Module
   protected function _displayForm()
   {
     $helper = new HelperForm();
-    $default_lang_id = (int) Configuration::get('PS_LANG_DEFAULT');
+    $default_lang_id = (int) self::cfg('PS_LANG_DEFAULT', 1);
     $default_currency = Currency::getDefaultCurrency();
 
     //
@@ -302,7 +307,7 @@ class Doofinder extends Module
     $field = $this->getYesNoSelectFor($optname, $this->l('Enable Module\'s Searchbox'));
     // $field['desc'] = $this->l("<span class='df-notice'>If <b>YES</b> remember to execute the layer installer again.</span>"); // TODO
     $fields[] = $field;
-    $helper->fields_value[$optname] = Configuration::get($optname);
+    $helper->fields_value[$optname] = self::cfg($optname);
 
 
     $optname = 'DOOFINDER_INPUT_WIDTH';
@@ -313,7 +318,7 @@ class Doofinder extends Module
       'type' => 'text',
       'class' => 'doofinder_dimensions',
       );
-    $helper->fields_value[$optname] = Configuration::get($optname, '');
+    $helper->fields_value[$optname] = self::cfg($optname, '');
 
 
     $optname = 'DOOFINDER_INPUT_TOP';
@@ -324,7 +329,7 @@ class Doofinder extends Module
       'type' => 'text',
       'class' => 'doofinder_dimensions',
       );
-    $helper->fields_value[$optname] = Configuration::get($optname, '');
+    $helper->fields_value[$optname] = self::cfg($optname, '');
 
 
     $optname = 'DOOFINDER_INPUT_LEFT';
@@ -335,7 +340,7 @@ class Doofinder extends Module
       'type' => 'text',
       'class' => 'doofinder_dimensions',
       );
-    $helper->fields_value[$optname] = Configuration::get($optname, '');
+    $helper->fields_value[$optname] = self::cfg($optname, '');
 
 
     $fields_form[0]['form']['input'] = $fields;
@@ -369,7 +374,7 @@ class Doofinder extends Module
       'name' => $optname,
       'required' => true,
       );
-    $helper->fields_value[$optname] = Configuration::get($optname);
+    $helper->fields_value[$optname] = self::cfg($optname);
 
 
     // DF_GS_DESCRIPTION_TYPE
@@ -388,7 +393,7 @@ class Doofinder extends Module
         ),
       'name' => $optname,
       );
-    $helper->fields_value[$optname] = Configuration::get($optname);
+    $helper->fields_value[$optname] = self::cfg($optname);
 
 
     // DF_GS_CURRENCY_<LANG>
@@ -407,7 +412,7 @@ class Doofinder extends Module
         'name' => $realoptname,
         'required' => true,
         );
-      $helper->fields_value[$realoptname] = Configuration::get($realoptname, $default_currency->iso_code);
+      $helper->fields_value[$realoptname] = self::cfg($realoptname, $default_currency->iso_code);
     }
 
 
@@ -429,7 +434,21 @@ class Doofinder extends Module
         ),
       'name' => $optname,
       );
-    $helper->fields_value[$optname] = Configuration::get($optname, self::FETCH_MODE_FAST);
+    $helper->fields_value[$optname] = self::cfg($optname, self::FETCH_MODE_FAST);
+
+
+    // DF_GS_DISPLAY_PRICES
+    $optname = 'DF_GS_DISPLAY_PRICES';
+    $field = $this->getYesNoSelectFor($optname, $this->l('Display Prices in Data Feed'));
+    $fields[] = $field;
+    $helper->fields_value[$optname] = self::cfg($optname, self::YES);
+
+
+    // DF_GS_PRICES_USE_TAX
+    $optname = 'DF_GS_PRICES_USE_TAX';
+    $field = $this->getYesNoSelectFor($optname, $this->l('Display Prices With Taxes'));
+    $fields[] = $field;
+    $helper->fields_value[$optname] = self::cfg($optname, self::YES);
 
 
     $fields_form[1]['form']['input'] = $fields;
@@ -468,7 +487,7 @@ class Doofinder extends Module
         'required' => false,
         );
 
-      $helper->fields_value[$realoptname] = Configuration::get($realoptname);
+      $helper->fields_value[$realoptname] = self::cfg($realoptname);
     }
 
 
@@ -520,8 +539,8 @@ class Doofinder extends Module
       'type' => 'select',
       'options' => array(
         'query' => array(
-          array($optname => '0', 'name' => $this->l('No')),
-          array($optname => '1', 'name' => $this->l('Yes')),
+          array($optname => self::NO,  'name' => $this->l('No')),
+          array($optname => self::YES, 'name' => $this->l('Yes')),
           ),
         'id' => $optname,
         'name' => 'name',
@@ -533,5 +552,13 @@ class Doofinder extends Module
   protected function feedURLforLang($iso_code)
   {
     return Tools::getShopDomain(true, true).__PS_BASE_URI__.'modules/'.$this->name.'/feed.php?lang='.$iso_code;
+  }
+
+  public static function cfg($key, $default=null)
+  {
+    $v = Configuration::get($key);
+    if ($v !== false)
+      return $v;
+    return $default;
   }
 }
