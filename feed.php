@@ -34,7 +34,7 @@ require_once(dirname(__FILE__) . '/../../config/config.inc.php');
 require_once(dirname(__FILE__) . '/../../init.php');
 require_once(dirname(__FILE__) . '/doofinder.php');
 
-$fetchMode = Configuration::get('DF_FETCH_FEED_MODE', Doofinder::FETCH_MODE_FAST);
+$fetchMode = Doofinder::cfg('DF_FETCH_FEED_MODE', Doofinder::FETCH_MODE_FAST);
 
 if ($fetchMode == Doofinder::FETCH_MODE_FAST)
 {
