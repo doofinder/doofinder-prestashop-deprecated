@@ -91,5 +91,3 @@ if ($fetchMode == Doofinder::FETCH_MODE_ALT2)
 {
   require_once(dirname(__FILE__) . '/feed_alt2.php');
 }
-
-echo $fetchMode.PHP_EOL;
