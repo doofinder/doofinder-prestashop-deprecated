@@ -35,9 +35,15 @@ if (!defined('_PS_VERSION_'))
 
 $required_classes = array('dfTools', 'dfForm');
 
+if (strpos(__FILE__, 'doofinder.php') === false)
+  $basedir = _PS_ROOT_DIR_.'/modules/doofinder';
+else
+  $basedir = dirname(__FILE__);
+
 foreach ($required_classes as $classname)
   if (!class_exists($classname))
-    require_once(dirname(__FILE__)."/$classname.class.php");
+    require_once(realpath("$basedir/$classname.class.php"));
+
 
 class Doofinder extends Module
 {
@@ -46,7 +52,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "1.1.2";
+  const VERSION = "1.1.2.1";
 
   const YES = 1;
   const NO = 0;
