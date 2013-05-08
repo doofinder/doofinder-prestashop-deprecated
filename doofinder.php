@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "1.2.2";
+  const VERSION = "1.2.2.1";
 
   const YES = 1;
   const NO = 0;
@@ -425,8 +425,8 @@ class Doofinder extends Module
       'type' => 'select',
       'options' => array(
         'query' => array(
-          array($optname => self::FETCH_MODE_FAST, 'name' => $this->l('Fastest (default)')),
-          array($optname => self::FETCH_MODE_ALT1, 'name' => $this->l('Normal')),
+          array($optname => self::FETCH_MODE_FAST, 'name' => $this->l('Fastest (experimental)')),
+          array($optname => self::FETCH_MODE_ALT1, 'name' => $this->l('Normal (default)')),
           array($optname => self::FETCH_MODE_ALT2, 'name' => $this->l('Slower')),
           ),
         'id' => $optname,
@@ -434,7 +434,7 @@ class Doofinder extends Module
         ),
       'name' => $optname,
       );
-    $helper->fields_value[$optname] = self::cfg($optname, self::FETCH_MODE_FAST);
+    $helper->fields_value[$optname] = self::cfg($optname, self::FETCH_MODE_ALT1);
 
 
     // DF_GS_DISPLAY_PRICES
