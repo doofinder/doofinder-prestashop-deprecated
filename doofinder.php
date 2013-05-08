@@ -52,7 +52,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "1.1.2.1";
+  const VERSION = "1.1.2.2";
 
   const YES = 1;
   const NO = 0;
@@ -403,10 +403,10 @@ class Doofinder extends Module
 
     // DF_FETCH_FEED_MODE
     $optname = 'DF_FETCH_FEED_MODE';
-    $optvalue = self::cfg($optname, self::FETCH_MODE_FAST);
+    $optvalue = self::cfg($optname, self::FETCH_MODE_ALT1);
     $choices = array(
-      self::FETCH_MODE_FAST => $this->l('Fastest (default)'),
-      self::FETCH_MODE_ALT1 => $this->l('Normal'),
+      self::FETCH_MODE_FAST => $this->l('Fastest (experimental)'),
+      self::FETCH_MODE_ALT1 => $this->l('Normal (default)'),
       self::FETCH_MODE_ALT2 => $this->l('Slower'),
       );
     $field = dfForm::getSelectFor($optname, $optvalue, $choices);
