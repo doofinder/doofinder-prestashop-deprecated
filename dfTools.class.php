@@ -396,18 +396,33 @@ class dfTools
   {
     global $cookie;
 
-    $id_lang = Tools::getValue($param);
+    // lang is the OLDER param name. Here for compatibility.
+    $id_lang = Tools::getValue('language', Tools::getValue('lang', (int) $cookie->id));
+
     if (!is_numeric($id_lang))
-      $id_lang = intval($id_lang ? Language::getIdByIso($id_lang) : (int) $cookie->id_lang);
+      $id_lang = Language::getIdByIso($id_lang);
 
     return new Language($id_lang);
   }
 
-  public static function getCurrencyForLanguageFromRequest(Language $lang, $param = 'currency')
+  public static function getCurrencyForLanguage($code)
   {
     global $cookie;
 
-    if ($id_currency = Tools::getValue($param))
+    $optname = 'DF_GS_CURRENCY_'.strtoupper($code);
+    $id_currency = Doofinder::cfg($optname, false);
+
+    if ($id_currency)
+      return new Currency(Currency::getIdByIsoCode($id_currency));
+
+    return new Currency($cookie->id_currency);
+  }
+
+  public static function getCurrencyForLanguageFromRequest(Language $lang)
+  {
+    global $cookie;
+
+    if ($id_currency = Tools::getValue('currency'))
     {
       if (is_numeric($id_currency))
         $id_currency = intval($id_currency);
@@ -428,12 +443,18 @@ class dfTools
     return new Currency($id_currency);
   }
 
-  public static function getBaseUrl(array $serverInfo)
+  public static function getModuleLink($path, $ssl = false)
   {
-    $baseUrl = isset($serverInfo['HTTPS']) ? "https://" : "http://";
-    $baseUrl .= $serverInfo['SERVER_NAME'];
-    $baseUrl .= dirname($serverInfo['REQUEST_URI']);
+    global $link;
 
-    return $baseUrl;
+    $base = (($ssl && $link->ssl_enable) ? _PS_BASE_URL_SSL_ : _PS_BASE_URL_);
+
+    return $base._MODULE_DIR_.basename(dirname(__FILE__))."/".$path;
+  }
+
+  public static function getFeedURL($langIsoCode)
+  {
+    $currency = self::getCurrencyForLanguage($langIsoCode);
+    return self::getModuleLink('feed.php')."?language=".$langIsoCode."&currency=".$currency->iso_code;
   }
 }

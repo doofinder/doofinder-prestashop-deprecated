@@ -52,7 +52,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "1.1.2.2";
+  const VERSION = "1.1.3";
 
   const YES = 1;
   const NO = 0;
@@ -447,12 +447,12 @@ class Doofinder extends Module
     foreach (Language::getLanguages(true) as $lang)
     {
 
-      $url = $this->feedURLforLang($lang['iso_code']);
+      $url = dfTools::getFeedURL($lang['iso_code']);
 
       $optname = $baseoptname.strtoupper($lang['iso_code']);
       $optvalue = self::cfg($optname);
       $attrs = array('cols' => 100, 'rows' => 10, 'class' => 'df-script');
-      $extra = array('desc' => sprintf('<span class="df-notice"><b>%s [%s]:</b> <a href="%s" target="_blank">%s</a></span>%s', $this->l('Data Feed URL'), strtoupper($lang['iso_code']), $url, $url, $desc));
+      $extra = array('desc' => sprintf('<span class="df-notice"><b>%s [%s]:</b> <a href="%s" target="_blank">%s</a></span>%s', $this->l('Data Feed URL'), strtoupper($lang['iso_code']), $url, htmlentities($url), $desc));
       $field = dfForm::getTextareaFor($optname, $optvalue, $attrs);
       $label = $lang['name'];
       $this->_html .= dfForm::wrapField($optname, $label, $field, $extra);
@@ -499,11 +499,6 @@ class Doofinder extends Module
     );
 
     $this->_html .= $helper->generateForm($fields_form);
-  }
-
-  protected function feedURLforLang($iso_code)
-  {
-    return Tools::getShopDomain(true, true).__PS_BASE_URI__.'modules/'.$this->name.'/feed.php?lang='.$iso_code;
   }
 
   public static function cfg($key, $default=null)
