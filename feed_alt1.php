@@ -53,6 +53,9 @@ $cfg_image_size = Configuration::get('DF_GS_IMAGE_SIZE');
 $cfg_display_prices = (bool) Doofinder::cfg('DF_GS_DISPLAY_PRICES', Doofinder::YES);
 $cfg_prices_w_taxes = (bool) Doofinder::cfg('DF_GS_PRICES_USE_TAX', Doofinder::YES);
 
+$limit = Tools::getValue('limit', false);
+$offset = Tools::getValue('offset', false);
+
 // OUTPUT
 if (isset($_SERVER['HTTPS']))
   header('Strict-Transport-Security: max-age=500');
@@ -68,11 +71,14 @@ if ($cfg_display_prices)
   $header[] = 'sale_price';
 }
 
-echo implode(TXT_SEPARATOR, $header).PHP_EOL;
-flush();ob_flush();
+if (!$limit || ($offset !== false && intval($offset) === 0))
+{
+  echo implode(TXT_SEPARATOR, $header).PHP_EOL;
+  flush();ob_flush();
+}
 
 // PRODUCTS
-foreach (dfTools::getAvailableProductsForLanguage($lang->id) as $row)
+foreach (dfTools::getAvailableProductsForLanguage($lang->id, $limit, $offset) as $row)
 {
   // ID
   echo $row['id_product'].TXT_SEPARATOR;

@@ -30,11 +30,26 @@
  *       http://creativecommons.org/licenses/by-nc-sa/3.0/
  */
 
+/**
+ * Accepted parameters:
+ *
+ * - limit:      Max results in this request.
+ * - offset:     Zero-based position to start getting results.
+ * - chunk_size: In FETCH_MODE_FAST, the same as limit if limit is not present.
+ * - language:   Language ISO code, like "es" or "en"
+ * - currency:   Currency ISO code, like "EUR" or "GBP"
+ */
+
 require_once(dirname(__FILE__) . '/../../config/config.inc.php');
 require_once(dirname(__FILE__) . '/../../init.php');
 require_once(dirname(__FILE__) . '/doofinder.php');
 
 $fetchMode = Doofinder::cfg('DF_FETCH_FEED_MODE', Doofinder::FETCH_MODE_ALT1);
+
+$limit = Tools::getValue('limit', false);
+
+if ($limit !== false && intval($limit) > 0)
+  $fetchMode = Doofinder::FETCH_MODE_ALT1;
 
 if ($fetchMode == Doofinder::FETCH_MODE_FAST)
 {
@@ -47,14 +62,14 @@ if ($fetchMode == Doofinder::FETCH_MODE_FAST)
   $lang = dfTools::getLanguageFromRequest();
   $currency = dfTools::getCurrencyForLanguageFromRequest($lang);
 
-  $limit = intval(Tools::getValue('limit', 500));
+  $chunk_size = intval(Tools::getValue('chunk_size', 1000));
   $nb_rows = dfTools::countAvailableProductsForLanguage($lang->id);
 
   $baseUrl = dfTools::getModuleLink('feed_part.php');
 
-  for ($offset = 0; $offset < $nb_rows; $offset += $limit)
+  for ($offset = 0; $offset < $nb_rows; $offset += $chunk_size)
   {
-    $url = $baseUrl."?lang=".$lang->id."&currency=".$currency->id."&limit=".$limit."&offset=".$offset;
+    $url = $baseUrl."?language=".$lang->id."&currency=".$currency->id."&limit=".$chunk_size."&offset=".$offset;
     $fp = fopen($url, "r");
 
     if ($offset == 0)
