@@ -457,4 +457,12 @@ class dfTools
     $currency = self::getCurrencyForLanguage($langIsoCode);
     return self::getModuleLink('feed.php')."?language=".$langIsoCode."&currency=".$currency->iso_code;
   }
+
+  public static function fixScriptTag($jsCode)
+  {
+    $result = trim(preg_replace('/<!--(.*?)-->/', '', $jsCode));
+    if (strlen($result) && !preg_match('/<script([^>]*?)>/', $result))
+      $result = "<script type=\"text/javascript\">\n$result\n</script>";
+    return $result;
+  }
 }
