@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "1.2.3.1";
+  const VERSION = "1.2.3.2";
 
   const YES = 1;
   const NO = 0;
@@ -83,12 +83,13 @@ class Doofinder extends Module
   private function configureHookCommon($params)
   {
     $lang = strtoupper($this->context->language->iso_code);
+    $script = self::cfg("DOOFINDER_SCRIPT_$lang");
 
     $this->smarty->assign(array(
       'ENT_QUOTES' => ENT_QUOTES,
       'lang' => strtolower($lang),
       'searchbox_enabled' => (int) self::cfg('DOOFINDER_INPUT_ENABLED'),
-      'script' => self::cfg("DOOFINDER_SCRIPT_$lang"),
+      'script' => dfTools::fixScriptTag($script),
       'self' => dirname(__FILE__),
     ));
 
