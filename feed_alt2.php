@@ -80,7 +80,7 @@ $sql = "SELECT *
         WHERE p.active = 1
           AND pl.id_lang = _ID_LANG_
         ORDER BY p.id_product;";
-$sql = dfTools::prepareSQL($sql, array('_ID_LANG_' => $id_lang));
+$sql = dfTools::prepareSQL($sql, array('_ID_LANG_' => $lang->id));
 
 foreach(Db::s($sql) as $row)
 {
