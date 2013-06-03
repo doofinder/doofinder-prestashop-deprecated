@@ -56,7 +56,8 @@ $cfg = array(
   ),
   "module" => array(
     "version" => Doofinder::VERSION,
-    "feeds" => $feeds
+    "feeds" => $feeds,
+    "fetch_mode" => Doofinder::cfg('DF_FETCH_FEED_MODE', false),
   )
 );
 

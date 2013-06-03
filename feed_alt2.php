@@ -49,24 +49,8 @@ $shop = new Shop((int) $context->shop->id);
 if (!$shop->id)
   die('NOT PROPERLY CONFIGURED');
 
-$id_lang = Tools::getValue('lang');
-$id_lang = intval($id_lang ? Language::getIdByIso($id_lang) : (int) $context->language->id);
-$lang = new Language($id_lang);
-
-$id_currency = Tools::getValue('currency');
-if ($id_currency)
-{
-  $id_currency = Currency::getIdByIsoCode(strtoupper($id_currency));
-}
-else
-{
-  $optname = 'DF_GS_CURRENCY_'.strtoupper($lang->iso_code);
-  $id_currency = Currency::getIdByIsoCode(Configuration::get($optname));
-
-  if (!$id_currency)
-    $id_currency = $context->currency->id;
-}
-$currency = new Currency($id_currency);
+$lang = dfTools::getLanguageFromRequest();
+$currency = dfTools::getCurrencyForLanguageFromRequest($lang);
 
 // CONFIG
 $cfg_short_desc = (intval(Configuration::get('DF_GS_DESCRIPTION_TYPE')) == Doofinder::GS_SHORT_DESCRIPTION);
@@ -100,7 +84,7 @@ $sql = "SELECT *
         WHERE p.active = 1
           AND pl.id_lang = _ID_LANG_
         ORDER BY p.id_product;";
-$sql = dfTools::prepareSQL($sql, array('_ID_LANG_' => $id_lang));
+$sql = dfTools::prepareSQL($sql, array('_ID_LANG_' => $lang->id));
 
 $res = Db::getInstance(_PS_USE_SQL_SLAVE_)->query($sql);
 
