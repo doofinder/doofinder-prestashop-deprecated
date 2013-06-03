@@ -392,7 +392,7 @@ class dfTools
   // Things from request / URL Tools
   //
 
-  public static function getLanguageFromRequest($param = 'lang')
+  public static function getLanguageFromRequest()
   {
     global $cookie;
 

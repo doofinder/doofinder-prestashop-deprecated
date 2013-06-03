@@ -37,6 +37,7 @@ require_once(dirname(__FILE__).'/../../init.php');
 require_once(dirname(__FILE__).'/doofinder.php');
 
 global $cookie;
+$link = new Link();
 
 //
 // Configure script
@@ -44,26 +45,8 @@ global $cookie;
 
 define('TXT_SEPARATOR', '|');
 
-$id_lang = Tools::getValue('lang');
-$id_lang = intval($id_lang ? Language::getIdByIso($id_lang) : (int) $cookie->id_lang);
-$lang = new Language($id_lang);
-
-$id_currency = Tools::getValue('currency');
-if ($id_currency)
-{
-  $id_currency = Currency::getIdByIsoCode(strtoupper($id_currency));
-}
-else
-{
-  $optname = 'DF_GS_CURRENCY_'.strtoupper($lang->iso_code);
-  $id_currency = Currency::getIdByIsoCode(Configuration::get($optname));
-
-  if (!$id_currency)
-    $id_currency = $cookie->id_currency;
-}
-$currency = new Currency($id_currency);
-
-$link = new Link();
+$lang = dfTools::getLanguageFromRequest();
+$currency = dfTools::getCurrencyForLanguageFromRequest($lang);
 
 // CONFIG
 $cfg_short_desc = (intval(Configuration::get('DF_GS_DESCRIPTION_TYPE')) == Doofinder::GS_SHORT_DESCRIPTION);
