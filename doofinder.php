@@ -52,7 +52,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "1.1.3.3";
+  const VERSION = "1.1.3.4";
 
   const YES = 1;
   const NO = 0;
@@ -100,7 +100,6 @@ class Doofinder extends Module
     $smarty->assign(array(
       'ENT_QUOTES' => ENT_QUOTES,
       'lang' => strtolower($lang),
-      'searchbox_enabled' => (int) self::cfg('DOOFINDER_INPUT_ENABLED'),
       'script' => dfTools::fixScriptTag($script),
       'self' => dirname(__FILE__),
     ));
@@ -144,7 +143,7 @@ class Doofinder extends Module
 
     $this->configureHookCommon($params);
     $smarty->assign(array(
-      'searchbox_type' => 'left',
+      'searchbox_position' => 'left',
       'placeholder' => $this->l('Search'),
       ));
 
@@ -157,7 +156,7 @@ class Doofinder extends Module
 
     $this->configureHookCommon($params);
     $smarty->assign(array(
-          'searchbox_type' => 'right',
+          'searchbox_position' => 'right',
           'placeholder' => $this->l('Search'),
           ));
 
@@ -212,7 +211,6 @@ class Doofinder extends Module
 
     $cfgIntValues = array(
       'DF_GS_DESCRIPTION_TYPE' => $this->l('Product Description Length'),
-      'DOOFINDER_INPUT_ENABLED' => $this->l('Doofinder Searchbox Enabled'),
       'DF_GS_DISPLAY_PRICES' => $this->l('Display Prices in Data Feed'),
       'DF_GS_PRICES_USE_TAX' => $this->l('Display Prices With Taxes'),
       );
@@ -326,49 +324,6 @@ class Doofinder extends Module
 
 
     //
-    // SEARCH BOX
-    //
-
-    $this->_html .= dfForm::fieldset($this->l('Searchbox in Page Top'));
-
-    $optname = 'DOOFINDER_INPUT_ENABLED';
-    $optvalue = self::cfg($optname, '0');
-    $field = dfForm::getSelectFor($optname, $optvalue, $yesNoChoices);
-    $label = $this->l('Enable Module\'s Searchbox');
-    $this->_html .= dfForm::wrapField($optname, $label, $field);
-
-
-    $optname = 'DOOFINDER_INPUT_WIDTH';
-    $optvalue = self::cfg($optname, '0');
-    $extra = array('desc' => 'i.e: 396px');
-    $attrs = array('type' => 'text', 'class' => 'doofinder_dimensions');
-    $field = dfForm::getInputFor($optname, $optvalue, $attrs);
-    $label = $this->l('Searchbox Width');
-    $this->_html .= dfForm::wrapField($optname, $label, $field, $extra);
-
-
-    $optname = 'DOOFINDER_INPUT_TOP';
-    $optvalue = self::cfg($optname, '');
-    $extra = array('desc' => 'i.e: 48px');
-    $attrs = array('type' => 'text', 'class' => 'doofinder_dimensions');
-    $field = dfForm::getInputFor($optname, $optvalue, $attrs);
-    $label = $this->l('Top Position');
-    $this->_html .= dfForm::wrapField($optname, $label, $field, $extra);
-
-
-    $optname = 'DOOFINDER_INPUT_LEFT';
-    $optvalue = self::cfg($optname, '');
-    $extra = array('desc' => 'i.e: 50%');
-    $attrs = array('type' => 'text', 'class' => 'doofinder_dimensions');
-    $field = dfForm::getInputFor($optname, $optvalue, $attrs);
-    $label = $this->l('Left Position');
-    $this->_html .= dfForm::wrapField($optname, $label, $field, $extra);
-
-    $this->_html .= $submitButton;
-    $this->_html .= '</fieldset>';
-
-
-    //
     // DATA FEED SETTINGS
     //
 
@@ -461,6 +416,43 @@ class Doofinder extends Module
 
     $this->_html .= $submitButton;
     $this->_html .= '</fieldset>';
+
+
+    //
+    // SEARCH BOX
+    //
+
+    $this->_html .= dfForm::fieldset($this->l('Searchbox in Page Top'));
+
+    $optname = 'DOOFINDER_INPUT_WIDTH';
+    $optvalue = self::cfg($optname, '0');
+    $extra = array('desc' => 'i.e: 396px');
+    $attrs = array('type' => 'text', 'class' => 'doofinder_dimensions');
+    $field = dfForm::getInputFor($optname, $optvalue, $attrs);
+    $label = $this->l('Searchbox Width');
+    $this->_html .= dfForm::wrapField($optname, $label, $field, $extra);
+
+
+    $optname = 'DOOFINDER_INPUT_TOP';
+    $optvalue = self::cfg($optname, '');
+    $extra = array('desc' => 'i.e: 48px');
+    $attrs = array('type' => 'text', 'class' => 'doofinder_dimensions');
+    $field = dfForm::getInputFor($optname, $optvalue, $attrs);
+    $label = $this->l('Top Position');
+    $this->_html .= dfForm::wrapField($optname, $label, $field, $extra);
+
+
+    $optname = 'DOOFINDER_INPUT_LEFT';
+    $optvalue = self::cfg($optname, '');
+    $extra = array('desc' => 'i.e: 50%');
+    $attrs = array('type' => 'text', 'class' => 'doofinder_dimensions');
+    $field = dfForm::getInputFor($optname, $optvalue, $attrs);
+    $label = $this->l('Left Position');
+    $this->_html .= dfForm::wrapField($optname, $label, $field, $extra);
+
+    $this->_html .= $submitButton;
+    $this->_html .= '</fieldset>';
+
 
     $this->_html .= '</form>';
     return;

@@ -1,59 +1,23 @@
-#df-searchbox-wrap {
-    position: relative;
-    overflow: visible;
+/* block top search */
+#header_right #df-search_block_top {
+    float: right;
+    background: #e5e6e7 url('../../../themes/prestashop/img/block_search_bg.jpg') no-repeat top right;
+    margin-bottom: 11px;
+    width: 336px;
+    height: 28px
 }
+#header_right #df-search_block_top p { padding: 0.4em 0 0.4em 1em }
+#header_right #df-search_block_top label, #header_right #df-search_block_top input { float: left }
+#header_right #df-search_block_top label {
+    background: transparent url('../../../themes/prestashop/img/icon/search.gif') no-repeat 0 2px;
+    float: left;
+    width: 19px;
+    height: 18px;
+    display: block
+}
+#header_right #df-search_block_top input.search_query { width: 12em; }
 
-form#df-searchbox-form {
-    position: relative;
-}
-
-form#df-searchbox-form label{
-    color:#333;
-    margin-bottom: 1px
-}
-
-form#df-searchbox-form #df-searchbox {
-    font-size: 11px;
-    min-width: 140px;
-    border: 1px solid #CCCCCC;
-    -webkit-border-radius:3px !important;
-    -moz-border-radius:3px !important;
-    border-radius:3px !important;
-    height: 24px;
-    padding-left: 4px;
-}
-
-form#df-searchbox-form #search_button{
-    padding: 1px 4px;
-}
-
-#df-searchbox-wrap.top {
-    position: absolute;
-    top: 48px;
-    left: 50%;
-    margin-bottom: 20px;
-    margin-left: -200px;
-    text-align: center;
-}
-
-#df-searchbox-wrap.top #df-searchbox {
-    width: 396px;
-}
-
-#df-searchbox-wrap.block form {
-    padding: 10px 11px;
-}
-    #df-searchbox-wrap.block form #df-searchbox {
-        margin: 5px 0 0;
-        width: 100%;
-        -moz-box-sizing: border-box;
-        -webkit-box-sizing: border-box;
-        box-sizing: border-box;
-    }
-
-.df-warning {
-    background: #c00;
-    color: white;
-    font-weight: bold;
-    padding: 10px;
-}
+form.df-searchbox p.block_content {padding-top: 5px;padding-bottom: 5px;}
+form.df-searchbox p.block_content label { margin-bottom: 5px; display: block;}
+form.df-searchbox p.block_content input.search_query {margin-left: 0;}
+form.df-searchbox input.search_button{padding: 1px 4px; display: inline-block; width:auto; background-color: transparent;}
