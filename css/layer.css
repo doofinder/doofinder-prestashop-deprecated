@@ -1,59 +1,42 @@
-#df-searchbox-wrap {
-    position: relative;
-    overflow: visible;
+/* block top search */
+
+#df-search_block_top {
+    position:absolute;
+    top:44px;
+    left:0;
 }
 
-form#df-searchbox-form {
-    position: relative;
+#df-search_block_top p {padding:0;}
+#df-search_block_top .df-search_query_top {
+    padding:0 5px;
+    height:23px;
+    width:300px;/* 310 */
+    border:1px solid #666;
+    border-right: 0 !important;
+    color:#666;
+    background:url(img/bg_search_input.png) repeat-x 0 0 #fff;
+    float: left;
 }
 
-form#df-searchbox-form label{
-    color:#333;
-    margin-bottom: 1px
+#df-search_block_top .button {
+    border:none;
+    border-radius:0;
+    color:#fff;
+    text-transform:uppercase;
+    background:url(img/bg_search_submit.png) repeat-x 0 0 #101010;
+    float: left;
+    height: 25px;
 }
 
-form#df-searchbox-form #df-searchbox {
-    font-size: 11px;
-    min-width: 140px;
+form.df-searchbox{padding-top:5px}
+form.df-searchbox label{color:#333;margin-bottom:1px}
+form.df-searchbox input.df-search_query_block{
     border: 1px solid #CCCCCC;
     -webkit-border-radius:3px !important;
     -moz-border-radius:3px !important;
     border-radius:3px !important;
-    height: 24px;
-    padding-left: 4px;
+    height: 18px;
+    margin-top:10px;
 }
+form.df-searchbox input.search_button{padding: 1px 4px;}
 
-form#df-searchbox-form #search_button{
-    padding: 1px 4px;
-}
-
-#df-searchbox-wrap.top {
-    position: absolute;
-    top: 48px;
-    left: 50%;
-    margin-bottom: 20px;
-    margin-left: -200px;
-    text-align: center;
-}
-
-#df-searchbox-wrap.top #df-searchbox {
-    width: 396px;
-}
-
-#df-searchbox-wrap.block form {
-    padding: 10px 11px 0;
-}
-    #df-searchbox-wrap.block form #df-searchbox {
-        margin: 5px 0 0;
-        width: 100%;
-        -moz-box-sizing: border-box;
-        -webkit-box-sizing: border-box;
-        box-sizing: border-box;
-    }
-
-.df-warning {
-    background: #c00;
-    color: white;
-    font-weight: bold;
-    padding: 10px;
-}

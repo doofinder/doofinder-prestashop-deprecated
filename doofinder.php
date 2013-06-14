@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "1.2.3.3";
+  const VERSION = "1.2.3.4";
 
   const YES = 1;
   const NO = 0;
@@ -88,7 +88,6 @@ class Doofinder extends Module
     $this->smarty->assign(array(
       'ENT_QUOTES' => ENT_QUOTES,
       'lang' => strtolower($lang),
-      'searchbox_enabled' => (int) self::cfg('DOOFINDER_INPUT_ENABLED'),
       'script' => dfTools::fixScriptTag($script),
       'self' => dirname(__FILE__),
     ));
@@ -104,12 +103,6 @@ class Doofinder extends Module
     return $this->display(__FILE__, 'script.tpl');
   }
 
-  public function hookdisplayMobileTopSiteMap($params)
-  {
-    $this->smarty->assign(array('hook_mobile' => true));
-    return $this->hookTop($params);
-  }
-
   public function hookTop($params)
   {
     $width = self::cfg("DOOFINDER_INPUT_WIDTH");
@@ -119,6 +112,7 @@ class Doofinder extends Module
 
     $this->configureHookCommon($params);
     $this->smarty->assign(array(
+      'searchbox_position' => 'top',
       'hook_top' => true,
       'customized' => $customized,
       'placeholder' => $this->l('Enter a product name to search'),
@@ -134,7 +128,7 @@ class Doofinder extends Module
   {
     $this->configureHookCommon($params);
     $this->smarty->assign(array(
-      'searchbox_type' => 'left',
+      'searchbox_position' => 'block',
       'placeholder' => $this->l('Search'),
       ));
 
@@ -145,7 +139,7 @@ class Doofinder extends Module
   {
     $this->configureHookCommon($params);
     $this->smarty->assign(array(
-          'searchbox_type' => 'right',
+          'searchbox_position' => 'right',
           'placeholder' => $this->l('Search'),
           ));
 
@@ -200,7 +194,6 @@ class Doofinder extends Module
 
     $cfgIntValues = array(
       'DF_GS_DESCRIPTION_TYPE' => $this->l('Product Description Length'),
-      'DOOFINDER_INPUT_ENABLED' => $this->l('Doofinder Searchbox Enabled'),
       'DF_GS_DISPLAY_PRICES' => $this->l('Display Prices in Data Feed'),
       'DF_GS_PRICES_USE_TAX' => $this->l('Display Prices With Taxes'),
       );
@@ -293,68 +286,12 @@ class Doofinder extends Module
     $default_currency = Currency::getDefaultCurrency();
 
     //
-    // SEARCH BOX
-    //
-
-    $fields = array();
-
-    $fields_form[0]['form'] = array(
-      'legend' => array('title' => $this->l('Searchbox in Page Top')),
-      'input'  => null,
-      'submit' => array('title' => $this->l('Save'), 'class' => 'button'),
-      );
-
-    $optname = 'DOOFINDER_INPUT_ENABLED';
-    $field = $this->getYesNoSelectFor($optname, $this->l('Enable Module\'s Searchbox'));
-    // $field['desc'] = $this->l("<span class='df-notice'>If <b>YES</b> remember to execute the layer installer again.</span>"); // TODO
-    $fields[] = $field;
-    $helper->fields_value[$optname] = self::cfg($optname);
-
-
-    $optname = 'DOOFINDER_INPUT_WIDTH';
-    $fields[] = array(
-      'label' => $this->l('Searchbox Width'),
-      'desc' => 'i.e: 396px',
-      'name' => $optname,
-      'type' => 'text',
-      'class' => 'doofinder_dimensions',
-      );
-    $helper->fields_value[$optname] = self::cfg($optname, '');
-
-
-    $optname = 'DOOFINDER_INPUT_TOP';
-    $fields[] = array(
-      'label' => $this->l('Top Position'),
-      'desc' => 'i.e: 48px',
-      'name' => $optname,
-      'type' => 'text',
-      'class' => 'doofinder_dimensions',
-      );
-    $helper->fields_value[$optname] = self::cfg($optname, '');
-
-
-    $optname = 'DOOFINDER_INPUT_LEFT';
-    $fields[] = array(
-      'label' => $this->l('Left Position'),
-      'desc' => 'i.e: 50%',
-      'name' => $optname,
-      'type' => 'text',
-      'class' => 'doofinder_dimensions',
-      );
-    $helper->fields_value[$optname] = self::cfg($optname, '');
-
-
-    $fields_form[0]['form']['input'] = $fields;
-
-
-
-    //
     // DATA FEED SETTINGS
     //
 
     $fields = array();
 
-    $fields_form[1]['form'] = array(
+    $fields_form[0]['form'] = array(
       'legend' => array('title' => $this->l('Data Feed Settings')),
       'input'  => null,
       'submit' => array('title' => $this->l('Save'), 'class' => 'button'),
@@ -452,7 +389,7 @@ class Doofinder extends Module
     $helper->fields_value[$optname] = self::cfg($optname, self::YES);
 
 
-    $fields_form[1]['form']['input'] = $fields;
+    $fields_form[0]['form']['input'] = $fields;
 
 
 
@@ -462,7 +399,7 @@ class Doofinder extends Module
 
     $fields = array();
 
-    $fields_form[2]['form'] = array(
+    $fields_form[1]['form'] = array(
       'legend' => array('title' => $this->l('Doofinder Script')),
       'input'  => null,
       'submit' => array('title' => $this->l('Save'), 'class' => 'button'),
@@ -489,6 +426,54 @@ class Doofinder extends Module
 
       $helper->fields_value[$realoptname] = self::cfg($realoptname);
     }
+
+
+    $fields_form[1]['form']['input'] = $fields;
+
+
+    //
+    // SEARCH BOX
+    //
+
+    $fields = array();
+
+    $fields_form[2]['form'] = array(
+      'legend' => array('title' => $this->l('Searchbox in Page Top')),
+      'input'  => null,
+      'submit' => array('title' => $this->l('Save'), 'class' => 'button'),
+      );
+
+    $optname = 'DOOFINDER_INPUT_WIDTH';
+    $fields[] = array(
+      'label' => $this->l('Searchbox Width'),
+      'desc' => 'i.e: 396px',
+      'name' => $optname,
+      'type' => 'text',
+      'class' => 'doofinder_dimensions',
+      );
+    $helper->fields_value[$optname] = self::cfg($optname, '');
+
+
+    $optname = 'DOOFINDER_INPUT_TOP';
+    $fields[] = array(
+      'label' => $this->l('Top Position'),
+      'desc' => 'i.e: 48px',
+      'name' => $optname,
+      'type' => 'text',
+      'class' => 'doofinder_dimensions',
+      );
+    $helper->fields_value[$optname] = self::cfg($optname, '');
+
+
+    $optname = 'DOOFINDER_INPUT_LEFT';
+    $fields[] = array(
+      'label' => $this->l('Left Position'),
+      'desc' => 'i.e: 50%',
+      'name' => $optname,
+      'type' => 'text',
+      'class' => 'doofinder_dimensions',
+      );
+    $helper->fields_value[$optname] = self::cfg($optname, '');
 
 
     $fields_form[2]['form']['input'] = $fields;
