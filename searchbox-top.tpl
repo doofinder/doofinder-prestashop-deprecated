@@ -1,18 +1,39 @@
+{*
+* 2007-2013 PrestaShop
+*
+* NOTICE OF LICENSE
+*
+* This source file is subject to the Academic Free License (AFL 3.0)
+* that is bundled with this package in the file LICENSE.txt.
+* It is also available through the world-wide-web at this URL:
+* http://opensource.org/licenses/afl-3.0.php
+* If you did not receive a copy of the license and are unable to
+* obtain it through the world-wide-web, please send an email
+* to license@prestashop.com so we can send you a copy immediately.
+*
+* DISCLAIMER
+*
+* Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+* versions in the future. If you wish to customize PrestaShop for your
+* needs please refer to http://www.prestashop.com for more information.
+*
+*  @author PrestaShop SA <contact@prestashop.com>
+*  @copyright  2007-2013 PrestaShop SA
+*  @license    http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+*  International Registered Trademark & Property of PrestaShop SA
+*}
+{if isset($df_searchbox_enabled) && $df_searchbox_enabled}
 <!-- Doofinder TOP -->
-<div id="df-search_block_top">
-
-  <form id="df-searchbox" class="df-searchbox" method="get" action="{$link->getPageLink('search')}" autocomplete="off">
+<div id="search_block_top">
+  <form method="get" action="{$link->getPageLink('search.php')}" id="searchbox">
     <p>
-      <label for="df-search-top"><!-- image on background --></label>
-      <input type="hidden" name="controller" value="search" />
+      <label for="search_query_top"><!-- image on background --></label>
       <input type="hidden" name="orderby" value="position" />
       <input type="hidden" name="orderway" value="desc" />
-      <input id="df-search-top" class="search_query df-search_query_top" type="text" name="search_query" placeholder="{l s='Enter a product name' mod='doofinder'}"
-        {if isset($hook_top) && isset($customized) && $customized} style="{if $width}width: {$width};{/if}"{/if}
-        value="{if isset($smarty.get.search_query)}{$smarty.get.search_query|htmlentities:$ENT_QUOTES:'utf-8'|stripslashes}{/if}" />
+      <input class="search_query" type="text" id="search_query_top" name="search_query" value="{if isset($smarty.get.search_query)}{$smarty.get.search_query|htmlentities:$ENT_QUOTES:'utf-8'|stripslashes}{/if}"/>
       <input type="submit" name="submit_search" value="{l s='Search' mod='doofinder'}" class="button" />
-    </p>
+  </p>
   </form>
-
 </div>
 <!-- /Doofinder TOP -->
+{/if}
