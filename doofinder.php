@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "1.2.3.4";
+  const VERSION = "1.2.3.5";
 
   const YES = 1;
   const NO = 0;
@@ -84,12 +84,14 @@ class Doofinder extends Module
   {
     $lang = strtoupper($this->context->language->iso_code);
     $script = self::cfg("DOOFINDER_SCRIPT_$lang");
+    $searchbox_enabled = self::cfg('DF_DISPLAY_SEARCHBOX', self::YES);
 
     $this->smarty->assign(array(
       'ENT_QUOTES' => ENT_QUOTES,
       'lang' => strtolower($lang),
       'script' => dfTools::fixScriptTag($script),
       'self' => dirname(__FILE__),
+      'df_searchbox_enabled' => intval($searchbox_enabled),
     ));
 
     return true;
@@ -97,52 +99,28 @@ class Doofinder extends Module
 
   public function hookHeader($params)
   {
-    $this->context->controller->addCSS(($this->_path).'css/layer.css', 'all');
-    $this->configureHookCommon($params);
+    if (self::cfg('DF_DISPLAY_SEARCHBOX', self::YES) == self::YES)
+      $this->context->controller->addCSS(($this->_path).'css/layer.css', 'all');
 
+    $this->configureHookCommon($params);
     return $this->display(__FILE__, 'script.tpl');
   }
 
   public function hookTop($params)
   {
-    $width = self::cfg("DOOFINDER_INPUT_WIDTH");
-    $top = self::cfg("DOOFINDER_INPUT_TOP");
-    $left = self::cfg("DOOFINDER_INPUT_LEFT");
-    $customized = !empty($width) || !empty($top) || !empty($left);
-
     $this->configureHookCommon($params);
-    $this->smarty->assign(array(
-      'searchbox_position' => 'top',
-      'hook_top' => true,
-      'customized' => $customized,
-      'placeholder' => $this->l('Enter a product name to search'),
-      'width' => $width ? $width : false,
-      'top' => $top ? $top : false,
-      'left' => $left ? $left : false,
-      ));
-
     return $this->display(__FILE__, 'searchbox-top.tpl');
   }
 
   public function hookLeftColumn($params)
   {
     $this->configureHookCommon($params);
-    $this->smarty->assign(array(
-      'searchbox_position' => 'block',
-      'placeholder' => $this->l('Search'),
-      ));
-
     return $this->display(__FILE__, 'searchbox-block.tpl');
   }
 
   public function hookRightColumn($params)
   {
     $this->configureHookCommon($params);
-    $this->smarty->assign(array(
-          'searchbox_position' => 'right',
-          'placeholder' => $this->l('Search'),
-          ));
-
     return $this->display(__FILE__, 'searchbox-block.tpl');
   }
 
@@ -196,6 +174,7 @@ class Doofinder extends Module
       'DF_GS_DESCRIPTION_TYPE' => $this->l('Product Description Length'),
       'DF_GS_DISPLAY_PRICES' => $this->l('Display Prices in Data Feed'),
       'DF_GS_PRICES_USE_TAX' => $this->l('Display Prices With Taxes'),
+      'DF_DISPLAY_SEARCHBOX' => $this->l('Display Searchbox'),
       );
 
     foreach ($cfgIntValues as $optname => $optname_alt)
@@ -255,9 +234,9 @@ class Doofinder extends Module
     }
 
     $cfgStrValues = array(
-      'DOOFINDER_INPUT_WIDTH' => $this->l('Doofinder Searchbox Width'),
-      'DOOFINDER_INPUT_TOP' => $this->l('Doofinder Searchbox Offset Top'),
-      'DOOFINDER_INPUT_LEFT' => $this->l('Doofinder Searchbox Offset Left'),
+      // 'DOOFINDER_INPUT_WIDTH' => $this->l('Doofinder Searchbox Width'),
+      // 'DOOFINDER_INPUT_TOP' => $this->l('Doofinder Searchbox Offset Top'),
+      // 'DOOFINDER_INPUT_LEFT' => $this->l('Doofinder Searchbox Offset Left'),
       );
 
     foreach ($cfgStrValues as $optname => $optname_alt)
@@ -438,43 +417,16 @@ class Doofinder extends Module
     $fields = array();
 
     $fields_form[2]['form'] = array(
-      'legend' => array('title' => $this->l('Searchbox in Page Top')),
+      'legend' => array('title' => $this->l('Searchbox')),
       'input'  => null,
       'submit' => array('title' => $this->l('Save'), 'class' => 'button'),
       );
 
-    $optname = 'DOOFINDER_INPUT_WIDTH';
-    $fields[] = array(
-      'label' => $this->l('Searchbox Width'),
-      'desc' => 'i.e: 396px',
-      'name' => $optname,
-      'type' => 'text',
-      'class' => 'doofinder_dimensions',
-      );
-    $helper->fields_value[$optname] = self::cfg($optname, '');
 
-
-    $optname = 'DOOFINDER_INPUT_TOP';
-    $fields[] = array(
-      'label' => $this->l('Top Position'),
-      'desc' => 'i.e: 48px',
-      'name' => $optname,
-      'type' => 'text',
-      'class' => 'doofinder_dimensions',
-      );
-    $helper->fields_value[$optname] = self::cfg($optname, '');
-
-
-    $optname = 'DOOFINDER_INPUT_LEFT';
-    $fields[] = array(
-      'label' => $this->l('Left Position'),
-      'desc' => 'i.e: 50%',
-      'name' => $optname,
-      'type' => 'text',
-      'class' => 'doofinder_dimensions',
-      );
-    $helper->fields_value[$optname] = self::cfg($optname, '');
-
+    $optname = 'DF_DISPLAY_SEARCHBOX';
+    $field = $this->getYesNoSelectFor($optname, $this->l('Display Searchbox'));
+    $fields[] = $field;
+    $helper->fields_value[$optname] = self::cfg($optname, self::YES);
 
     $fields_form[2]['form']['input'] = $fields;
 
