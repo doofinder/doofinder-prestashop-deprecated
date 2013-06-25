@@ -52,7 +52,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "1.1.3.5";
+  const VERSION = "1.1.3.6";
 
   const YES = 1;
   const NO = 0;
@@ -97,11 +97,13 @@ class Doofinder extends Module
     $lang = strtoupper($language->iso_code);
     $script = self::cfg("DOOFINDER_SCRIPT_$lang");
     $searchbox_enabled = self::cfg('DF_DISPLAY_SEARCHBOX', self::YES);
+    $extra_css = self::cfg('DF_EXTRA_CSS');
 
     $smarty->assign(array(
       'ENT_QUOTES' => ENT_QUOTES,
       'lang' => strtolower($lang),
       'script' => dfTools::fixScriptTag($script),
+      'extra_css' => dfTools::fixStyleTag($extra_css),
       'self' => dirname(__FILE__),
       'df_searchbox_enabled' => intval($searchbox_enabled),
     ));
@@ -245,13 +247,23 @@ class Doofinder extends Module
       }
     }
 
+    $cfgCodeStrValues = array(
+        'DF_EXTRA_CSS',
+      );
+
+    foreach ($cfgCodeStrValues as $optname)
+    {
+      $optvalue = Tools::getValue($optname);
+      Configuration::updateValue($optname, $optvalue, true);
+    }
+
     // If I don't do this the DOOFINDER_SCRIPT_* values loose PHP_EOLs.
     Configuration::loadConfiguration();
 
     $cfgStrValues = array(
-      'DOOFINDER_INPUT_WIDTH' => $this->l('Doofinder Searchbox Width'),
-      'DOOFINDER_INPUT_TOP' => $this->l('Doofinder Searchbox Offset Top'),
-      'DOOFINDER_INPUT_LEFT' => $this->l('Doofinder Searchbox Offset Left'),
+      // 'DOOFINDER_INPUT_WIDTH' => $this->l('Doofinder Searchbox Width'),
+      // 'DOOFINDER_INPUT_TOP' => $this->l('Doofinder Searchbox Offset Top'),
+      // 'DOOFINDER_INPUT_LEFT' => $this->l('Doofinder Searchbox Offset Left'),
       );
 
     foreach ($cfgStrValues as $optname => $optname_alt)
@@ -387,6 +399,15 @@ class Doofinder extends Module
       $label = $lang['name'];
       $this->_html .= dfForm::wrapField($optname, $label, $field, $extra);
     }
+
+    // DF_EXTRA_CSS
+    $optname = 'DF_EXTRA_CSS';
+    $optvalue = self::cfg($optname);
+    $attrs = array('cols' => 100, 'rows' => 10, 'class' => 'df-script');
+    $extra = array('desc' => $this->l('Extra CSS to adjust Doofinder to your template.'));
+    $field = dfForm::getTextareaFor($optname, $optvalue, $attrs);
+    $label = $this->l('Extra CSS');
+    $this->_html .= dfForm::wrapField($optname, $label, $field, $extra);
 
     $this->_html .= $submitButton;
     $this->_html .= '</fieldset>';
