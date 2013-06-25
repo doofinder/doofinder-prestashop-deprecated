@@ -53,6 +53,12 @@ if ($limit !== false && intval($limit) > 0)
 
 if ($fetchMode == Doofinder::FETCH_MODE_FAST)
 {
+  $allow_url_fopen = intval(ini_get('allow_url_fopen'));
+  $allow_curl = function_exists('curl_exec');
+
+  if (!$allow_url_fopen && !$allow_curl)
+    die('You must activate fopen or cURL in your server to use this fetch mode.');
+
   $lang = dfTools::getLanguageFromRequest();
   $currency = dfTools::getCurrencyForLanguageFromRequest($lang);
 
@@ -64,30 +70,41 @@ if ($fetchMode == Doofinder::FETCH_MODE_FAST)
   for ($offset = 0; $offset < $nb_rows; $offset += $chunk_size)
   {
     $url = $baseUrl."?language=".$lang->id."&currency=".$currency->id."&limit=".$chunk_size."&offset=".$offset;
-    $fp = fopen($url, "r");
 
     if ($offset == 0)
     {
-      if ($fp === false)
-      {
-        $fetchMode = Doofinder::FETCH_MODE_ALT1;
-        break;
-      }
-      else
-      {
-        if (isset($_SERVER['HTTPS']))
-          header('Strict-Transport-Security: max-age=500');
+      if (isset($_SERVER['HTTPS']))
+        header('Strict-Transport-Security: max-age=500');
 
-        header("Content-Type:text/plain; charset=utf-8");
-      }
+      header("Content-Type:text/plain; charset=utf-8");
     }
 
-    while (false !== ($line = fgets($fp)))
+    if ($allow_url_fopen)
     {
-      echo $line;
-      flush();ob_flush();
+      $fp = fopen($url, "r");
+
+      while (false !== ($line = fgets($fp)))
+      {
+        echo $line;
+        dfTools::flush();
+      }
+
+      fclose($fp);
     }
-    fclose($fp);
+    else
+    {
+      $ch = curl_init();
+      curl_setopt($ch, CURLOPT_URL, $url);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+      $data = curl_exec($ch);
+      curl_close($ch);
+
+      if ($data !== false)
+      {
+        echo $data;
+        dfTools::flush();
+      }
+    }
   }
 }
 

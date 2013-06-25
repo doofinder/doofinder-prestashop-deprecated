@@ -70,7 +70,7 @@ if ($cfg_display_prices)
 }
 
 echo implode(TXT_SEPARATOR, $header).PHP_EOL;
-flush(); ob_flush();
+dfTools::flush();
 
 // PRODUCTS
 $sql = "SELECT *
@@ -144,6 +144,6 @@ foreach(Db::s($sql) as $row)
   }
 
   echo PHP_EOL;
-  flush(); ob_flush();
+  dfTools::flush();
 }
 

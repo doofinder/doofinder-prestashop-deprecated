@@ -473,4 +473,12 @@ class dfTools
       $result = "<style type=\"text/css\">\n$result\n</style>";
     return $result;
   }
+
+  public static function flush()
+  {
+    if (function_exists('flush'))
+      flush();
+    if (function_exists('ob_flush'))
+      ob_flush();
+  }
 }
