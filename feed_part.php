@@ -77,7 +77,7 @@ if (!$offset)
   }
 
   echo implode(TXT_SEPARATOR, $header).PHP_EOL;
-  flush();ob_flush();
+  dfTools::flush();
 }
 
 // PRODUCTS
@@ -141,5 +141,5 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $limit, $offset) as
   }
 
   echo PHP_EOL;
-  flush(); ob_flush();
+  dfTools::flush();
 }
