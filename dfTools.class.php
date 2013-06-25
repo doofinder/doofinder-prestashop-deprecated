@@ -474,4 +474,12 @@ class dfTools
       $result = "<script type=\"text/javascript\">\n$result\n</script>";
     return $result;
   }
+
+  public static function fixStyleTag($cssCode)
+  {
+    $result = trim(preg_replace('/<!--(.*?)-->/', '', $cssCode));
+    if (strlen($result) && !preg_match('/<style([^>]*?)>/', $result))
+      $result = "<style type=\"text/css\">\n$result\n</style>";
+    return $result;
+  }
 }

@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "1.2.3.5";
+  const VERSION = "1.2.3.6";
 
   const YES = 1;
   const NO = 0;
@@ -85,11 +85,13 @@ class Doofinder extends Module
     $lang = strtoupper($this->context->language->iso_code);
     $script = self::cfg("DOOFINDER_SCRIPT_$lang");
     $searchbox_enabled = self::cfg('DF_DISPLAY_SEARCHBOX', self::YES);
+    $extra_css = self::cfg('DF_EXTRA_CSS');
 
     $this->smarty->assign(array(
       'ENT_QUOTES' => ENT_QUOTES,
       'lang' => strtolower($lang),
       'script' => dfTools::fixScriptTag($script),
+      'extra_css' => dfTools::fixStyleTag($extra_css),
       'self' => dirname(__FILE__),
       'df_searchbox_enabled' => intval($searchbox_enabled),
     ));
@@ -231,6 +233,16 @@ class Doofinder extends Module
         $optname = $prefix.strtoupper($lang['iso_code']);
         Configuration::updateValue($optname, Tools::getValue($optname), $html);
       }
+    }
+
+    $cfgCodeStrValues = array(
+        'DF_EXTRA_CSS',
+      );
+
+    foreach ($cfgCodeStrValues as $optname)
+    {
+      $optvalue = Tools::getValue($optname);
+      Configuration::updateValue($optname, $optvalue, true);
     }
 
     $cfgStrValues = array(
@@ -405,6 +417,19 @@ class Doofinder extends Module
 
       $helper->fields_value[$realoptname] = self::cfg($realoptname);
     }
+
+    // DF_EXTRA_CSS
+    $optname = 'DF_EXTRA_CSS';
+    $fields[] = array(
+      'label' => $this->l('Extra CSS'),
+      'desc' => $this->l('Extra CSS to adjust Doofinder to your template.'),
+      'type' => 'textarea',
+      'cols' => 100,
+      'rows' => 10,
+      'name' => $optname,
+      'required' => false,
+      );
+    $helper->fields_value[$optname] = self::cfg($optname);
 
 
     $fields_form[1]['form']['input'] = $fields;
