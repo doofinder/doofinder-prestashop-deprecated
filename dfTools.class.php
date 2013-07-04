@@ -246,6 +246,7 @@ class dfTools
                 AND node.id_category = $id_category
                 AND cl.id_lang = $id_lang
                 AND parent.level_depth <> 0
+                AND parent.active = 1
                 $excluded_ids
             ORDER BY parent.nleft;";
     $sql = self::prepareSQL($sql);
@@ -278,6 +279,7 @@ class dfTools
               ON pc.id_category = c.id_category
             WHERE
               pc.id_product = $id_product
+              AND c.active = 1
             ORDER BY
               c.nleft DESC, c.nright ASC;";
     $sql = self::prepareSQL($sql);
