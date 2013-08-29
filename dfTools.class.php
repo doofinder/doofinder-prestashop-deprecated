@@ -372,9 +372,10 @@ class dfTools
 
     $text = strip_tags(html_entity_decode($text, ENT_QUOTES, 'UTF-8'));
     $text = preg_replace('/[ ]{2,}/', ' ', $text);
+    $text = preg_replace('/[\t\s]+|[|\r\n]/', " ", $text);
     $text = str_replace(array(chr(9), chr(10)), " ", $text);
 
-    return preg_replace($valid_utf8, '$1', $text);
+    return preg_replace($valid_utf8, '$1', trim($text));
   }
 
   /**
