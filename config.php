@@ -34,19 +34,15 @@ require_once(dirname(__FILE__) . '/../../config/config.inc.php');
 require_once(dirname(__FILE__) . '/../../init.php');
 require_once(dirname(__FILE__) . '/doofinder.php');
 
+$context = Context::getContext();
 $baseUrl = dfTools::getModuleLink('feed.php');
 
 header("Content-Type:application/json; charset=utf-8");
 
 $feeds = array();
-foreach (Language::getLanguages(true) as $lang)
+foreach (Language::getLanguages(true, $context->shop->id) as $lang)
 {
-  $feeds[] = array(
-    "id" => $lang['id_lang'],
-    "code" => $lang['iso_code'],
-    "url" => dfTools::getFeedURL($lang['iso_code']),
-    "length" => dfTools::countAvailableProductsForLanguage($lang['id_lang'])
-  );
+  $feeds[strtoupper($lang['iso_code'])] = dfTools::getFeedURL($lang['iso_code']);
 }
 
 $cfg = array(
@@ -57,7 +53,7 @@ $cfg = array(
   "module" => array(
     "version" => Doofinder::VERSION,
     "feeds" => $feeds,
-    "fetch_mode" => Doofinder::cfg('DF_FETCH_FEED_MODE', false),
+    "options" => array('offset', 'limit', 'language', 'currency', 'prices', 'taxes')
   )
 );
 

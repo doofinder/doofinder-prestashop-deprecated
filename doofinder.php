@@ -43,15 +43,10 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "1.2.5";
+  const VERSION = "1.3.0";
 
   const YES = 1;
   const NO = 0;
-
-  const FETCH_MODE_FAST = 'fast';
-  const FETCH_MODE_ALT1 = 'alt1';
-  const FETCH_MODE_ALT2 = 'alt2';
-
 
   public function __construct()
   {
@@ -83,9 +78,9 @@ class Doofinder extends Module
   private function configureHookCommon($params)
   {
     $lang = strtoupper($this->context->language->iso_code);
-    $script = self::cfg("DOOFINDER_SCRIPT_$lang");
-    $searchbox_enabled = self::cfg('DF_DISPLAY_SEARCHBOX', self::YES);
-    $extra_css = self::cfg('DF_EXTRA_CSS');
+    $script = $this->cfg("DOOFINDER_SCRIPT_$lang");
+    $searchbox_enabled = $this->cfg('DF_DISPLAY_SEARCHBOX', self::YES);
+    $extra_css = $this->cfg('DF_EXTRA_CSS');
 
     $this->smarty->assign(array(
       'ENT_QUOTES' => ENT_QUOTES,
@@ -101,7 +96,7 @@ class Doofinder extends Module
 
   public function hookHeader($params)
   {
-    if (self::cfg('DF_DISPLAY_SEARCHBOX', self::YES) == self::YES)
+    if ($this->cfg('DF_DISPLAY_SEARCHBOX', self::YES) == self::YES)
       $this->context->controller->addCSS(($this->_path).'css/layer.css', 'all');
 
     $this->configureHookCommon($params);
@@ -198,10 +193,6 @@ class Doofinder extends Module
         'valid' => array_keys(dfTools::getAvailableImageSizes()),
         'label' => $this->l('Product Image Size'),
         ),
-      'DF_FETCH_FEED_MODE' => array(
-        'valid' => array(self::FETCH_MODE_FAST, self::FETCH_MODE_ALT1, self::FETCH_MODE_ALT2),
-        'label' => $this->l('Feed Generation Mode'),
-        )
       );
 
     foreach ($cfgStrSelectValues as $optname => $cfg)
@@ -273,7 +264,7 @@ class Doofinder extends Module
   protected function _displayForm()
   {
     $helper = new HelperForm();
-    $default_lang_id = (int) self::cfg('PS_LANG_DEFAULT', 1);
+    $default_lang_id = (int) $this->cfg('PS_LANG_DEFAULT', 1);
     $default_currency = Currency::getDefaultCurrency();
 
     //
@@ -303,7 +294,7 @@ class Doofinder extends Module
       'name' => $optname,
       'required' => true,
       );
-    $helper->fields_value[$optname] = self::cfg($optname);
+    $helper->fields_value[$optname] = $this->cfg($optname);
 
 
     // DF_GS_DESCRIPTION_TYPE
@@ -322,7 +313,7 @@ class Doofinder extends Module
         ),
       'name' => $optname,
       );
-    $helper->fields_value[$optname] = self::cfg($optname);
+    $helper->fields_value[$optname] = $this->cfg($optname);
 
 
     // DF_GS_CURRENCY_<LANG>
@@ -341,43 +332,21 @@ class Doofinder extends Module
         'name' => $realoptname,
         'required' => true,
         );
-      $helper->fields_value[$realoptname] = self::cfg($realoptname, $default_currency->iso_code);
+      $helper->fields_value[$realoptname] = $this->cfg($realoptname, $default_currency->iso_code);
     }
-
-
-    // DF_FETCH_FEED_MODE
-    $optname = 'DF_FETCH_FEED_MODE';
-    $fields[] = array(
-      'label' => $this->l('Feed Generation Mode'),
-      'desc' => $this->l('If the feed is not generated try changing this value.'),
-
-      'type' => 'select',
-      'options' => array(
-        'query' => array(
-          array($optname => self::FETCH_MODE_FAST, 'name' => $this->l('Fastest (experimental)')),
-          array($optname => self::FETCH_MODE_ALT1, 'name' => $this->l('Normal (default)')),
-          array($optname => self::FETCH_MODE_ALT2, 'name' => $this->l('Slower')),
-          ),
-        'id' => $optname,
-        'name' => 'name',
-        ),
-      'name' => $optname,
-      );
-    $helper->fields_value[$optname] = self::cfg($optname, self::FETCH_MODE_ALT1);
-
 
     // DF_GS_DISPLAY_PRICES
     $optname = 'DF_GS_DISPLAY_PRICES';
     $field = $this->getYesNoSelectFor($optname, $this->l('Display Prices in Data Feed'));
     $fields[] = $field;
-    $helper->fields_value[$optname] = self::cfg($optname, self::YES);
+    $helper->fields_value[$optname] = $this->cfg($optname, self::YES);
 
 
     // DF_GS_PRICES_USE_TAX
     $optname = 'DF_GS_PRICES_USE_TAX';
     $field = $this->getYesNoSelectFor($optname, $this->l('Display Prices With Taxes'));
     $fields[] = $field;
-    $helper->fields_value[$optname] = self::cfg($optname, self::YES);
+    $helper->fields_value[$optname] = $this->cfg($optname, self::YES);
 
 
     $fields_form[0]['form']['input'] = $fields;
@@ -415,7 +384,7 @@ class Doofinder extends Module
         'required' => false,
         );
 
-      $helper->fields_value[$realoptname] = self::cfg($realoptname);
+      $helper->fields_value[$realoptname] = $this->cfg($realoptname);
     }
 
     // DF_EXTRA_CSS
@@ -429,7 +398,7 @@ class Doofinder extends Module
       'name' => $optname,
       'required' => false,
       );
-    $helper->fields_value[$optname] = self::cfg($optname);
+    $helper->fields_value[$optname] = $this->cfg($optname);
 
 
     $fields_form[1]['form']['input'] = $fields;
@@ -451,7 +420,7 @@ class Doofinder extends Module
     $optname = 'DF_DISPLAY_SEARCHBOX';
     $field = $this->getYesNoSelectFor($optname, $this->l('Display Searchbox'));
     $fields[] = $field;
-    $helper->fields_value[$optname] = self::cfg($optname, self::YES);
+    $helper->fields_value[$optname] = $this->cfg($optname, self::YES);
 
     $fields_form[2]['form']['input'] = $fields;
 
@@ -511,11 +480,8 @@ class Doofinder extends Module
       );
   }
 
-  public static function cfg($key, $default=null)
+  public function cfg($key, $default=null)
   {
-    $v = Configuration::get($key);
-    if ($v !== false)
-      return $v;
-    return $default;
+    return dfTools::cfg($this->context->shop->id, $key, $default);
   }
 }
