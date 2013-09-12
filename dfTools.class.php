@@ -30,8 +30,8 @@
  *       http://creativecommons.org/licenses/by-nc-sa/3.0/
  */
 
-define('CATEGORY_SEPARATOR', ' / ');
-define('CATEGORY_TREE_SEPARATOR', ' > ');
+define('CATEGORY_SEPARATOR', '/');
+define('CATEGORY_TREE_SEPARATOR', '>');
 
 class dfTools
 {
@@ -142,64 +142,51 @@ class dfTools
    * @param string Optional. Fields to select.
    * @return array of rows (assoc arrays).
    */
-  public static function getAvailableProductsForLanguage($id_lang, $limit=false, $offset=false, $fields=null)
+  public static function getAvailableProductsForLanguage($id_lang, $id_shop, $limit=false, $offset=false)
   {
-    if (null === $fields)
-    {
-      // $fields = "p.*, pl.*, cl.link_rewrite as cat_link_rew, i.id_image";
-      $fields = "pl.id_product, p.id_category_default, m.name AS manufacturer, pl.name, pl.description, pl.description_short, pl.link_rewrite, p.quantity, p.supplier_reference, p.upc, p.ean13, cl.link_rewrite as cat_link_rew, i.id_image";
-    }
+    $sql = "
+      SELECT
+        ps.id_product,
+        ps.id_category_default,
 
-    $shopSqlJoin = Shop::addSqlAssociation('image', 'i');
+        m.name AS manufacturer,
 
-    $sql = "SELECT $fields
-            FROM
-              _DB_PREFIX_product p
-              LEFT JOIN _DB_PREFIX_product_lang pl
-                ON p.id_product = pl.id_product
-              LEFT JOIN _DB_PREFIX_category_lang cl
-                ON cl.id_category = p.id_category_default
-              LEFT JOIN _DB_PREFIX_image i
-                ON i.id_product = p.id_product
-              LEFT JOIN _DB_PREFIX_manufacturer m
-                ON m.id_manufacturer = p.id_manufacturer
-              $shopSqlJoin
-            WHERE
-              p.active = 1
-              AND pl.id_lang = _ID_LANG_
-              AND cl.id_lang = _ID_LANG_
-              AND image_shop.cover = 1
-            ORDER BY p.id_product";
+        IF(p.ean13, p.ean13, p.upc) AS product_code,
+        p.ean13,
+        p.supplier_reference,
+
+        pl.name,
+        pl.description,
+        pl.description_short,
+        pl.meta_title,
+        pl.meta_keywords,
+        pl.meta_description,
+
+        pl.link_rewrite,
+        cl.link_rewrite AS cat_link_rew,
+
+        im.id_image
+      FROM
+        _DB_PREFIX_product p
+        INNER JOIN _DB_PREFIX_product_shop ps
+          ON (p.id_product = ps.id_product AND ps.id_shop = _ID_SHOP_)
+        LEFT JOIN _DB_PREFIX_product_lang pl
+          ON (p.id_product = pl.id_product AND pl.id_shop = _ID_SHOP_ AND pl.id_lang = _ID_LANG_)
+        LEFT JOIN _DB_PREFIX_manufacturer m
+          ON (p.id_manufacturer = m.id_manufacturer)
+        LEFT JOIN _DB_PREFIX_category_lang cl
+          ON (p.id_category_default = cl.id_category AND cl.id_shop = _ID_SHOP_ AND cl.id_lang = _ID_LANG_)
+        LEFT JOIN (_DB_PREFIX_image im INNER JOIN _DB_PREFIX_image_shop ims ON im.id_image = ims.id_image)
+          ON (p.id_product = im.id_product AND ims.id_shop = _ID_SHOP_ AND ims.cover = 1)
+      ORDER BY
+        p.id_product
+    ";
+
     $sql = self::limitSQL($sql, $limit, $offset);
-    $sql = self::prepareSQL($sql, array('_ID_LANG_' => $id_lang));
+    $sql = self::prepareSQL($sql, array('_ID_LANG_' => $id_lang,
+                                        '_ID_SHOP_' => $id_shop));
 
     return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
-  }
-
-  /**
-   * Returns the product IDs available for a language
-   * @param int Language ID.
-   * @param int Optional. Default false. Number of products to get.
-   * @param int Optional. Default false. Offset to start the select from.
-   * @return array of int
-   */
-  public static function getAvailableProductIdsForLanguage($id_lang, $limit=false, $offset=false)
-  {
-    $sql = "SELECT p.id_product AS id
-            FROM _DB_PREFIX_product p
-            LEFT JOIN _DB_PREFIX_product_lang pl
-              ON p.id_product = pl.id_product
-            WHERE p.active = 1
-              AND pl.id_lang = _ID_LANG_
-            ORDER BY p.id_product";
-
-    $sql = self::limitSQL($sql, $limit, $offset);
-    $sql = self::prepareSQL($sql, array('_ID_LANG_' => $id_lang)).";";
-
-    $ids = array();
-    foreach (Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql) as $value)
-      $ids[] = $value['id'];
-    return $ids;
   }
 
   protected static
@@ -238,37 +225,34 @@ class dfTools
     if (isset(self::$cached_category_paths[$id_category]))
       return self::$cached_category_paths[$id_category];
 
-    $excluded_ids = self::getRootCategoryIds($id_lang);
-    if ($excluded_ids)
-    {
-      $excluded_ids = implode(', ', $excluded_ids);
-      $excluded_ids = "AND parent.id_category NOT IN ($excluded_ids)";
-    }
+    $sql = "
+      SELECT
+        cl.name
+      FROM
+        _DB_PREFIX_category_lang cl INNER JOIN _DB_PREFIX_category parent
+          ON (parent.id_category = cl.id_category),
+        _DB_PREFIX_category node
+      WHERE
+        node.nleft BETWEEN parent.nleft AND parent.nright
+        AND node.id_category = _ID_CATEGORY_
+        AND cl.id_shop = _ID_SHOP_
+        AND cl.id_lang = _ID_LANG_
+        AND parent.level_depth <> 0
+        AND parent.active = 1
+        AND parent.id_category NOT IN (_EXCLUDED_IDS_)
+      ORDER BY parent.nleft;
+    ";
 
-    $sql = "SELECT DISTINCT cl.name AS name
-            FROM
-                _DB_PREFIX_category AS node,
-                (
-                  _DB_PREFIX_category AS parent
-                  INNER JOIN _DB_PREFIX_category_lang AS cl
-                    ON parent.id_category = cl.id_category
-                )
-            WHERE
-                node.nleft BETWEEN parent.nleft AND parent.nright
-                AND node.id_category = $id_category
-                AND cl.id_shop = $id_shop
-                AND cl.id_lang = $id_lang
-                AND parent.level_depth <> 0
-                AND parent.active = 1
-                $excluded_ids
-            ORDER BY parent.nleft;";
-    $sql = self::prepareSQL($sql);
+    $excluded_ids = implode(',', self::getRootCategoryIds($id_lang));
+    $sql = self::prepareSQL($sql, array('_ID_CATEGORY_' => $id_category,
+                                        '_ID_SHOP_' => $id_shop,
+                                        '_ID_LANG_' => $id_lang,
+                                        '_EXCLUDED_IDS_' => $excluded_ids));
 
     $path = array();
     foreach (Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql) as $row)
       $path[] = $row['name'];
     $path = implode(CATEGORY_TREE_SEPARATOR, $path);
-
     $path = self::cleanString($path);
 
     self::$cached_category_paths[$id_category] = $path;
@@ -286,16 +270,27 @@ class dfTools
    */
   public static function getCategoriesForProductIdAndLanguage($id_product, $id_lang, $id_shop, $flat=true)
   {
-    $sql = "SELECT c.id_category, c.id_parent, c.level_depth, c.nleft, c.nright
-            FROM _DB_PREFIX_category_product AS pc
-            INNER JOIN _DB_PREFIX_category AS c
-              ON pc.id_category = c.id_category
-            WHERE
-              pc.id_product = $id_product
-              AND c.active = 1
-            ORDER BY
-              c.nleft DESC, c.nright ASC;";
-    $sql = self::prepareSQL($sql);
+    $sql = "
+      SELECT
+        c.id_category,
+        c.id_parent,
+        c.level_depth,
+        c.nleft,
+        c.nright
+      FROM
+        _DB_PREFIX_category c
+        INNER JOIN _DB_PREFIX_category_product cp
+          ON (c.id_category = cp.id_category AND cp.id_product = _ID_PRODUCT_)
+        INNER JOIN _DB_PREFIX_category_shop cs
+          ON (c.id_category = cs.id_category AND cs.id_shop = _ID_SHOP_)
+      WHERE
+        c.active = 1
+      ORDER BY
+        c.nleft DESC,
+        c.nright ASC;
+    ";
+    $sql = self::prepareSQL($sql, array('_ID_PRODUCT_' => $id_product,
+                                        '_ID_SHOP_' => $id_shop));
 
     $categories = array();
     $last_saved = 0;
@@ -382,6 +377,7 @@ class dfTools
     // http://stackoverflow.com/questions/4224141/php-removing-invalid-utf-8-characters-in-xml-using-filter
     $valid_utf8 = '/([\x09\x0A\x0D\x20-\x7E]|[\xC2-\xDF][\x80-\xBF]|\xE0[\xA0-\xBF][\x80-\xBF]|[\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}|\xED[\x80-\x9F][\x80-\xBF]|\xF0[\x90-\xBF][\x80-\xBF]{2}|[\xF1-\xF3][\x80-\xBF]{3}|\xF4[\x80-\x8F][\x80-\xBF]{2})|./x';
 
+    $text = preg_replace('/\<br(\s*)?\/?\>/i', " ", $text);
     $text = strip_tags(html_entity_decode($text, ENT_QUOTES, 'UTF-8'));
     $text = preg_replace('/[ ]{2,}/', ' ', $text);
     $text = preg_replace('/[\t\s]+|[|\r\n]/', " ", $text);
@@ -412,12 +408,46 @@ class dfTools
   // Things from request / URL Tools
   //
 
+  /**
+   * Returns a boolean value for the $parameter specified. If the parameter does
+   * not exist (is NULL) then $default is returned instead.
+   *
+   * This method supports multiple ways of saying YES or NO.
+   */
+  public static function getBooleanFromRequest($parameter, $default = false)
+  {
+    $v = Tools::getValue($parameter, null);
+
+    if ($v === null)
+      return $default;
+
+    switch (strtolower($v))
+    {
+      case 'false':
+      case 'off':
+      case 'no':
+        return false;
+      case 'true':
+      case 'on':
+      case 'yes':
+      case 'si':
+        return true;
+      default:
+        return (bool) $v;
+    }
+  }
+
+  /**
+   * Returns a Language object based on the 'language' parameter from the
+   * request. If no language is found then the default one from the current
+   * context is used.
+   *
+   * @return Language
+   */
   public static function getLanguageFromRequest()
   {
     $context = Context::getContext();
-
-    // lang is the OLDER param name. Here for compatibility.
-    $id_lang = Tools::getValue('language', Tools::getValue('lang', $context->language->id));
+    $id_lang = Tools::getValue('language', $context->language->id);
 
     if (!is_numeric($id_lang))
       $id_lang = Language::getIdByIso($id_lang);
@@ -425,10 +455,18 @@ class dfTools
     return new Language($id_lang);
   }
 
+  /**
+   * Returns a Currency object with the currency configured in the plugin for
+   * the given ISO language $code parameter. If no currency is found the method
+   * returns the default one for the current context.
+   *
+   * @param string $code ISO language code.
+   * @return Currency
+   */
   public static function getCurrencyForLanguage($code)
   {
     $optname = 'DF_GS_CURRENCY_'.strtoupper($code);
-    $id_currency = Doofinder::cfg($optname, false);
+    $id_currency = Configuration::get($optname);
 
     if ($id_currency)
       return new Currency(Currency::getIdByIsoCode($id_currency));
@@ -436,6 +474,15 @@ class dfTools
     return new Currency(Context::getContext()->currency->id);
   }
 
+  /**
+   * Returns a Currency object based on the 'currency' parameter from the
+   * request. If no currency is found then the function searches one in the
+   * plugin configuration based on the $lang parameter. If none is configured
+   * then the default one from the current context is used.
+   *
+   * @param Language $lang
+   * @return Currency
+   */
   public static function getCurrencyForLanguageFromRequest(Language $lang)
   {
     if ($id_currency = Tools::getValue('currency'))
@@ -460,6 +507,12 @@ class dfTools
     return new Currency($id_currency);
   }
 
+  /**
+   * Returns a HTTP(S) link for a file from this module.
+   * @param string $path file path relative to this module's root.
+   * @param boolean $ssl Return a secure URL.
+   * @return string URL
+   */
   public static function getModuleLink($path, $ssl = false)
   {
     $context = Context::getContext();
@@ -469,12 +522,23 @@ class dfTools
     return $base._MODULE_DIR_.basename(dirname(__FILE__))."/".$path;
   }
 
+  /**
+   * Returns a data feed link for a given language ISO code. The link declares
+   * the usage of the currency configured in the plugin by default.
+   * @param string $langIsoCode ISO language code
+   * @return string URL
+   */
   public static function getFeedURL($langIsoCode)
   {
     $currency = self::getCurrencyForLanguage($langIsoCode);
-    return self::getModuleLink('feed.php')."?language=".$langIsoCode."&currency=".$currency->iso_code;
+    return self::getModuleLink('feed.php')."?language=".strtoupper($langIsoCode)."&currency=".strtoupper($currency->iso_code);
   }
 
+  /**
+   * Wraps a Javascript piece of code if no <script> tag is found.
+   * @param string $jsCode Javascript code.
+   * @return string
+   */
   public static function fixScriptTag($jsCode)
   {
     $result = trim(preg_replace('/<!--(.*?)-->/', '', $jsCode));
@@ -483,6 +547,11 @@ class dfTools
     return $result;
   }
 
+  /**
+   * Wraps a CSS piece of code if no <style> tag is found.
+   * @param string $cssCode CSS code.
+   * @return string
+   */
   public static function fixStyleTag($cssCode)
   {
     $result = trim(preg_replace('/<!--(.*?)-->/', '', $cssCode));
@@ -491,11 +560,41 @@ class dfTools
     return $result;
   }
 
+  /**
+   * Flush buffers
+   * @return void
+   */
   public static function flush()
   {
     if (function_exists('flush'))
-      flush();
+      @flush();
     if (function_exists('ob_flush'))
-      ob_flush();
+      @ob_flush();
+  }
+
+  /**
+   * Returns a configuration value for a $key and a $id_shop. If the value is
+   * not found (or it's false) then returns a $default value.
+   * @param integer $id_shop Shop id.
+   * @param string $key Configuration variable name.
+   * @param mixed $default Default value.
+   * @return mixed
+   */
+  public static function cfg($id_shop, $key, $default = false)
+  {
+    $v = Configuration::get($key, null, null, $id_shop);
+    if ($v === false)
+      return $default;
+    return $v;
+  }
+
+  public static function json_encode($data)
+  {
+    array_walk_recursive($data, function(&$item, $key) {
+      if (is_string($item))
+        $item = htmlentities($item);
+    });
+
+    return str_replace("\\/", "/", html_entity_decode(json_encode($data)));
   }
 }
