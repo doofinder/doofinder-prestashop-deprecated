@@ -587,4 +587,14 @@ class dfTools
       return $default;
     return $v;
   }
+
+  public static function json_encode($data)
+  {
+    array_walk_recursive($data, function(&$item, $key) {
+      if (is_string($item))
+        $item = htmlentities($item);
+    });
+
+    return str_replace("\\/", "/", html_entity_decode(json_encode($data)));
+  }
 }
