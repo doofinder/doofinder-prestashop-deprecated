@@ -38,16 +38,11 @@ $baseUrl = dfTools::getModuleLink('feed.php');
 
 header("Content-Type:application/json; charset=utf-8");
 
-$feeds = array();
+$languages = array();
+$currencies = array_keys(dfTools::getAvailableCurrencies());
+
 foreach (Language::getLanguages(true) as $lang)
-{
-  $feeds[] = array(
-    "id" => $lang['id_lang'],
-    "code" => $lang['iso_code'],
-    "url" => dfTools::getFeedURL($lang['iso_code']),
-    "length" => dfTools::countAvailableProductsForLanguage($lang['id_lang'])
-  );
-}
+  $languages[] = strtoupper($lang['iso_code']);
 
 $cfg = array(
   "platform" => array(
@@ -56,9 +51,14 @@ $cfg = array(
   ),
   "module" => array(
     "version" => Doofinder::VERSION,
-    "feeds" => $feeds,
-    "fetch_mode" => Doofinder::cfg('DF_FETCH_FEED_MODE', false),
+    "feed" => dfTools::getModuleLink('feed.php'),
+    "options" => array(
+      "language" => $languages,
+      "currency" => $currencies,
+      "prices" => (bool) dfTools::cfg('DF_GS_DISPLAY_PRICES', true),
+      "taxes" => (bool) dfTools::cfg('DF_GS_PRICES_USE_TAX', true),
+    ),
   )
 );
 
-echo json_encode($cfg);
+echo dfTools::json_encode($cfg);

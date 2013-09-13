@@ -35,85 +35,130 @@
  *
  * - limit:      Max results in this request.
  * - offset:     Zero-based position to start getting results.
- * - chunk_size: In FETCH_MODE_FAST, the same as limit if limit is not present.
  * - language:   Language ISO code, like "es" or "en"
  * - currency:   Currency ISO code, like "EUR" or "GBP"
+ * - taxes:      Boolean. Apply taxes to prices. Default true.
+ * - prices:     Boolean. Display Prices. Default true.
  */
+
+@set_time_limit(0);
 
 require_once(dirname(__FILE__) . '/../../config/config.inc.php');
 require_once(dirname(__FILE__) . '/../../init.php');
 require_once(dirname(__FILE__) . '/doofinder.php');
 
-$fetchMode = Doofinder::cfg('DF_FETCH_FEED_MODE', Doofinder::FETCH_MODE_ALT1);
+global $cookie;
+$link = new Link();
+
+define('TXT_SEPARATOR', '|');
+
+$lang = dfTools::getLanguageFromRequest();
+$currency = dfTools::getCurrencyForLanguageFromRequest($lang);
+
+// CONFIG
+$cfg_short_description = (dfTools::cfg('DF_GS_DESCRIPTION_TYPE', Doofinder::GS_SHORT_DESCRIPTION) == Doofinder::GS_SHORT_DESCRIPTION);
+$cfg_display_prices = dfTools::getBooleanFromRequest('prices', (bool) dfTools::cfg('DF_GS_DISPLAY_PRICES', Doofinder::YES));
+$cfg_prices_w_taxes = dfTools::getBooleanFromRequest('taxes', (bool) dfTools::cfg('DF_GS_PRICES_USE_TAX', Doofinder::YES));
+$cfg_image_size = dfTools::cfg('DF_GS_IMAGE_SIZE');
 
 $limit = Tools::getValue('limit', false);
+$offset = Tools::getValue('offset', false);
 
-if ($limit !== false && intval($limit) > 0)
-  $fetchMode = Doofinder::FETCH_MODE_ALT1;
+// OUTPUT
+if (isset($_SERVER['HTTPS']))
+  header('Strict-Transport-Security: max-age=500');
 
-if ($fetchMode == Doofinder::FETCH_MODE_FAST)
+header("Content-Type:text/plain; charset=utf-8");
+
+// HEADER
+$header = array('id', 'title', 'link', 'description', 'alternate_description',
+                'meta_keywords', 'meta_title', 'meta_description', 'image_link',
+                'categories', 'availability', 'brand', 'gtin', 'mpn',
+                'extra_title_1', 'extra_title_2');
+
+if ($cfg_display_prices)
 {
-  $allow_url_fopen = intval(ini_get('allow_url_fopen'));
-  $allow_curl = function_exists('curl_exec');
+  $header[] = 'price';
+  $header[] = 'sale_price';
+}
 
-  if (!$allow_url_fopen && !$allow_curl)
-    die('You must activate fopen or cURL in your server to use this fetch mode.');
+if (!$limit || ($offset !== false && intval($offset) === 0))
+{
+  echo implode(TXT_SEPARATOR, $header).PHP_EOL;
+  dfTools::flush();
+}
 
-  $lang = dfTools::getLanguageFromRequest();
-  $currency = dfTools::getCurrencyForLanguageFromRequest($lang);
+// PRODUCTS
+foreach (dfTools::getAvailableProductsForLanguage($lang->id, $limit, $offset) as $row)
+{
+  // ID
+  echo $row['id_product'].TXT_SEPARATOR;
 
-  $chunk_size = intval(Tools::getValue('chunk_size', 1000));
-  $nb_rows = dfTools::countAvailableProductsForLanguage($lang->id);
+  // TITLE
+  $product_title = dfTools::cleanString($row['name']);
+  echo $product_title.TXT_SEPARATOR;
 
-  $baseUrl = dfTools::getModuleLink('feed_part.php');
+  // LINK
+  echo $link->getProductLink($row['id_product'],
+                             $row['link_rewrite'],
+                             $row['cat_link_rew'],
+                             $row['ean13'],
+                             $lang->id).TXT_SEPARATOR;
 
-  for ($offset = 0; $offset < $nb_rows; $offset += $chunk_size)
+  // DESCRIPTION
+  echo dfTools::cleanString($row[($cfg_short_description ? 'description_short' : 'description')]).TXT_SEPARATOR;
+
+  // ALTERNATE DESCRIPTION
+  echo dfTools::cleanString($row[($cfg_short_description ? 'description' : 'description_short')]).TXT_SEPARATOR;
+
+  // META KEYWORDS
+  echo dfTools::cleanString($row['meta_keywords']).TXT_SEPARATOR;
+
+  // META TITLE
+  echo dfTools::cleanString($row['meta_title']).TXT_SEPARATOR;
+
+  // META DESCRIPTION
+  echo dfTools::cleanString($row['meta_description']).TXT_SEPARATOR;
+
+  // IMAGE LINK
+  echo $link->getImageLink($row['link_rewrite'],
+                           $row['id_product'] .'-'. $row['id_image'],
+                           $cfg_image_size).TXT_SEPARATOR;
+
+  // PRODUCT CATEGORIES
+  echo dfTools::getCategoriesForProductIdAndLanguage($row['id_product'], $lang->id).TXT_SEPARATOR;
+
+  // AVAILABILITY
+  echo (intval($row['quantity']) ? 'in stock' : 'out of stock').TXT_SEPARATOR;
+  // echo (StockAvailable::outOfStock($row['id_product'], $shop->id) ? 'in stock' : 'out of stock').TXT_SEPARATOR;
+
+  // BRAND
+  echo $row['manufacturer'].TXT_SEPARATOR;
+
+  // GTIN
+  echo dfTools::cleanString($row['ean13']).TXT_SEPARATOR;
+
+  // MPN
+  echo dfTools::cleanString($row['supplier_reference']).TXT_SEPARATOR;
+
+  // EXTRA_TITLE_1
+  echo dfTools::cleanReferences($product_title).TXT_SEPARATOR;
+
+  // EXTRA_TITLE_2
+  echo dfTools::splitReferences($product_title);
+
+  // PRODUCT PRICE & ON SALE PRICE
+  if ($cfg_display_prices)
   {
-    $url = $baseUrl."?language=".$lang->id."&currency=".$currency->id."&limit=".$chunk_size."&offset=".$offset;
+    echo TXT_SEPARATOR;
 
-    if ($offset == 0)
-    {
-      if (isset($_SERVER['HTTPS']))
-        header('Strict-Transport-Security: max-age=500');
+    $product_price = Product::getPriceStatic($row['id_product'], $cfg_prices_w_taxes, null, 2, null, false, false);
+    $onsale_price = Product::getPriceStatic($row['id_product'], $cfg_prices_w_taxes, null, 2);
 
-      header("Content-Type:text/plain; charset=utf-8");
-    }
-
-    if ($allow_url_fopen)
-    {
-      $fp = fopen($url, "r");
-
-      while (false !== ($line = fgets($fp)))
-      {
-        echo $line;
-        dfTools::flush();
-      }
-
-      fclose($fp);
-    }
-    else
-    {
-      $ch = curl_init();
-      curl_setopt($ch, CURLOPT_URL, $url);
-      curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-      $data = curl_exec($ch);
-      curl_close($ch);
-
-      if ($data !== false)
-      {
-        echo $data;
-        dfTools::flush();
-      }
-    }
+    echo Tools::convertPrice($product_price, $currency).TXT_SEPARATOR;
+    echo (($product_price != $onsale_price) ? Tools::convertPrice($onsale_price, $currency) : "");
   }
-}
 
-if ($fetchMode == Doofinder::FETCH_MODE_ALT1)
-{
-  require_once(dirname(__FILE__) . '/feed_alt1.php');
-}
-
-if ($fetchMode == Doofinder::FETCH_MODE_ALT2)
-{
-  require_once(dirname(__FILE__) . '/feed_alt2.php');
+  echo PHP_EOL;
+  dfTools::flush();
 }
