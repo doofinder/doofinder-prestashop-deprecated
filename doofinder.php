@@ -219,7 +219,7 @@ class Doofinder extends Module
     $cfgLangStrValues = array('DOOFINDER_SCRIPT_' => true, 'DF_GS_CURRENCY_' => false);
     foreach ($cfgLangStrValues as $prefix => $html)
     {
-      foreach (Language::getLanguages() as $lang)
+      foreach (Language::getLanguages(true, $this->context->shop->id) as $lang)
       {
         $optname = $prefix.strtoupper($lang['iso_code']);
         Configuration::updateValue($optname, Tools::getValue($optname), $html);
@@ -318,7 +318,7 @@ class Doofinder extends Module
 
     // DF_GS_CURRENCY_<LANG>
     $optname = 'DF_GS_CURRENCY_';
-    foreach (Language::getLanguages(true) as $lang)
+    foreach (Language::getLanguages(true, $this->context->shop->id) as $lang)
     {
       $realoptname = $optname.strtoupper($lang['iso_code']);
       $fields[] = array(
@@ -369,7 +369,7 @@ class Doofinder extends Module
     // DOOFINDER_SCRIPT
     $optname = 'DOOFINDER_SCRIPT_';
     $desc = $this->l('Paste the script as you got it from Doofinder.');
-    foreach (Language::getLanguages(true) as $lang)
+    foreach (Language::getLanguages(true, $this->context->shop->id) as $lang)
     {
       $realoptname = $optname.strtoupper($lang['iso_code']);
       $url = dfTools::getFeedURL($lang['iso_code']);

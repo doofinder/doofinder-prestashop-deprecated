@@ -111,7 +111,6 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
                                       0, true).TXT_SEPARATOR;
 
   // DESCRIPTION
-
   echo dfTools::cleanString($row[($cfg_short_description ? 'description_short' : 'description')]).TXT_SEPARATOR;
 
   // ALTERNATE DESCRIPTION

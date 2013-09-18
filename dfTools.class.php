@@ -89,12 +89,20 @@ class dfTools
   public static function getAvailableImageSizes()
   {
     $sizes = array();
-    $sql = self::prepareSQL("SELECT `name` DF_GS_IMAGE_SIZE, `name` FROM `_DB_PREFIX_image_type` WHERE `products` = 1 ORDER BY `name`;");
+    $sql = "
+      SELECT
+        `name` AS DF_GS_IMAGE_SIZE,
+        `name`
+      FROM
+        `_DB_PREFIX_image_type`
+      WHERE
+        `products` = 1
+      ORDER BY
+        `name`;
+    ";
 
-    foreach (Db::getInstance()->ExecuteS($sql) as $size)
-    {
+    foreach (Db::getInstance()->ExecuteS(self::prepareSQL($sql)) as $size)
       $sizes[$size['DF_GS_IMAGE_SIZE']] = $size;
-    }
 
     return $sizes;
   }
@@ -107,32 +115,23 @@ class dfTools
   public static function getAvailableCurrencies()
   {
     $currencies = array();
+    $sql = "
+      SELECT
+        `iso_code`,
+        `name`
+      FROM
+        `_DB_PREFIX_currency`
+      WHERE
+        `active` = 1
+      ORDER BY `name`;
+    ";
 
-    $sql = self::prepareSQL("SELECT `iso_code`, `name` FROM `_DB_PREFIX_currency` WHERE `active` = 1 ORDER BY `name`;");
-
-    foreach (Db::getInstance()->ExecuteS($sql) as $currency)
-    {
+    foreach (Db::getInstance()->ExecuteS(self::prepareSQL($sql)) as $currency)
       $currencies[$currency['iso_code']] = $currency;
-    }
 
     return $currencies;
   }
 
-  /**
-   * Returns the # of products available for a language.
-   */
-  public static function countAvailableProductsForLanguage($id_lang)
-  {
-    $sql = "SELECT COUNT(*) AS total
-            FROM _DB_PREFIX_product p
-            LEFT JOIN _DB_PREFIX_product_lang pl
-              ON p.id_product = pl.id_product
-            WHERE p.active = 1
-              AND pl.id_lang = _ID_LANG_;";
-    $sql = self::prepareSQL($sql, array('_ID_LANG_' => $id_lang));
-    $res = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
-    return intval($res[0]['total']);
-  }
 
   /**
    * Returns the products available for a language
@@ -240,7 +239,9 @@ class dfTools
         AND parent.level_depth <> 0
         AND parent.active = 1
         AND parent.id_category NOT IN (_EXCLUDED_IDS_)
-      ORDER BY parent.nleft;
+      ORDER BY
+        parent.nleft
+      ;
     ";
 
     $excluded_ids = implode(',', self::getRootCategoryIds($id_lang));
