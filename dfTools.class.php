@@ -30,7 +30,7 @@
  *       http://creativecommons.org/licenses/by-nc-sa/3.0/
  */
 
-define('CATEGORY_SEPARATOR', '/');
+define('CATEGORY_SEPARATOR', '%%');
 define('CATEGORY_TREE_SEPARATOR', '>');
 
 class dfTools
@@ -252,7 +252,8 @@ class dfTools
 
     $path = array();
     foreach (Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql) as $row)
-      $path[] = $row['name'];
+      $path[] = str_replace(array(CATEGORY_TREE_SEPARATOR, CATEGORY_SEPARATOR),
+                            "-", $row['name']);
     $path = implode(CATEGORY_TREE_SEPARATOR, $path);
     $path = self::cleanString($path);
 
