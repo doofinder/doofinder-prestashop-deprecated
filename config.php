@@ -40,10 +40,26 @@ $baseUrl = dfTools::getModuleLink('feed.php');
 header("Content-Type:application/json; charset=utf-8");
 
 $languages = array();
+$configurations = array();
 $currencies = array_keys(dfTools::getAvailableCurrencies());
 
+$display_prices = (bool) dfTools::cfg($context->shop->id, 'DF_GS_DISPLAY_PRICES', true);
+$prices_with_taxes = (bool) dfTools::cfg($context->shop->id, 'DF_GS_PRICES_USE_TAX', true);
+
 foreach (Language::getLanguages(true, $context->shop->id) as $lang)
-  $languages[] = strtoupper($lang['iso_code']);
+{
+  $lang = strtoupper($lang['iso_code']);
+  $currency = dfTools::getCurrencyForLanguage($lang);
+
+  $languages[] = $lang;
+  $configurations[$lang] = array(
+    "language" => $lang,
+    "currency" => strtoupper($currency->iso_code),
+    "prices" => $display_prices,
+    "taxes" => $prices_with_taxes,
+  );
+}
+
 
 $cfg = array(
   "platform" => array(
@@ -56,9 +72,8 @@ $cfg = array(
     "options" => array(
       "language" => $languages,
       "currency" => $currencies,
-      "prices" => (bool) dfTools::cfg($context->shop->id, 'DF_GS_DISPLAY_PRICES', true),
-      "taxes" => (bool) dfTools::cfg($context->shop->id, 'DF_GS_PRICES_USE_TAX', true),
     ),
+    "configuration" => $configurations,
   ),
 );
 
