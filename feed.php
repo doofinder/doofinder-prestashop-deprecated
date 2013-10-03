@@ -99,11 +99,14 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $limit, $offset) as
   echo $product_title.TXT_SEPARATOR;
 
   // LINK
-  echo $link->getProductLink($row['id_product'],
-                             $row['link_rewrite'],
-                             $row['cat_link_rew'],
-                             $row['ean13'],
-                             $lang->id).TXT_SEPARATOR;
+  echo dfTools::cleanString(
+    $link->getProductLink($row['id_product'],
+                          $row['link_rewrite'],
+                          $row['cat_link_rew'],
+                          $row['ean13'],
+                          $lang->id),
+    true
+  ).TXT_SEPARATOR;
 
   // DESCRIPTION
   echo dfTools::cleanString($row[($cfg_short_description ? 'description_short' : 'description')]).TXT_SEPARATOR;
@@ -121,9 +124,12 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $limit, $offset) as
   echo dfTools::cleanString($row['meta_description']).TXT_SEPARATOR;
 
   // IMAGE LINK
-  echo $link->getImageLink($row['link_rewrite'],
-                           $row['id_product'] .'-'. $row['id_image'],
-                           $cfg_image_size).TXT_SEPARATOR;
+  echo dfTools::cleanString(
+    $link->getImageLink($row['link_rewrite'],
+                        $row['id_product'] .'-'. $row['id_image'],
+                        $cfg_image_size),
+    true
+  ).TXT_SEPARATOR;
 
   // PRODUCT CATEGORIES
   echo dfTools::getCategoriesForProductIdAndLanguage($row['id_product'], $lang->id).TXT_SEPARATOR;
@@ -133,7 +139,7 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $limit, $offset) as
   // echo (StockAvailable::outOfStock($row['id_product'], $shop->id) ? 'in stock' : 'out of stock').TXT_SEPARATOR;
 
   // BRAND
-  echo $row['manufacturer'].TXT_SEPARATOR;
+  echo dfTools::cleanString($row['manufacturer']).TXT_SEPARATOR;
 
   // GTIN
   echo dfTools::cleanString($row['ean13']).TXT_SEPARATOR;
