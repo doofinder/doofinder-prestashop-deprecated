@@ -50,8 +50,6 @@ require_once(dirname(__FILE__) . '/doofinder.php');
 global $cookie;
 $link = new Link();
 
-define('TXT_SEPARATOR', '|');
-
 $lang = dfTools::getLanguageFromRequest();
 $currency = dfTools::getCurrencyForLanguageFromRequest($lang);
 
