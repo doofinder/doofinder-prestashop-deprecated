@@ -32,6 +32,7 @@
 
 define('CATEGORY_SEPARATOR', '%%');
 define('CATEGORY_TREE_SEPARATOR', '>');
+define('TXT_SEPARATOR', '|');
 
 class dfTools
 {
@@ -380,7 +381,9 @@ class dfTools
     $valid_utf8 = '/([\x09\x0A\x0D\x20-\x7E]|[\xC2-\xDF][\x80-\xBF]|\xE0[\xA0-\xBF][\x80-\xBF]|[\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}|\xED[\x80-\x9F][\x80-\xBF]|\xF0[\x90-\xBF][\x80-\xBF]{2}|[\xF1-\xF3][\x80-\xBF]{3}|\xF4[\x80-\x8F][\x80-\xBF]{2})|./x';
 
     $blank = $is_link ? "" : " ";
+    $sep_r = $is_link ? urlencode(TXT_SEPARATOR) : " - ";
 
+    $text = str_replace(TXT_SEPARATOR, $sep_r, $text);
     $text = strip_tags(html_entity_decode($text, ENT_QUOTES, 'UTF-8'));
     $text = preg_replace('/\<br(\s*)?\/?\>/i', $blank, $text);
     $text = str_replace(array("\t", "\r", "\n", chr(9), chr(10)), $blank, $text);

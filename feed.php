@@ -47,8 +47,6 @@ require_once(dirname(__FILE__) . '/../../config/config.inc.php');
 require_once(dirname(__FILE__) . '/../../init.php');
 require_once(dirname(__FILE__) . '/doofinder.php');
 
-define('TXT_SEPARATOR', '|');
-
 $context = Context::getContext();
 
 $shop = new Shop((int) $context->shop->id);
