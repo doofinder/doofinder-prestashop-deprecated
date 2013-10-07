@@ -372,6 +372,18 @@ class dfTools
     return $r;
   }
 
+  public static function stripHtml($text)
+  {
+    $text = html_entity_decode($text, ENT_QUOTES, "ISO-8859-1");
+    $text = preg_replace('/&#(\d+);/me',"chr(\\1)",$text);  // decimal notation
+    $text = preg_replace('/&#x([a-f0-9]+);/mei',"chr(0x\\1)",$text);  // hex notation
+    $text = str_replace("><", "> <", $text);
+    $text = preg_replace('/\<br(\s*)?\/?\>/i', $blank, $text);
+    $text = strip_tags($text);
+
+    return $text;
+  }
+
   public static function cleanString($text, $is_link = false)
   {
     // http://stackoverflow.com/questions/4224141/php-removing-invalid-utf-8-characters-in-xml-using-filter
@@ -381,13 +393,17 @@ class dfTools
     $sep_r = $is_link ? urlencode(TXT_SEPARATOR) : " - ";
 
     $text = str_replace(TXT_SEPARATOR, $sep_r, $text);
-    $text = strip_tags(html_entity_decode($text, ENT_QUOTES, 'UTF-8'));
-    $text = preg_replace('/\<br(\s*)?\/?\>/i', $blank, $text);
     $text = str_replace(array("\t", "\r", "\n", chr(9), chr(10)), $blank, $text);
-    $text = preg_replace('/\s+/', $blank, $text);
 
     if ($is_link)
+    {
       $text = str_replace(" ", $blank, $text);
+    }
+    else
+    {
+      $text = self::stripHtml($text);
+      $text = preg_replace('/\s+/', $blank, $text);
+    }
 
     return preg_replace($valid_utf8, '$1', trim($text));
   }
