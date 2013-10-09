@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "1.3.5";
+  const VERSION = "1.3.6";
 
   const YES = 1;
   const NO = 0;
@@ -420,7 +420,7 @@ class Doofinder extends Module
     $optname = 'DF_DISPLAY_SEARCHBOX';
     $field = $this->getYesNoSelectFor($optname, $this->l('Display Searchbox'));
     $fields[] = $field;
-    $helper->fields_value[$optname] = $this->cfg($optname, self::YES);
+    $helper->fields_value[$optname] = $this->cfg($optname, self::NO);
 
     $fields_form[2]['form']['input'] = $fields;
 
