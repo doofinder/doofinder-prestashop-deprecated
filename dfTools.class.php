@@ -178,6 +178,8 @@ class dfTools
           ON (p.id_category_default = cl.id_category AND cl.id_shop = _ID_SHOP_ AND cl.id_lang = _ID_LANG_)
         LEFT JOIN (_DB_PREFIX_image im INNER JOIN _DB_PREFIX_image_shop ims ON im.id_image = ims.id_image)
           ON (p.id_product = im.id_product AND ims.id_shop = _ID_SHOP_ AND ims.cover = 1)
+      WHERE
+        ps.active = 1
       ORDER BY
         p.id_product
     ";
