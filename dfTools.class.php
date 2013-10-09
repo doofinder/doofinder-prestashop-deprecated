@@ -166,6 +166,8 @@ class dfTools
           ON (p.id_category_default = cl.id_category AND cl.id_lang = _ID_LANG_)
         LEFT JOIN _DB_PREFIX_image im
           ON (p.id_product = im.id_product AND im.cover = 1)
+      WHERE
+        p.active = 1
       ORDER BY
         p.id_product
     ";
