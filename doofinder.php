@@ -52,7 +52,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "1.2.5";
+  const VERSION = "1.2.6";
 
   const YES = 1;
   const NO = 0;
@@ -92,7 +92,7 @@ class Doofinder extends Module
     $language = new Language($cookie->id_lang);
     $lang = strtoupper($language->iso_code);
     $script = self::cfg("DOOFINDER_SCRIPT_$lang");
-    $searchbox_enabled = self::cfg('DF_DISPLAY_SEARCHBOX', self::YES);
+    $searchbox_enabled = self::cfg('DF_DISPLAY_SEARCHBOX', self::NO);
     $extra_css = self::cfg('DF_EXTRA_CSS');
 
     $smarty->assign(array(
@@ -109,7 +109,7 @@ class Doofinder extends Module
 
   public function hookHeader($params)
   {
-    if (self::cfg('DF_DISPLAY_SEARCHBOX', self::YES) == self::YES)
+    if (self::cfg('DF_DISPLAY_SEARCHBOX', self::NO) == self::YES)
       Tools::addCSS(($this->_path).'css/layer.css', 'all');
 
     $this->configureHookCommon($params);
@@ -400,7 +400,7 @@ class Doofinder extends Module
 
     // DF_DISPLAY_SEARCHBOX
     $optname = 'DF_DISPLAY_SEARCHBOX';
-    $optvalue = self::cfg($optname, self::YES);
+    $optvalue = self::cfg($optname, self::NO);
     $field = dfForm::getSelectFor($optname, $optvalue, $yesNoChoices);
     $label = $this->l('Display Searchbox');
     $this->_html .= dfForm::wrapField($optname, $label, $field);
