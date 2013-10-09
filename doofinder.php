@@ -79,7 +79,7 @@ class Doofinder extends Module
   {
     $lang = strtoupper($this->context->language->iso_code);
     $script = $this->cfg("DOOFINDER_SCRIPT_$lang");
-    $searchbox_enabled = $this->cfg('DF_DISPLAY_SEARCHBOX', self::YES);
+    $searchbox_enabled = $this->cfg('DF_DISPLAY_SEARCHBOX', self::NO);
     $extra_css = $this->cfg('DF_EXTRA_CSS');
 
     $this->smarty->assign(array(
@@ -96,7 +96,7 @@ class Doofinder extends Module
 
   public function hookHeader($params)
   {
-    if ($this->cfg('DF_DISPLAY_SEARCHBOX', self::YES) == self::YES)
+    if ($this->cfg('DF_DISPLAY_SEARCHBOX', self::NO) == self::YES)
       $this->context->controller->addCSS(($this->_path).'css/layer.css', 'all');
 
     $this->configureHookCommon($params);
