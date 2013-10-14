@@ -407,7 +407,11 @@ class dfTools
       $text = preg_replace('/\s+/', $blank, $text);
     }
 
-    return preg_replace($valid_utf8, '$1', trim($text));
+    $text = trim($text);
+    // remove first quotes
+    $text = preg_replace('/^["\']+/', '', $text);
+
+    return preg_replace($valid_utf8, '$1', $text);
   }
 
   /**
