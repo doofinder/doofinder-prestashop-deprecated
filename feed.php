@@ -97,13 +97,12 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $limit, $offset) as
   echo $product_title.TXT_SEPARATOR;
 
   // LINK
-  echo dfTools::cleanString(
+  echo dfTools::cleanURL(
     $link->getProductLink($row['id_product'],
                           $row['link_rewrite'],
                           $row['cat_link_rew'],
                           $row['ean13'],
-                          $lang->id),
-    true
+                          $lang->id)
   ).TXT_SEPARATOR;
 
   // DESCRIPTION
@@ -122,12 +121,12 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $limit, $offset) as
   echo dfTools::cleanString($row['meta_description']).TXT_SEPARATOR;
 
   // IMAGE LINK
-  echo dfTools::cleanString(
-    $link->getImageLink($row['link_rewrite'],
-                        $row['id_product'] .'-'. $row['id_image'],
-                        $cfg_image_size),
-    true
-  ).TXT_SEPARATOR;
+  echo dfTools::cleanURL(dfTools::getImageLink(
+    $row['id_product'],
+    $row['id_image'],
+    $row['link_rewrite'],
+    $cfg_image_size
+  )).TXT_SEPARATOR;
 
   // PRODUCT CATEGORIES
   echo dfTools::getCategoriesForProductIdAndLanguage($row['id_product'], $lang->id).TXT_SEPARATOR;
