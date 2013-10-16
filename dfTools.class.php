@@ -36,6 +36,9 @@ define('TXT_SEPARATOR', '|');
 
 class dfTools
 {
+  // http://stackoverflow.com/questions/4224141/php-removing-invalid-utf-8-characters-in-xml-using-filter
+  const VALID_UTF8 = '/([\x09\x0A\x0D\x20-\x7E]|[\xC2-\xDF][\x80-\xBF]|\xE0[\xA0-\xBF][\x80-\xBF]|[\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}|\xED[\x80-\x9F][\x80-\xBF]|\xF0[\x90-\xBF][\x80-\xBF]{2}|[\xF1-\xF3][\x80-\xBF]{3}|\xF4[\x80-\x8F][\x80-\xBF]{2})|./x';
+
   //
   // Validation
   //
@@ -383,38 +386,57 @@ class dfTools
     $text = preg_replace('/&#(\d+);/me',"chr(\\1)",$text);  // decimal notation
     $text = preg_replace('/&#x([a-f0-9]+);/mei',"chr(0x\\1)",$text);  // hex notation
     $text = str_replace("><", "> <", $text);
-    $text = preg_replace('/\<br(\s*)?\/?\>/i', $blank, $text);
+    $text = preg_replace('/\<br(\s*)?\/?\>/i', " ", $text);
     $text = strip_tags($text);
 
     return $text;
   }
 
-  public static function cleanString($text, $is_link = false)
+  public static function cleanURL($text)
   {
-    // http://stackoverflow.com/questions/4224141/php-removing-invalid-utf-8-characters-in-xml-using-filter
-    $valid_utf8 = '/([\x09\x0A\x0D\x20-\x7E]|[\xC2-\xDF][\x80-\xBF]|\xE0[\xA0-\xBF][\x80-\xBF]|[\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}|\xED[\x80-\x9F][\x80-\xBF]|\xF0[\x90-\xBF][\x80-\xBF]{2}|[\xF1-\xF3][\x80-\xBF]{3}|\xF4[\x80-\x8F][\x80-\xBF]{2})|./x';
+    $text = trim($text);
+    $text = explode("?", $text);
 
-    $blank = $is_link ? "" : " ";
-    $sep_r = $is_link ? urlencode(TXT_SEPARATOR) : " - ";
-
-    $text = str_replace(TXT_SEPARATOR, $sep_r, $text);
-    $text = str_replace(array("\t", "\r", "\n", chr(9), chr(10)), $blank, $text);
-
-    if ($is_link)
+    $baseUrl = array();
+    foreach (explode("/", $text[0]) as $part)
     {
-      $text = str_replace(" ", $blank, $text);
+      if (in_array(strtolower($part), array('http:', 'https:', '')))
+        $baseUrl[] = $part;
+      else
+        $baseUrl[] = rawurlencode($part);
     }
-    else
+    $text[0] = implode("/", $baseUrl);
+
+    if (isset($text[1]))
     {
-      $text = self::stripHtml($text);
-      $text = preg_replace('/\s+/', $blank, $text);
+      $params = array();
+      foreach (explode("&", $text[1]) as $param)
+      {
+        $param = explode("=", $param);
+        foreach ($param as $idx => $part)
+          $param[$idx] = urlencode($part);
+        $params[] = implode("=", $param);
+      }
+      $text[1] = implode('&', $params);
     }
+
+    $text = implode('?', $text);
+
+    return preg_replace(self::VALID_UTF8, '$1', $text);
+  }
+
+  public static function cleanString($text)
+  {
+    $text = str_replace(TXT_SEPARATOR, "-", $text);
+    $text = str_replace(array("\t", "\r", "\n"), " ", $text);
+
+    $text = self::stripHtml($text);
+    $text = preg_replace('/\s+/', " ", $text);
 
     $text = trim($text);
-    // remove first quotes
-    $text = preg_replace('/^["\']+/', '', $text);
+    $text = preg_replace('/^["\']+/', '', $text); // remove first quotes
 
-    return preg_replace($valid_utf8, '$1', $text);
+    return preg_replace(self::VALID_UTF8, '$1', $text);
   }
 
   /**
@@ -551,6 +573,21 @@ class dfTools
     $base = (($ssl && $context->link->ssl_enable) ? _PS_BASE_URL_SSL_ : _PS_BASE_URL_);
 
     return $base._MODULE_DIR_.basename(dirname(__FILE__))."/".$path;
+  }
+
+  public static function fixURL($url)
+  {
+    if (preg_match('~^https?://~', $url) === 0)
+      $url = "http://$url";
+
+    return $url;
+  }
+
+  public static function getImageLink($id_product, $id_image, $link_rewrite, $image_size)
+  {
+    $context = Context::getContext();
+    $url = $context->link->getImageLink($link_rewrite, "$id_product-$id_image", $image_size);
+    return self::fixURL($url);
   }
 
   /**
