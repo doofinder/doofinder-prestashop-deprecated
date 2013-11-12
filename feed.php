@@ -132,7 +132,7 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $limit, $offset) as
   echo dfTools::getCategoriesForProductIdAndLanguage($row['id_product'], $lang->id).TXT_SEPARATOR;
 
   // AVAILABILITY
-  echo (intval($row['quantity']) ? 'in stock' : 'out of stock').TXT_SEPARATOR;
+  echo (intval($row['available_for_order']) ? 'in stock' : 'out of stock').TXT_SEPARATOR;
   // echo (StockAvailable::outOfStock($row['id_product'], $shop->id) ? 'in stock' : 'out of stock').TXT_SEPARATOR;
 
   // BRAND

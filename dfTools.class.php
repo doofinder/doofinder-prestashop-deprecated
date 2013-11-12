@@ -158,7 +158,9 @@ class dfTools
         pl.link_rewrite,
         cl.link_rewrite AS cat_link_rew,
 
-        im.id_image
+        im.id_image,
+
+        p.available_for_order
       FROM
         _DB_PREFIX_product p
         LEFT JOIN _DB_PREFIX_product_lang pl
