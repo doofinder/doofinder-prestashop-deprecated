@@ -656,13 +656,15 @@ class dfTools
     return $v;
   }
 
+  public static function walk_apply_html_entities(&$item, $key)
+  {
+    if (is_string($item))
+      $item = htmlentities($item);
+  }
+
   public static function json_encode($data)
   {
-    array_walk_recursive($data, function(&$item, $key) {
-      if (is_string($item))
-        $item = htmlentities($item);
-    });
-
+    array_walk_recursive($data, array(get_class(), 'walk_apply_html_entities'));
     return str_replace("\\/", "/", html_entity_decode(json_encode($data)));
   }
 }
