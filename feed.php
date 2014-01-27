@@ -158,8 +158,8 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $limit, $offset) as
     $product_price = Product::getPriceStatic($row['id_product'], $cfg_prices_w_taxes, null, 2, null, false, false);
     $onsale_price = Product::getPriceStatic($row['id_product'], $cfg_prices_w_taxes, null, 2);
 
-    echo Tools::convertPrice($product_price, $currency).TXT_SEPARATOR;
-    echo (($product_price != $onsale_price) ? Tools::convertPrice($onsale_price, $currency) : "");
+    echo ($product_price ? Tools::convertPrice($product_price, $currency) : "").TXT_SEPARATOR;
+    echo (($product_price && $onsale_price && $product_price != $onsale_price) ? Tools::convertPrice($onsale_price, $currency) : "");
   }
 
   echo PHP_EOL;
