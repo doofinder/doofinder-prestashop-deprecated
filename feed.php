@@ -61,6 +61,7 @@ $cfg_short_description = (dfTools::cfg($shop->id, 'DF_GS_DESCRIPTION_TYPE', Doof
 $cfg_display_prices = dfTools::getBooleanFromRequest('prices', (bool) dfTools::cfg($shop->id, 'DF_GS_DISPLAY_PRICES', Doofinder::YES));
 $cfg_prices_w_taxes = dfTools::getBooleanFromRequest('taxes', (bool) dfTools::cfg($shop->id, 'DF_GS_PRICES_USE_TAX', Doofinder::YES));
 $cfg_image_size = dfTools::cfg($shop->id, 'DF_GS_IMAGE_SIZE');
+$cfg_mod_rewrite = dfTools::cfg($shop->id, 'PS_REWRITING_SETTINGS', Doofinder::YES);
 
 $limit = Tools::getValue('limit', false);
 $offset = Tools::getValue('offset', false);
@@ -108,7 +109,7 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
                                    $lang->id,
                                    $shop->id,
                                    0,
-                                   true)
+                                   $cfg_mod_rewrite)
   ).TXT_SEPARATOR;
 
   // DESCRIPTION
