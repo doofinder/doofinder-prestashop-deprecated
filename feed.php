@@ -58,6 +58,7 @@ $cfg_short_description = (dfTools::cfg('DF_GS_DESCRIPTION_TYPE', Doofinder::GS_S
 $cfg_display_prices = dfTools::getBooleanFromRequest('prices', (bool) dfTools::cfg('DF_GS_DISPLAY_PRICES', Doofinder::YES));
 $cfg_prices_w_taxes = dfTools::getBooleanFromRequest('taxes', (bool) dfTools::cfg('DF_GS_PRICES_USE_TAX', Doofinder::YES));
 $cfg_image_size = dfTools::cfg('DF_GS_IMAGE_SIZE');
+$cfg_mod_rewrite = dfTools::cfg('PS_REWRITING_SETTINGS', Doofinder::YES);
 
 $limit = Tools::getValue('limit', false);
 $offset = Tools::getValue('offset', false);
@@ -99,7 +100,7 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $limit, $offset) as
   // LINK
   echo dfTools::cleanURL(
     $link->getProductLink($row['id_product'],
-                          $row['link_rewrite'],
+                          $cfg_mod_rewrite ? $row['link_rewrite'] : null,
                           $row['cat_link_rew'],
                           $row['ean13'],
                           $lang->id)
