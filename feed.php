@@ -60,8 +60,15 @@ $cfg_prices_w_taxes = dfTools::getBooleanFromRequest('taxes', (bool) dfTools::cf
 $cfg_image_size = dfTools::cfg('DF_GS_IMAGE_SIZE');
 $cfg_mod_rewrite = dfTools::cfg('PS_REWRITING_SETTINGS', Doofinder::YES);
 
+$debug = dfTools::getBooleanFromRequest('debug', false);
 $limit = Tools::getValue('limit', false);
 $offset = Tools::getValue('offset', false);
+
+if ($debug)
+{
+  error_reporting(E_ALL);
+  ini_set('display_errors', 1);
+}
 
 // OUTPUT
 if (isset($_SERVER['HTTPS']))
