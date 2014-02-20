@@ -183,6 +183,7 @@ class dfTools
           ON (p.id_product = im.id_product AND ims.id_shop = _ID_SHOP_ AND ims.cover = 1)
       WHERE
         ps.active = 1
+        AND ps.visibility IN ('search', 'both')
       ORDER BY
         p.id_product
     ";
