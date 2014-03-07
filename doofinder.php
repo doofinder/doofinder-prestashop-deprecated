@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "1.4.4";
+  const VERSION = "1.4.5";
 
   const YES = 1;
   const NO = 0;
@@ -67,7 +67,7 @@ class Doofinder extends Module
 
   public function install()
   {
-    if (!parent::install() || !$this->registerHook('top') ||
+    if (!parent::install() ||
         !$this->registerHook('header') ||
         !$this->registerHook('displayMobileTopSiteMap'))
       return false;
@@ -79,7 +79,6 @@ class Doofinder extends Module
   {
     $lang = strtoupper($this->context->language->iso_code);
     $script = $this->cfg("DOOFINDER_SCRIPT_$lang");
-    $searchbox_enabled = $this->cfg('DF_DISPLAY_SEARCHBOX', self::NO);
     $extra_css = $this->cfg('DF_EXTRA_CSS');
 
     $this->smarty->assign(array(
@@ -88,7 +87,6 @@ class Doofinder extends Module
       'script' => dfTools::fixScriptTag($script),
       'extra_css' => dfTools::fixStyleTag($extra_css),
       'self' => dirname(__FILE__),
-      'df_searchbox_enabled' => intval($searchbox_enabled),
     ));
 
     return true;
@@ -96,31 +94,9 @@ class Doofinder extends Module
 
   public function hookHeader($params)
   {
-    if ($this->cfg('DF_DISPLAY_SEARCHBOX', self::NO) == self::YES)
-      $this->context->controller->addCSS(($this->_path).'css/layer.css', 'all');
-
     $this->configureHookCommon($params);
     return $this->display(__FILE__, 'script.tpl');
   }
-
-  public function hookTop($params)
-  {
-    $this->configureHookCommon($params);
-    return $this->display(__FILE__, 'searchbox-top.tpl');
-  }
-
-  public function hookLeftColumn($params)
-  {
-    $this->configureHookCommon($params);
-    return $this->display(__FILE__, 'searchbox-block.tpl');
-  }
-
-  public function hookRightColumn($params)
-  {
-    $this->configureHookCommon($params);
-    return $this->display(__FILE__, 'searchbox-block.tpl');
-  }
-
 
   //
   // Configuration & Validation
@@ -171,7 +147,7 @@ class Doofinder extends Module
       'DF_GS_DESCRIPTION_TYPE' => $this->l('Product Description Length'),
       'DF_GS_DISPLAY_PRICES' => $this->l('Display Prices in Data Feed'),
       'DF_GS_PRICES_USE_TAX' => $this->l('Display Prices With Taxes'),
-      'DF_DISPLAY_SEARCHBOX' => $this->l('Display Searchbox'),
+      'DF_FEED_FULL_PATH' => $this->l('Export full categories path in the feed'),
       );
 
     foreach ($cfgIntValues as $optname => $optname_alt)
@@ -192,6 +168,10 @@ class Doofinder extends Module
       'DF_GS_IMAGE_SIZE' => array( // Image Size
         'valid' => array_keys(dfTools::getAvailableImageSizes()),
         'label' => $this->l('Product Image Size'),
+        ),
+      'DF_GS_MPN_FIELD' => array(
+        'valid' => array('reference', 'supplier_reference', 'ean13', 'upc'),
+        'label' => $this->l('MPN Field for Data Feed'),
         ),
       );
 
@@ -236,11 +216,7 @@ class Doofinder extends Module
       Configuration::updateValue($optname, $optvalue, true);
     }
 
-    $cfgStrValues = array(
-      // 'DOOFINDER_INPUT_WIDTH' => $this->l('Doofinder Searchbox Width'),
-      // 'DOOFINDER_INPUT_TOP' => $this->l('Doofinder Searchbox Offset Top'),
-      // 'DOOFINDER_INPUT_LEFT' => $this->l('Doofinder Searchbox Offset Left'),
-      );
+    $cfgStrValues = array();
 
     foreach ($cfgStrValues as $optname => $optname_alt)
     {
@@ -315,7 +291,6 @@ class Doofinder extends Module
       );
     $helper->fields_value[$optname] = $this->cfg($optname);
 
-
     // DF_GS_CURRENCY_<LANG>
     $optname = 'DF_GS_CURRENCY_';
     foreach (Language::getLanguages(true, $this->context->shop->id) as $lang)
@@ -348,6 +323,34 @@ class Doofinder extends Module
     $fields[] = $field;
     $helper->fields_value[$optname] = $this->cfg($optname, self::YES);
 
+    // DF_GS_MPN_FIELD
+    $optname = 'DF_GS_MPN_FIELD';
+    $fields[] = array(
+      'label' => $this->l('MPN Field for Data Feed'),
+
+      'type' => 'select',
+      'options' => array(
+        'query' => array(
+          array($optname => 'reference', 'name' => 'reference'),
+          array($optname => 'supplier_reference', 'name' => 'supplier_reference'),
+          array($optname => 'upc', 'name' => 'upc'),
+          array($optname => 'ean13', 'name' => 'ean13'),
+        ),
+
+        'id' => $optname,
+        'name' => 'name',
+        ),
+      'name' => $optname,
+      'required' => true,
+      );
+    $helper->fields_value[$optname] = $this->cfg($optname);
+
+
+    // DF_FEED_FULL_PATH
+    $optname = 'DF_FEED_FULL_PATH';
+    $field = $this->getYesNoSelectFor($optname, $this->l('Export full categories path in the feed'));
+    $fields[] = $field;
+    $helper->fields_value[$optname] = $this->cfg($optname, self::YES);
 
     $fields_form[0]['form']['input'] = $fields;
 
@@ -402,28 +405,6 @@ class Doofinder extends Module
 
 
     $fields_form[1]['form']['input'] = $fields;
-
-
-    //
-    // SEARCH BOX
-    //
-
-    $fields = array();
-
-    $fields_form[2]['form'] = array(
-      'legend' => array('title' => $this->l('Searchbox')),
-      'input'  => null,
-      'submit' => array('title' => $this->l('Save'), 'class' => 'button'),
-      );
-
-
-    $optname = 'DF_DISPLAY_SEARCHBOX';
-    $field = $this->getYesNoSelectFor($optname, $this->l('Display Searchbox'));
-    $fields[] = $field;
-    $helper->fields_value[$optname] = $this->cfg($optname, self::NO);
-
-    $fields_form[2]['form']['input'] = $fields;
-
 
 
     //

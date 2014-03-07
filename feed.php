@@ -82,7 +82,7 @@ header("Content-Type:text/plain; charset=utf-8");
 // HEADER
 $header = array('id', 'title', 'link', 'description', 'alternate_description',
                 'meta_keywords', 'meta_title', 'meta_description', 'image_link',
-                'categories', 'availability', 'brand', 'gtin', 'mpn',
+                'categories', 'availability', 'brand', 'mpn',
                 'extra_title_1', 'extra_title_2');
 
 if ($cfg_display_prices)
@@ -151,11 +151,8 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
   // BRAND
   echo dfTools::cleanString($row['manufacturer']).TXT_SEPARATOR;
 
-  // GTIN
-  echo dfTools::cleanString($row['ean13']).TXT_SEPARATOR;
-
   // MPN
-  echo dfTools::cleanString($row['supplier_reference']).TXT_SEPARATOR;
+  echo dfTools::cleanString($row['mpn']).TXT_SEPARATOR;
 
   // EXTRA_TITLE_1
   echo dfTools::cleanReferences($product_title).TXT_SEPARATOR;

@@ -43,3 +43,7 @@ $_MODULE['<{doofinder}prestashop>searchbox-block_52d578d063d6101bbdae388ece037e6
 $_MODULE['<{doofinder}prestashop>searchbox-block_34d1f91fb2e514b8576fab1a75a89a6b'] = 'buscar';
 $_MODULE['<{doofinder}prestashop>searchbox-top_52d578d063d6101bbdae388ece037e60'] = 'Introduzca el nombre del producto';
 $_MODULE['<{doofinder}prestashop>searchbox-top_13348442cc6a27032d2b4aa28b75a5d3'] = 'Buscar';
+$_MODULE['<{doofinder}prestashop>doofinder_d8e4d1f5e445107e505b2cf63a1fb65c'] = 'CSS Adicional';
+$_MODULE['<{doofinder}prestashop>doofinder_13176b0596e4a6a97489c64a15abaf89'] = 'Reglas CSS para ajustar la apariencia de Doofinder en tu tema de Prestashop.';
+$_MODULE['<{doofinder}prestashop>doofinder_67b5d1ab9314fcb5d37e78b6266ebfb1'] = 'Exportar rutas completas de categorías';
+$_MODULE['<{doofinder}prestashop>doofinder_519ac027a2d2076261094f7d25dac1c4'] = 'Divisa idioma %s';

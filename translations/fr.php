@@ -1,0 +1,32 @@
+<?php
+
+global $_MODULE;
+$_MODULE = array();
+$_MODULE['<{doofinder}prestashop>doofinder_b46d7f92ff874082a7d3bf6cbf46d5b8'] = 'Installez Doofinder sur votre boutique sans effort.';
+$_MODULE['<{doofinder}prestashop>doofinder_ca39b3065249614f212d4c084913bf9d'] = 'Êtes-vous sur(e) ? Cela ne va pas annuler votre compte au service Doofinder pour autant.';
+$_MODULE['<{doofinder}prestashop>doofinder_039b452cd9646bf1a60dd09146311ee7'] = 'Paramètres mis à jour';
+$_MODULE['<{doofinder}prestashop>doofinder_56a1a500c413bf9c7b016dd52a26a8e9'] = 'Merci de sélectionner une option valide pour %s.';
+$_MODULE['<{doofinder}prestashop>doofinder_ce2de83144803205d1de95bc6ab02e69'] = 'Le champ %s est obligatoire.';
+$_MODULE['<{doofinder}prestashop>doofinder_deae37c282541e631c6f8885d107e89a'] = 'Longueur de la description du produit';
+$_MODULE['<{doofinder}prestashop>doofinder_50d7dd6ed46e8bb16e51ebdc26b80a92'] = 'Afficher les prix dans le flux de données';
+$_MODULE['<{doofinder}prestashop>doofinder_23069339d1b6433c0aee2a062ec8ae86'] = 'Afficher les prix TTC';
+$_MODULE['<{doofinder}prestashop>doofinder_bd8fec5950437fe1885bb5f84404042e'] = 'Afficher le champ de rechercher';
+$_MODULE['<{doofinder}prestashop>doofinder_67b5d1ab9314fcb5d37e78b6266ebfb1'] = 'Exporter les chemins complets des catégories dans le flux de données';
+$_MODULE['<{doofinder}prestashop>doofinder_90dce1b992114b5c7ab37ee99ea195ec'] = 'Taille d\'image des produits';
+$_MODULE['<{doofinder}prestashop>doofinder_aa0b3bbd0ff24af8b4314350b01dfc9d'] = 'Largeur de la zone de recherche Doofinder';
+$_MODULE['<{doofinder}prestashop>doofinder_6ca966ed31c5970da976577041a8b9a1'] = 'Décalage vertical (depuis le haut) de la zone de recherche Doofinder';
+$_MODULE['<{doofinder}prestashop>doofinder_78d2943458f3818f8c5f36a817a7dadb'] = 'Décalage horizontal (depuis le bas) de la zone de recherche Doofinder';
+$_MODULE['<{doofinder}prestashop>doofinder_a3a46b487b56069cc5ff62418fd90faf'] = 'Paramètres du flux de données';
+$_MODULE['<{doofinder}prestashop>doofinder_c9cc8cce247e49bae79f15173ce97354'] = 'Enregistrer';
+$_MODULE['<{doofinder}prestashop>doofinder_30bb747c98bccdd11b3f89e644c4d0ad'] = 'Court';
+$_MODULE['<{doofinder}prestashop>doofinder_8394f0347c184cf156ac5924dccb773b'] = 'Long';
+$_MODULE['<{doofinder}prestashop>doofinder_519ac027a2d2076261094f7d25dac1c4'] = 'Monnaie pour %s';
+$_MODULE['<{doofinder}prestashop>doofinder_93cba07454f06a4a960172bbd6e2a435'] = 'Oui';
+$_MODULE['<{doofinder}prestashop>doofinder_bafd7322c6e97d25b6299b5d6fe8920b'] = 'Non';
+$_MODULE['<{doofinder}prestashop>doofinder_f0e88fbb6d01f0fc33e990a609e053c8'] = 'Script Doofinder';
+$_MODULE['<{doofinder}prestashop>doofinder_acdb02486443b525108f2c9c64a4fe46'] = 'Collez ici le script tel qu\'il vous a été fourni par Doofinder.';
+$_MODULE['<{doofinder}prestashop>doofinder_be44871f19df76aeefb9209e1b164bd6'] = 'URL du flux de données';
+$_MODULE['<{doofinder}prestashop>doofinder_d8e4d1f5e445107e505b2cf63a1fb65c'] = 'CSS supplémentaires';
+$_MODULE['<{doofinder}prestashop>doofinder_13176b0596e4a6a97489c64a15abaf89'] = 'Règles CSS supplémentaires pour ajuster l\'affichage de Doofinder pour votre thème.';
+$_MODULE['<{doofinder}prestashop>doofinder_81e3e851fcd6a7c83ca53c8f94401ac9'] = 'Zone de recherche';
+$_MODULE['<{doofinder}prestashop>doofinder_630f6dc397fe74e52d5189e2c80f282b'] = 'Retour à la liste';

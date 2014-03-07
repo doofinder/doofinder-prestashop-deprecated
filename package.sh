@@ -10,6 +10,7 @@ cp *.php doofinder
 cp logo.* doofinder
 cp *.tpl doofinder
 cp -r css doofinder
+cp -r translations doofinder
 cp README.md doofinder
 
 file="doofinder-p1.5-$1.zip"

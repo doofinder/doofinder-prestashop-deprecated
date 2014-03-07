@@ -154,9 +154,7 @@ class dfTools
 
         m.name AS manufacturer,
 
-        IF(p.ean13, p.ean13, p.upc) AS product_code,
-        p.ean13,
-        p.supplier_reference,
+        p.__MPN__ AS mpn,
 
         pl.name,
         pl.description,
@@ -188,9 +186,12 @@ class dfTools
         p.id_product
     ";
 
+    $mpn_field = dfTools::cfg($id_shop, 'DF_GS_MPN_FIELD', 'reference');
+
     $sql = self::limitSQL($sql, $limit, $offset);
     $sql = self::prepareSQL($sql, array('_ID_LANG_' => $id_lang,
-                                        '_ID_SHOP_' => $id_shop));
+                                        '_ID_SHOP_' => $id_shop,
+                                        '__MPN__' => $mpn_field));
 
     return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
   }
@@ -224,9 +225,10 @@ class dfTools
    * @param int Category ID
    * @param int Language ID
    * @param int Shop ID
+   * @param bool Return full category path.
    * @return string
    */
-  public static function getCategoryPath($id_category, $id_lang, $id_shop)
+  public static function getCategoryPath($id_category, $id_lang, $id_shop, $full = true)
   {
     if (isset(self::$cached_category_paths[$id_category]))
       return self::$cached_category_paths[$id_category];
@@ -261,10 +263,15 @@ class dfTools
     foreach (Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql) as $row)
       $path[] = str_replace(array(CATEGORY_TREE_SEPARATOR, CATEGORY_SEPARATOR),
                             "-", $row['name']);
-    $path = implode(CATEGORY_TREE_SEPARATOR, $path);
-    $path = self::cleanString($path);
 
+    if ( $full )
+      $path = implode(CATEGORY_TREE_SEPARATOR, $path);
+    else
+      $path = end($path);
+
+    $path = self::cleanString($path);
     self::$cached_category_paths[$id_category] = $path;
+
     return $path;
   }
 
@@ -306,6 +313,7 @@ class dfTools
     $id_category0 = 0;
     $nleft0 = 0;
     $nright0 = 0;
+    $use_full_path = (bool) dfTools::cfg($id_shop, 'DF_FEED_FULL_PATH', Doofinder::YES);
 
     foreach (Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql) as $i => $row)
     {
@@ -336,7 +344,7 @@ class dfTools
         {
           // $id_category1 is not a relative of $id_category0 so we save
           // $id_category0 now and make $id_category1 the current category.
-          $categories[] = self::getCategoryPath($id_category0, $id_lang, $id_shop);
+          $categories[] = self::getCategoryPath($id_category0, $id_lang, $id_shop, $use_full_path);
           $last_saved = $id_category0;
 
           $id_category0 = $id_category1;
@@ -348,7 +356,7 @@ class dfTools
 
     if ($last_saved != $id_category0)
       // The last item in loop didn't trigger the $id_category0 saving event.
-      $categories[] = self::getCategoryPath($id_category0, $id_lang, $id_shop);
+      $categories[] = self::getCategoryPath($id_category0, $id_lang, $id_shop, $use_full_path);
 
     return $flat ? implode(CATEGORY_SEPARATOR, $categories) : $categories;
   }
@@ -570,8 +578,8 @@ class dfTools
   public static function getModuleLink($path, $ssl = false)
   {
     $context = Context::getContext();
-
-    $base = (($ssl && $context->link->ssl_enable) ? _PS_BASE_URL_SSL_ : _PS_BASE_URL_);
+    $shop = new Shop($context->shop->id);
+    $base = (($ssl && $context->link->ssl_enable) ? 'https://' : 'http://') . $shop->domain;
 
     return $base._MODULE_DIR_.basename(dirname(__FILE__))."/".$path;
   }
@@ -604,7 +612,7 @@ class dfTools
   }
 
   /**
-   * Wraps a Javascript piece of code if no <script> tag is found.
+   * Wraps a Javascript piece of code if no script tag is found.
    * @param string $jsCode Javascript code.
    * @return string
    */
