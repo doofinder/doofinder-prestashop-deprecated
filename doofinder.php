@@ -52,7 +52,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "1.3.3";
+  const VERSION = "1.3.4";
 
   const YES = 1;
   const NO = 0;
@@ -77,8 +77,7 @@ class Doofinder extends Module
 
   public function install()
   {
-    if (!parent::install() || !$this->registerHook('top') ||
-        !$this->registerHook('header'))
+    if (!parent::install() || !$this->registerHook('header'))
       return false;
 
     return true;
@@ -92,7 +91,6 @@ class Doofinder extends Module
     $language = new Language($cookie->id_lang);
     $lang = strtoupper($language->iso_code);
     $script = self::cfg("DOOFINDER_SCRIPT_$lang");
-    $searchbox_enabled = self::cfg('DF_DISPLAY_SEARCHBOX', self::NO);
     $extra_css = self::cfg('DF_EXTRA_CSS');
 
     $smarty->assign(array(
@@ -101,7 +99,6 @@ class Doofinder extends Module
       'script' => dfTools::fixScriptTag($script),
       'extra_css' => dfTools::fixStyleTag($extra_css),
       'self' => dirname(__FILE__),
-      'df_searchbox_enabled' => intval($searchbox_enabled),
     ));
 
     return true;
@@ -109,29 +106,8 @@ class Doofinder extends Module
 
   public function hookHeader($params)
   {
-    if (self::cfg('DF_DISPLAY_SEARCHBOX', self::NO) == self::YES)
-      Tools::addCSS(($this->_path).'css/layer.css', 'all');
-
     $this->configureHookCommon($params);
     return $this->display(__FILE__, 'script.tpl');
-  }
-
-  public function hookTop($params)
-  {
-    $this->configureHookCommon($params);
-    return $this->display(__FILE__, 'searchbox-top.tpl');
-  }
-
-  public function hookLeftColumn($params)
-  {
-    $this->configureHookCommon($params);
-    return $this->display(__FILE__, 'searchbox-block.tpl');
-  }
-
-  public function hookRightColumn($params)
-  {
-    $this->configureHookCommon($params);
-    return $this->display(__FILE__, 'searchbox-block.tpl');
   }
 
 
@@ -184,7 +160,7 @@ class Doofinder extends Module
       'DF_GS_DESCRIPTION_TYPE' => $this->l('Product Description Length'),
       'DF_GS_DISPLAY_PRICES' => $this->l('Display Prices in Data Feed'),
       'DF_GS_PRICES_USE_TAX' => $this->l('Display Prices With Taxes'),
-      'DF_DISPLAY_SEARCHBOX' => $this->l('Display Searchbox'),
+      'DF_FEED_FULL_PATH' => $this->l('Export full categories path in the feed'),
       );
 
     foreach ($cfgIntValues as $optname => $optname_alt)
@@ -205,6 +181,10 @@ class Doofinder extends Module
       'DF_GS_IMAGE_SIZE' => array( // Image Size
         'valid' => array_keys(dfTools::getAvailableImageSizes()),
         'label' => $this->l('Product Image Size'),
+        ),
+      'DF_GS_MPN_FIELD' => array(
+        'valid' => array('reference', 'ean13', 'upc', 'supplier_reference'),
+        'label' => $this->l('MPN Field for Data Feed'),
         ),
       );
 
@@ -252,11 +232,7 @@ class Doofinder extends Module
     // If I don't do this the DOOFINDER_SCRIPT_* values loose PHP_EOLs.
     Configuration::loadConfiguration();
 
-    $cfgStrValues = array(
-      // 'DOOFINDER_INPUT_WIDTH' => $this->l('Doofinder Searchbox Width'),
-      // 'DOOFINDER_INPUT_TOP' => $this->l('Doofinder Searchbox Offset Top'),
-      // 'DOOFINDER_INPUT_LEFT' => $this->l('Doofinder Searchbox Offset Left'),
-      );
+    $cfgStrValues = array();
 
     foreach ($cfgStrValues as $optname => $optname_alt)
     {
@@ -351,6 +327,26 @@ class Doofinder extends Module
     $label = $this->l('Display Prices With Taxes');
     $this->_html .= dfForm::wrapField($optname, $label, $field);
 
+    // DF_FEED_FULL_PATH
+    $optname = 'DF_FEED_FULL_PATH';
+    $optvalue = self::cfg($optname, self::YES);
+    $field = dfForm::getSelectFor($optname, $optvalue, $yesNoChoices);
+    $label = $this->l('Export full categories path in the feed');
+    $this->_html .= dfForm::wrapField($optname, $label, $field);
+
+    // DF_GS_MPN_FIELD
+    $optname = 'DF_GS_MPN_FIELD';
+    $optvalue = self::cfg($optname);
+    $choices = array(
+      'reference' => 'reference',
+      'ean13' => 'ean13',
+      'upc' => 'upc',
+      'supplier_reference' => 'supplier_reference',
+      );
+    $field = dfForm::getSelectFor($optname, $optvalue, $choices);
+    $label = $this->l('MPN Field for Data Feed');
+    $this->_html .= dfForm::wrapField($optname, $label, $field);
+
     $this->_html .= $submitButton;
     $this->_html .= '</fieldset>';
 
@@ -387,23 +383,6 @@ class Doofinder extends Module
     $field = dfForm::getTextareaFor($optname, $optvalue, $attrs);
     $label = $this->l('Extra CSS');
     $this->_html .= dfForm::wrapField($optname, $label, $field, $extra);
-
-    $this->_html .= $submitButton;
-    $this->_html .= '</fieldset>';
-
-
-    //
-    // SEARCH BOX
-    //
-
-    $this->_html .= dfForm::fieldset($this->l('Searchbox in Page Top'));
-
-    // DF_DISPLAY_SEARCHBOX
-    $optname = 'DF_DISPLAY_SEARCHBOX';
-    $optvalue = self::cfg($optname, self::NO);
-    $field = dfForm::getSelectFor($optname, $optvalue, $yesNoChoices);
-    $label = $this->l('Display Searchbox');
-    $this->_html .= dfForm::wrapField($optname, $label, $field);
 
     $this->_html .= $submitButton;
     $this->_html .= '</fieldset>';

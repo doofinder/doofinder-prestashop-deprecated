@@ -144,9 +144,8 @@ class dfTools
 
         m.name AS manufacturer,
 
-        IF(p.ean13, p.ean13, p.upc) AS product_code,
-        p.ean13,
-        p.supplier_reference,
+        p.__MPN__ AS mpn,
+        p.ean13 AS ean13,
 
         pl.name,
         pl.description,
@@ -177,8 +176,11 @@ class dfTools
         p.id_product
     ";
 
+    $mpn_field = self::cfg('DF_GS_MPN_FIELD', 'reference');
+
     $sql = self::limitSQL($sql, $limit, $offset);
-    $sql = self::prepareSQL($sql, array('_ID_LANG_' => $id_lang));
+    $sql = self::prepareSQL($sql, array('_ID_LANG_' => $id_lang,
+                                        '__MPN__' => $mpn_field));
 
     return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
   }
@@ -223,9 +225,10 @@ class dfTools
    *
    * @param int Category ID
    * @param int Language ID
+   * @param bool Return full category path.
    * @return string
    */
-  public static function getCategoryPath($id_category, $id_lang)
+  public static function getCategoryPath($id_category, $id_lang, $full = true)
   {
     if (isset(self::$cached_category_paths[$id_category]))
       return self::$cached_category_paths[$id_category];
@@ -258,11 +261,15 @@ class dfTools
     foreach (Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql) as $row)
       $path[] = str_replace(array(CATEGORY_SEPARATOR, CATEGORY_TREE_SEPARATOR),
                             "-", $row['name']);
-    $path = implode(CATEGORY_TREE_SEPARATOR, $path);
+
+    if ( $full )
+      $path = implode(CATEGORY_TREE_SEPARATOR, $path);
+    else
+      $path = end($path);
 
     $path = self::cleanString($path);
-
     self::$cached_category_paths[$id_category] = $path;
+
     return $path;
   }
 
@@ -277,6 +284,8 @@ class dfTools
    */
   public static function getCategoriesForProductIdAndLanguage($id_product, $id_lang, $flat=true)
   {
+    $use_full_path = (bool) self::cfg('DF_FEED_FULL_PATH', Doofinder::YES);
+
     $sql = "
       SELECT
         c.id_category,
@@ -334,7 +343,7 @@ class dfTools
         {
           // $id_category1 is not a relative of $id_category0 so we save
           // $id_category0 now and make $id_category1 the current category.
-          $categories[] = self::getCategoryPath($id_category0, $id_lang);
+          $categories[] = self::getCategoryPath($id_category0, $id_lang, $use_full_path);
           $last_saved = $id_category0;
 
           $id_category0 = $id_category1;
@@ -346,7 +355,7 @@ class dfTools
 
     if ($last_saved != $id_category0)
       // The last item in loop didn't trigger the $id_category0 saving event.
-      $categories[] = self::getCategoryPath($id_category0, $id_lang);
+      $categories[] = self::getCategoryPath($id_category0, $id_lang, $use_full_path);
 
     return $flat ? implode(CATEGORY_SEPARATOR, $categories) : $categories;
   }
@@ -608,7 +617,7 @@ class dfTools
   }
 
   /**
-   * Wraps a Javascript piece of code if no <script> tag is found.
+   * Wraps a Javascript piece of code if no script tag is found.
    * @param string $jsCode Javascript code.
    * @return string
    */

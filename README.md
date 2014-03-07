@@ -12,49 +12,10 @@ Once you have a `doofinder.zip` package file, please refer to the [Prestashop Us
 
 ## Configure Doofinder
 
-The plugin has three configuration sections:
+The plugin has two configuration sections:
 
-- **The Searchbox:** to configure the plugin search box in top of the page.
 - **The Data Feed:** to configure the information displayed in the Doofinder data file.
 - **The Doofinder Scripts:** to paste the init scripts for the Doofinder search layer.
-
-### The Searchbox
-
-By default you will use the default Prestashop search box. You only have to remember disabling the AJAX instant search in the Prestashop module to make it work.
-
-If you decide to disable the entire Prestshop default module and use our searchbox you will have to modify the `queryInput` parameter in the `doofinder.options` section on each script, changing that parameter to `#df-searchbox`.
-
-The same must be done if you want to use this plugin as a block in the left or right columns.
-
-![Searchbox configuration](http://f.cl.ly/items/0v1H1c3n3K3p2q44383K/the-searchbox.png)
-
-To enable the search box in the top of the page select `Yes` in the select box and update the `queryInput` value in all the scripts.
-
-You can adjust the position of the box and the width. The box is *absolutely* positioned in the header and the default values are those shown in the previous image.
-
-You can also change the width of the input box.
-
-#### Troubleshooting displaying the module in the frontend
-
-**IMPORTANT:** YOU CAN ONLY HAVE ONE SEARCH BOX. IF YOU USE THE MODULE'S SEARCH BOX AND ADD DOOFINDER TO A COLUMN AN ERROR WILL BE DISPLAYED.
-
-This plugin is designed to optionally display a search box in one of three places:
-
-- **Top of the page** (recommended)
-- **Left column**
-- **Right column**
-
-This is done by using the so called *hooks*. This plugin uses four main hooks that correspond to the three positions mentioned and a fourth hook that adds a CSS file and the init script to the HTML header of the page.
-
-Said this, you must be sure that the module is attached to two of these hooks, being one of them the HTML header.
-
-In the admin backend go to *Modules > Positions*. You will see a select box labeled *Show:* with a value of *All modules* selected. Select *Doofinder* to display only the information of our interest.
-
-Scroll down to the position labeled *Header of pages* or *displayHeader*. If Doofinder is not there you will have to *transplant* the module there. This position is mandatory to make Doofinder work.
-
-Do the same with the positions labeled *Top of pages* or *Right Column Blocks* or *Left Column Blocks* and transplant the module to the desired position if the module is not there. Remember to use only one of these three positions.
-
-To transplant a module click on the button with a *tick* icon and labeled *Transplant a module*. Check that the selected module is *Doofinder* and in the *Hook into* selector select the desired position. Then click *Save*.
 
 ### The Data Feed
 
@@ -124,3 +85,7 @@ There are three other parameters you probably will want to customize:
 - `dtop`: Is the vertical displacement of the layer from the point where it is placed automatically. You can use a positive or negative number without quotes around it.
 
 If you decide to put the search box included with this plugin for the top of the page you probably will have to adjust these parameters. Remember to do it for each script.
+
+## Special Thanks
+
+- Thanks to the guys at [o2source](http://www.o2sources.com/) for their bugfixes and enhancements.
