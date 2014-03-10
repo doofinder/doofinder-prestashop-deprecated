@@ -159,7 +159,8 @@ class dfTools
 
         im.id_image,
 
-        p.available_for_order
+        p.available_for_order,
+        p.quantity
       FROM
         _DB_PREFIX_product p
         LEFT JOIN _DB_PREFIX_product_lang pl
