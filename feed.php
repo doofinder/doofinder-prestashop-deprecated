@@ -146,8 +146,18 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
   echo dfTools::getCategoriesForProductIdAndLanguage($row['id_product'], $lang->id, $shop->id).TXT_SEPARATOR;
 
   // AVAILABILITY
-  $stock = StockAvailable::getQuantityAvailableByProduct($row['id_product'], null, $shop->id);
-  echo ($stock > 0 ? 'in stock' : 'out of stock').TXT_SEPARATOR;
+  $available = intval($row['available_for_order']) > 0;
+
+  if ( intval(dfTools::cfg($shop->id, 'PS_STOCK_MANAGEMENT')) )
+  {
+    $stock = StockAvailable::getQuantityAvailableByProduct($row['id_product'], null, $shop->id);
+    echo ($available && ($stock > 0) ? 'in stock' : 'out of stock').TXT_SEPARATOR;
+  }
+  else
+  {
+    echo ($available ? 'in stock' : 'out of stock').TXT_SEPARATOR;
+  }
+
 
   // BRAND
   echo dfTools::cleanString($row['manufacturer']).TXT_SEPARATOR;
