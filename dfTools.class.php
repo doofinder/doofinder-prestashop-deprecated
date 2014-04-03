@@ -181,7 +181,7 @@ class dfTools
         LEFT JOIN _DB_PREFIX_category_lang cl
           ON (p.id_category_default = cl.id_category AND cl.id_shop = _ID_SHOP_ AND cl.id_lang = _ID_LANG_)
         LEFT JOIN (_DB_PREFIX_image im INNER JOIN _DB_PREFIX_image_shop ims ON im.id_image = ims.id_image)
-          ON (p.id_product = im.id_product AND ims.id_shop = _ID_SHOP_ AND ims.cover = 1)
+          ON (p.id_product = im.id_product AND ims.id_shop = _ID_SHOP_ AND _IMS_COVER_)
       WHERE
         ps.active = 1
         AND ps.visibility IN ('search', 'both')
@@ -191,10 +191,16 @@ class dfTools
 
     $mpn_field = dfTools::cfg($id_shop, 'DF_GS_MPN_FIELD', 'reference');
 
+    $ps_version_150 = explode('.', _PS_VERSION_);
+    $ps_version_150 = $ps_version_150[2] == "0";
+
+    $ims_cover = $ps_version_150 ? '1 = 1' : 'ims.cover = 1';
+
     $sql = self::limitSQL($sql, $limit, $offset);
     $sql = self::prepareSQL($sql, array('_ID_LANG_' => $id_lang,
                                         '_ID_SHOP_' => $id_shop,
-                                        '__MPN__' => $mpn_field));
+                                        '__MPN__' => $mpn_field,
+                                        '_IMS_COVER_' => $ims_cover));
 
     return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
   }
