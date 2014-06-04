@@ -1,4 +1,4 @@
 config*.xml
-doofinder.zip
+*.zip
 localconfig.json
 node_modules
