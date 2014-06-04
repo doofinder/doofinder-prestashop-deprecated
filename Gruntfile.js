@@ -60,6 +60,14 @@ module.exports = function(grunt) {
                 force: true
             },
             release: ['release']
+        },
+        version: {
+            release: {
+                options: {
+                    prefix: '\\s+const VERSION = "'
+                },
+                src: ['doofinder.php']
+            }
         }
     });
 
@@ -69,5 +77,5 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-version');
 
     grunt.registerTask('default', ['copy:sync']);
-    grunt.registerTask('release', ['copy:release', 'compress:release', 'copy:latest_to_version', 'clean:release']);
+    grunt.registerTask('release', ['version:release', 'copy:release', 'compress:release', 'copy:latest_to_version', 'clean:release']);
 };
