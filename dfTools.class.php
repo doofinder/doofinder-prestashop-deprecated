@@ -436,12 +436,11 @@ class dfTools
 
   public static function cleanString($text)
   {
+    $text = preg_replace('/[^\P{C}]+/u', ' ', $text);
     $text = str_replace(TXT_SEPARATOR, "-", $text);
     $text = str_replace(array("\t", "\r", "\n"), " ", $text);
-
     $text = self::stripHtml($text);
     $text = preg_replace('/\s+/', " ", $text);
-
     $text = trim($text);
     $text = preg_replace('/^["\']+/', '', $text); // remove first quotes
 
