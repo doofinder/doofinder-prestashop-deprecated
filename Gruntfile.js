@@ -59,7 +59,8 @@ module.exports = function(grunt) {
             options: {
                 force: true
             },
-            release: ['release']
+            release: ['release'],
+            dist: ['dist']
         },
         version: {
             release: {
