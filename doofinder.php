@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "1.4.9";
+  const VERSION = "1.5.0";
 
   const YES = 1;
   const NO = 0;

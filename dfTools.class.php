@@ -425,6 +425,11 @@ class dfTools
     }
     $text[0] = implode("/", $baseUrl);
 
+    if (stristr($text[0], 'http://') === false && stristr($text[0], 'https://') === false)
+    {
+      $text[0] = 'http://' . $text[0];
+    }
+
     if (isset($text[1]))
     {
       $params = array();
