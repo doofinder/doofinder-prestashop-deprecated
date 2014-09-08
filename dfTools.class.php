@@ -136,6 +136,33 @@ class dfTools
     return $currencies;
   }
 
+  /**
+   * 1.[5].0.13 | 1.5.[0].5 | 1.5.0.[1]
+   * 1.[6].0.6  | 1.5.[1].0 | 1.5.0.[5]
+   *
+   * @param  [type] $min_version [description]
+   * @return [type]              [description]
+   */
+  public static function versionGte($min_version)
+  {
+    $version = explode('.', _PS_VERSION_);
+    $min_version = explode('.', $min_version);
+
+    foreach($version as $index => $value)
+    {
+      if (intval($value) > intval($min_version[$index]))
+      {
+        return true;
+      }
+      elseif (intval($value) < intval($min_version[$index]))
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
 
   /**
    * Returns the products available for a language
@@ -150,7 +177,7 @@ class dfTools
     $sql = "
       SELECT
         ps.id_product,
-        ps.id_category_default,
+        __ID_CATEGORY_DEFAULT__,
 
         m.name AS manufacturer,
 
@@ -183,24 +210,41 @@ class dfTools
         LEFT JOIN (_DB_PREFIX_image im INNER JOIN _DB_PREFIX_image_shop ims ON im.id_image = ims.id_image)
           ON (p.id_product = im.id_product AND ims.id_shop = _ID_SHOP_ AND _IMS_COVER_)
       WHERE
-        ps.active = 1
-        AND ps.visibility IN ('search', 'both')
+        __IS_ACTIVE__
+        __VISIBILITY__
       ORDER BY
         p.id_product
     ";
 
     $mpn_field = dfTools::cfg($id_shop, 'DF_GS_MPN_FIELD', 'reference');
 
-    $ps_version_150 = explode('.', _PS_VERSION_);
-    $ps_version_150 = $ps_version_150[2] == "0";
+    // MIN: 1.5.0.9
+    $id_category_default = self::versionGte('1.5.0.9') ? 'ps.id_category_default' : 'p.id_category_default';
+    // MIN: 1.5.1.0
+    $ims_cover = self::versionGte('1.5.1.0') ? 'ims.cover = 1' : 'im.cover = 1';
+    $is_active = self::versionGte('1.5.1.0') ? 'ps.active = 1' : 'p.active = 1';
 
-    $ims_cover = $ps_version_150 ? '1 = 1' : 'ims.cover = 1';
+    if (self::versionGte('1.5.1.0'))
+    {
+      $visibility = "AND ps.visibility IN ('search', 'both')";
+    }
+    elseif (self::versionGte('1.5.0.9'))
+    {
+      $visibility = "AND p.visibility IN ('search', 'both')";
+    }
+    else
+    {
+      $visibility = "";
+    }
 
     $sql = self::limitSQL($sql, $limit, $offset);
     $sql = self::prepareSQL($sql, array('_ID_LANG_' => $id_lang,
                                         '_ID_SHOP_' => $id_shop,
                                         '__MPN__' => $mpn_field,
-                                        '_IMS_COVER_' => $ims_cover));
+                                        '_IMS_COVER_' => $ims_cover,
+                                        '__ID_CATEGORY_DEFAULT__' => $id_category_default,
+                                        '__IS_ACTIVE__' => $is_active,
+                                        '__VISIBILITY__' => $visibility));
 
     return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
   }
