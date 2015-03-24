@@ -69,14 +69,21 @@ module.exports = function(grunt) {
                 },
                 src: ['doofinder.php']
             }
+        },
+        watch: {
+            dev: {
+                files: ['**/*', '!**/node_modules/**'],
+                tasks: ['copy:sync']
+            }
         }
     });
 
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-compress');
     grunt.loadNpmTasks('grunt-contrib-clean');
+    grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-version');
 
-    grunt.registerTask('default', ['copy:sync']);
+    grunt.registerTask('default', ['copy:sync', 'watch:dev']);
     grunt.registerTask('release', ['version:release', 'copy:release', 'compress:release', 'copy:latest_to_version', 'clean:release']);
 };
