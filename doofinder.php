@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "1.5.1";
+  const VERSION = "1.5.2";
 
   const YES = 1;
   const NO = 0;
@@ -463,6 +463,7 @@ class Doofinder extends Module
 
   public function cfg($key, $default=null)
   {
-    return dfTools::cfg($this->context->shop->id, $key, $default);
+
+    return dfTools::cfg($this->context->id_shop, $key, $default);
   }
 }
