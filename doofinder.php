@@ -202,7 +202,14 @@ class Doofinder extends Module
       foreach (Language::getLanguages(true, $this->context->shop->id) as $lang)
       {
         $optname = $prefix.strtoupper($lang['iso_code']);
-        Configuration::updateValue($optname, Tools::getValue($optname), $html);
+        // Cleaning script tags
+        if ('DOOFINDER_SCRIPT_' === $prefix){
+          $value = strip_tags(Tools::getValue($optname));
+        }
+        else{
+          $value = Tools::getValue($optname);
+        }
+        Configuration::updateValue($optname, $value, $html);
       }
     }
 
