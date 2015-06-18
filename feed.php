@@ -97,75 +97,77 @@ if (!$limit || ($offset !== false && intval($offset) === 0))
 // PRODUCTS
 foreach (dfTools::getAvailableProductsForLanguage($lang->id, $limit, $offset) as $row)
 {
-  // ID
-  echo $row['id_product'].TXT_SEPARATOR;
+  if (intval($row['id_product']) > 0){
+    // ID
+    echo $row['id_product'].TXT_SEPARATOR;
 
-  // TITLE
-  $product_title = dfTools::cleanString($row['name']);
-  echo $product_title.TXT_SEPARATOR;
+    // TITLE
+    $product_title = dfTools::cleanString($row['name']);
+    echo $product_title.TXT_SEPARATOR;
 
-  // LINK
-  echo dfTools::cleanURL(
-    $link->getProductLink($row['id_product'],
-                          $cfg_mod_rewrite ? $row['link_rewrite'] : null,
-                          $row['cat_link_rew'],
-                          $row['ean13'],
-                          $lang->id)
-  ).TXT_SEPARATOR;
+    // LINK
+    echo dfTools::cleanURL(
+      $link->getProductLink($row['id_product'],
+                            $cfg_mod_rewrite ? $row['link_rewrite'] : null,
+                            $row['cat_link_rew'],
+                            $row['ean13'],
+                            $lang->id)
+    ).TXT_SEPARATOR;
 
-  // DESCRIPTION
-  echo dfTools::cleanString($row[($cfg_short_description ? 'description_short' : 'description')]).TXT_SEPARATOR;
+    // DESCRIPTION
+    echo dfTools::cleanString($row[($cfg_short_description ? 'description_short' : 'description')]).TXT_SEPARATOR;
 
-  // ALTERNATE DESCRIPTION
-  echo dfTools::cleanString($row[($cfg_short_description ? 'description' : 'description_short')]).TXT_SEPARATOR;
+    // ALTERNATE DESCRIPTION
+    echo dfTools::cleanString($row[($cfg_short_description ? 'description' : 'description_short')]).TXT_SEPARATOR;
 
-  // META KEYWORDS
-  echo dfTools::cleanString($row['meta_keywords']).TXT_SEPARATOR;
+    // META KEYWORDS
+    echo dfTools::cleanString($row['meta_keywords']).TXT_SEPARATOR;
 
-  // META TITLE
-  echo dfTools::cleanString($row['meta_title']).TXT_SEPARATOR;
+    // META TITLE
+    echo dfTools::cleanString($row['meta_title']).TXT_SEPARATOR;
 
-  // META DESCRIPTION
-  echo dfTools::cleanString($row['meta_description']).TXT_SEPARATOR;
+    // META DESCRIPTION
+    echo dfTools::cleanString($row['meta_description']).TXT_SEPARATOR;
 
-  // IMAGE LINK
-  echo dfTools::cleanURL(dfTools::getImageLink(
-    $row['id_product'],
-    $row['id_image'],
-    $row['link_rewrite'],
-    $cfg_image_size
-  )).TXT_SEPARATOR;
+    // IMAGE LINK
+    echo dfTools::cleanURL(dfTools::getImageLink(
+      $row['id_product'],
+      $row['id_image'],
+      $row['link_rewrite'],
+      $cfg_image_size
+    )).TXT_SEPARATOR;
 
-  // PRODUCT CATEGORIES
-  echo dfTools::getCategoriesForProductIdAndLanguage($row['id_product'], $lang->id).TXT_SEPARATOR;
+    // PRODUCT CATEGORIES
+    echo dfTools::getCategoriesForProductIdAndLanguage($row['id_product'], $lang->id).TXT_SEPARATOR;
 
-  // AVAILABILITY
-  echo (intval($row['available_for_order']) && (intval($row['quantity']) > 0) ? 'in stock' : 'out of stock').TXT_SEPARATOR;
+    // AVAILABILITY
+    echo (intval($row['available_for_order']) && (intval($row['quantity']) > 0) ? 'in stock' : 'out of stock').TXT_SEPARATOR;
 
-  // BRAND
-  echo dfTools::cleanString($row['manufacturer']).TXT_SEPARATOR;
+    // BRAND
+    echo dfTools::cleanString($row['manufacturer']).TXT_SEPARATOR;
 
-  // MPN
-  echo dfTools::cleanString($row['mpn']).TXT_SEPARATOR;
+    // MPN
+    echo dfTools::cleanString($row['mpn']).TXT_SEPARATOR;
 
-  // EXTRA_TITLE_1
-  echo dfTools::cleanReferences($product_title).TXT_SEPARATOR;
+    // EXTRA_TITLE_1
+    echo dfTools::cleanReferences($product_title).TXT_SEPARATOR;
 
-  // EXTRA_TITLE_2
-  echo dfTools::splitReferences($product_title);
+    // EXTRA_TITLE_2
+    echo dfTools::splitReferences($product_title);
 
-  // PRODUCT PRICE & ON SALE PRICE
-  if ($cfg_display_prices)
-  {
-    echo TXT_SEPARATOR;
+    // PRODUCT PRICE & ON SALE PRICE
+    if ($cfg_display_prices)
+    {
+      echo TXT_SEPARATOR;
 
-    $product_price = Product::getPriceStatic($row['id_product'], $cfg_prices_w_taxes, null, 2, null, false, false);
-    $onsale_price = Product::getPriceStatic($row['id_product'], $cfg_prices_w_taxes, null, 2);
+      $product_price = Product::getPriceStatic($row['id_product'], $cfg_prices_w_taxes, null, 2, null, false, false);
+      $onsale_price = Product::getPriceStatic($row['id_product'], $cfg_prices_w_taxes, null, 2);
 
-    echo ($product_price ? Tools::convertPrice($product_price, $currency) : "").TXT_SEPARATOR;
-    echo (($product_price && $onsale_price && $product_price != $onsale_price) ? Tools::convertPrice($onsale_price, $currency) : "");
+      echo ($product_price ? Tools::convertPrice($product_price, $currency) : "").TXT_SEPARATOR;
+      echo (($product_price && $onsale_price && $product_price != $onsale_price) ? Tools::convertPrice($onsale_price, $currency) : "");
+    }
+
+    echo PHP_EOL;
+    dfTools::flush();
   }
-
-  echo PHP_EOL;
-  dfTools::flush();
 }
