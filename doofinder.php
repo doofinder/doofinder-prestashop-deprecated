@@ -148,6 +148,7 @@ class Doofinder extends Module
       'DF_GS_DISPLAY_PRICES' => $this->l('Display Prices in Data Feed'),
       'DF_GS_PRICES_USE_TAX' => $this->l('Display Prices With Taxes'),
       'DF_FEED_FULL_PATH' => $this->l('Export full categories path in the feed'),
+      'DF_SHOW_PRODUCT_VARIATIONS' => $this->l('Include product variations in feed.'),
       );
 
     foreach ($cfgIntValues as $optname => $optname_alt)
@@ -327,6 +328,12 @@ class Doofinder extends Module
     // DF_GS_PRICES_USE_TAX
     $optname = 'DF_GS_PRICES_USE_TAX';
     $field = $this->getYesNoSelectFor($optname, $this->l('Display Prices With Taxes'));
+    $fields[] = $field;
+    $helper->fields_value[$optname] = $this->cfg($optname, self::YES);
+
+    // DF_GS_PRICES_USE_TAX
+    $optname = 'DF_SHOW_PRODUCT_VARIATIONS';
+    $field = $this->getYesNoSelectFor($optname, $this->l('Include product variations in feed'));
     $fields[] = $field;
     $helper->fields_value[$optname] = $this->cfg($optname, self::YES);
 

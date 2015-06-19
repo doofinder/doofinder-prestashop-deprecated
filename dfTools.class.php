@@ -39,6 +39,7 @@ class dfTools
   // http://stackoverflow.com/questions/4224141/php-removing-invalid-utf-8-characters-in-xml-using-filter
   const VALID_UTF8 = '/([\x09\x0A\x0D\x20-\x7E]|[\xC2-\xDF][\x80-\xBF]|\xE0[\xA0-\xBF][\x80-\xBF]|[\xE1-\xEC\xEE\xEF][\x80-\xBF]{2}|\xED[\x80-\x9F][\x80-\xBF]|\xF0[\x90-\xBF][\x80-\xBF]{2}|[\xF1-\xF3][\x80-\xBF]{3}|\xF4[\x80-\x8F][\x80-\xBF]{2})|./x';
 
+
   //
   // Validation
   //
@@ -163,7 +164,7 @@ class dfTools
     return true;
   }
 
-
+ 
   /**
    * Returns the products available for a language
    * @param int Language ID.
@@ -215,6 +216,60 @@ class dfTools
       ORDER BY
         p.id_product
     ";
+
+    $sql_variations = "
+      SELECT
+        ps.id_product,
+        pa.id_product_attribute,
+        pa.reference AS variation_reference,
+        pa_im.id_image AS variation_image_id,
+        p.reference,
+        __ID_CATEGORY_DEFAULT__,
+
+        m.name AS manufacturer,
+
+        p.__MPN__ AS mpn,
+        p.ean13 AS ean13,
+
+        pl.name,
+        pl.description,
+        pl.description_short,
+        pl.meta_title,
+        pl.meta_keywords,
+        pl.meta_description,
+
+        pl.link_rewrite,
+        cl.link_rewrite AS cat_link_rew,
+
+        im.id_image,
+
+        p.available_for_order
+      FROM
+        _DB_PREFIX_product p
+        INNER JOIN _DB_PREFIX_product_shop ps
+          ON (p.id_product = ps.id_product AND ps.id_shop = _ID_SHOP_)
+        LEFT JOIN _DB_PREFIX_product_lang pl
+          ON (p.id_product = pl.id_product AND pl.id_shop = _ID_SHOP_ AND pl.id_lang = _ID_LANG_)
+        LEFT JOIN _DB_PREFIX_manufacturer m
+          ON (p.id_manufacturer = m.id_manufacturer)
+        LEFT JOIN _DB_PREFIX_category_lang cl
+          ON (p.id_category_default = cl.id_category AND cl.id_shop = _ID_SHOP_ AND cl.id_lang = _ID_LANG_)
+        LEFT JOIN (_DB_PREFIX_image im INNER JOIN _DB_PREFIX_image_shop ims ON im.id_image = ims.id_image)
+          ON (p.id_product = im.id_product AND ims.id_shop = _ID_SHOP_ AND _IMS_COVER_)
+        LEFT JOIN _DB_PREFIX_product_attribute pa 
+          ON (p.id_product = pa.id_product)
+        LEFT JOIN _DB_PREFIX_product_attribute_image pa_im 
+          ON (pa_im.id_product_attribute = pa.id_product_attribute)
+      WHERE
+        __IS_ACTIVE__
+        __VISIBILITY__
+      ORDER BY
+        p.id_product
+    ";
+
+    if (dfTools::cfg($shop->id, 'DF_SHOW_PRODUCT_VARIATIONS')){
+      $sql = $sql_variations;
+    }
 
     $mpn_field = dfTools::cfg($id_shop, 'DF_GS_MPN_FIELD', 'reference');
 

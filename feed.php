@@ -62,6 +62,7 @@ $cfg_display_prices = dfTools::getBooleanFromRequest('prices', (bool) dfTools::c
 $cfg_prices_w_taxes = dfTools::getBooleanFromRequest('taxes', (bool) dfTools::cfg($shop->id, 'DF_GS_PRICES_USE_TAX', Doofinder::YES));
 $cfg_image_size = dfTools::cfg($shop->id, 'DF_GS_IMAGE_SIZE');
 $cfg_mod_rewrite = dfTools::cfg($shop->id, 'PS_REWRITING_SETTINGS', Doofinder::YES);
+$cfg_product_variations = dfTools::cfg($shop->id, 'DF_SHOW_PRODUCT_VARIATIONS');
 
 $debug = dfTools::getBooleanFromRequest('debug', false);
 $limit = Tools::getValue('limit', false);
@@ -85,10 +86,17 @@ $header = array('id', 'title', 'link', 'description', 'alternate_description',
                 'categories', 'availability', 'brand', 'mpn',
                 'extra_title_1', 'extra_title_2');
 
+
 if ($cfg_display_prices)
 {
   $header[] = 'price';
   $header[] = 'sale_price';
+}
+
+if ($cfg_product_variations){
+  $header[] = 'variation_id';
+  $header[] = 'variation_image_id';
+  $header[] = 'variation_reference';
 }
 
 if (!$limit || ($offset !== false && intval($offset) === 0))
@@ -97,10 +105,17 @@ if (!$limit || ($offset !== false && intval($offset) === 0))
   dfTools::flush();
 }
 
+
+
 // PRODUCTS
 foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, $offset) as $row)
 {
+
   if(intval($row['id_product']) > 0){
+    // ID VARIATION
+    if ($cfg_product_variations){
+      echo $row['id_product_attribute'].TXT_SEPARATOR;
+    }
     // ID
     echo $row['id_product'].TXT_SEPARATOR;
 
@@ -182,6 +197,19 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
 
       echo ($product_price ? Tools::convertPrice($product_price, $currency) : "").TXT_SEPARATOR;
       echo (($product_price && $onsale_price && $product_price != $onsale_price) ? Tools::convertPrice($onsale_price, $currency) : "");
+    }
+
+    if ($cfg_product_variations){
+      echo TXT_SEPARATOR;
+      echo $row['id_product_attribute'].TXT_SEPARATOR;
+      echo dfTools::cleanURL(dfTools::getImageLink(
+        $row['id_product_attribute'],
+        $row['variation_image_id'],
+        $row['link_rewrite'],
+        $cfg_image_size
+      )).TXT_SEPARATOR;
+      //echo $row['variation_image_id'].TXT_SEPARATOR;
+      echo $row['variation_reference'];
     }
 
     echo PHP_EOL;
