@@ -164,7 +164,44 @@ class dfTools
     return true;
   }
 
- 
+  public static function getAvailableAttributeGroups($id_lang){
+    $sql = "
+      SELECT id_attribute_group,
+             name
+      FROM
+        _DB_PREFIX_attribute_group_lang
+    ";
+
+
+  }
+
+  public static function getAttributesForProductVariation($variation_id, $id_lang)
+  {
+    $sql = "
+      SELECT pc.id_product_attribute,
+             pal.name,
+             pagl.name AS group_name
+
+      FROM
+        _DB_PREFIX_product_attribute_combination pc
+        LEFT JOIN _DB_PREFIX_attribute pa
+          ON pc.id_attribute = pa.id_attribute
+        LEFT JOIN _DB_PREFIX_attribute_lang pal
+          ON (pc.id_attribute = pal.id_attribute AND pal.id_lang = _ID_LANG_)
+        LEFT JOIN _DB_PREFIX_attribute_group_lang pagl
+          ON (pagl.id_attribute_group = pa.id_attribute_group AND pagl.id_lang = _ID_LANG_)
+      WHERE
+        pc.id_product_attribute = _VARIATION_ID
+    ";
+
+    $sql = self::prepareSQL($sql, array('_ID_LANG_' => $id_lang,
+                                        '_VARIATION_ID' => $variation_id));
+
+
+    return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+  }
+
+
   /**
    * Returns the products available for a language
    * @param int Language ID.
