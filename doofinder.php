@@ -148,7 +148,8 @@ class Doofinder extends Module
       'DF_GS_DISPLAY_PRICES' => $this->l('Display Prices in Data Feed'),
       'DF_GS_PRICES_USE_TAX' => $this->l('Display Prices With Taxes'),
       'DF_FEED_FULL_PATH' => $this->l('Export full categories path in the feed'),
-      'DF_SHOW_PRODUCT_VARIATIONS' => $this->l('Include product variations in feed.'),
+      'DF_SHOW_PRODUCT_VARIATIONS' => $this->l('Include product variations in feed'),
+      'DF_SHOW_PRODUCT_FEATURES' => $this->l('Include product features in feed'),
       );
 
     foreach ($cfgIntValues as $optname => $optname_alt)
@@ -331,11 +332,18 @@ class Doofinder extends Module
     $fields[] = $field;
     $helper->fields_value[$optname] = $this->cfg($optname, self::YES);
 
-    // DF_GS_PRICES_USE_TAX
+    // DF_SHOW_PRODUCT_VARIATIONS
     $optname = 'DF_SHOW_PRODUCT_VARIATIONS';
     $field = $this->getYesNoSelectFor($optname, $this->l('Include product variations in feed'));
     $fields[] = $field;
-    $helper->fields_value[$optname] = $this->cfg($optname, self::YES);
+    $helper->fields_value[$optname] = $this->cfg($optname, self::NO);
+
+    // DF_SHOW_PRODUCT_FEATURES
+    $optname = 'DF_SHOW_PRODUCT_FEATURES';
+    $field = $this->getYesNoSelectFor($optname, $this->l('Include product features in feed'));
+    $fields[] = $field;
+    $helper->fields_value[$optname] = $this->cfg($optname, self::NO);
+
 
     // DF_GS_MPN_FIELD
     $optname = 'DF_GS_MPN_FIELD';

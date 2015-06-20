@@ -63,6 +63,7 @@ $cfg_prices_w_taxes = dfTools::getBooleanFromRequest('taxes', (bool) dfTools::cf
 $cfg_image_size = dfTools::cfg($shop->id, 'DF_GS_IMAGE_SIZE');
 $cfg_mod_rewrite = dfTools::cfg($shop->id, 'PS_REWRITING_SETTINGS', Doofinder::YES);
 $cfg_product_variations = dfTools::cfg($shop->id, 'DF_SHOW_PRODUCT_VARIATIONS');
+$cfg_product_features = dfTools::cfg($shop->id, 'DF_SHOW_PRODUCT_FEATURES');
 
 $debug = dfTools::getBooleanFromRequest('debug', false);
 $limit = Tools::getValue('limit', false);
@@ -98,6 +99,10 @@ if ($cfg_product_variations){
   $header[] = 'variation_image_link';
   $header[] = 'variation_reference';
   $header[] = 'variation_attributes';
+}
+
+if($cfg_product_features){
+  $header[] = 'features';
 }
 
 if (!$limit || ($offset !== false && intval($offset) === 0))
@@ -213,6 +218,15 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
         $attributes[] = $attribute['group_name'].': '.$attribute['name'];
       }
       echo implode(', ', $attributes);
+    }
+
+    if ($cfg_product_features){
+      echo TXT_SEPARATOR;
+      $features = array();
+      foreach(dfTools::getFeaturesForProduct($row['id_product'], $lang->id) as $feature){
+        $features[] = $feature['name'].': '.$feature['value'];
+      }
+      echo implode(', ', $features);
     }
 
     echo PHP_EOL;

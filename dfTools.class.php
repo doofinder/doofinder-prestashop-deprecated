@@ -164,16 +164,30 @@ class dfTools
     return true;
   }
 
-  public static function getAvailableAttributeGroups($id_lang){
+  public static function getFeaturesForProduct($id_product, $id_lang)
+  {
     $sql = "
-      SELECT id_attribute_group,
-             name
+      SELECT fl.name,
+             fvl.value
+
       FROM
-        _DB_PREFIX_attribute_group_lang
+        _DB_PREFIX_feature_product fp
+        LEFT JOIN _DB_PREFIX_feature_lang fl
+          ON (fl.id_feature = fp.id_feature AND fl.id_lang = _ID_LANG_)
+        LEFT JOIN _DB_PREFIX_feature_value_lang fvl
+          ON (fvl.id_feature_value = fp.id_feature_value AND fvl.id_lang = _ID_LANG_)
+
+      WHERE
+        fp.id_product = _ID_PRODUCT
     ";
 
+    $sql = self::prepareSQL($sql, array('_ID_LANG_' => $id_lang,
+                                        '_ID_PRODUCT' => $id_product));
 
+
+    return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
   }
+
 
   public static function getAttributesForProductVariation($variation_id, $id_lang)
   {
