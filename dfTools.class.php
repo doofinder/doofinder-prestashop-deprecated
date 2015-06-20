@@ -164,6 +164,12 @@ class dfTools
     return true;
   }
 
+  /**
+   * Returns the features of a product
+   * @param int Product ID.
+   * @param int Language ID.
+   * @return array of rows (assoc arrays).
+   */
   public static function getFeaturesForProduct($id_product, $id_lang)
   {
     $sql = "
@@ -188,7 +194,12 @@ class dfTools
     return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
   }
 
-
+  /**
+   * Returns the product variation attributes
+   * @param int Product Attribute ID.
+   * @param int Language ID.
+   * @return array of rows (assoc arrays).
+   */
   public static function getAttributesForProductVariation($variation_id, $id_lang)
   {
     $sql = "
