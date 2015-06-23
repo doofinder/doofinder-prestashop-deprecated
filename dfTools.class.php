@@ -166,11 +166,72 @@ class dfTools
 
   /**
    * Returns the features of a product
+   * @param int Shop ID.
+   * @param int Language ID.
+   * @return array of rows (assoc arrays).
+   */
+  public static function getFeatureKeysForShopAndLang($id_shop, $id_lang){
+    $sql = "
+      SELECT fl.name
+
+      FROM
+        _DB_PREFIX_feature_shop fs
+        LEFT JOIN _DB_PREFIX_feature_lang fl
+          ON (fl.id_feature = fs.id_feature AND fl.id_lang = _ID_LANG_)
+
+      WHERE
+        fs.id_shop = _ID_SHOP_ 
+    ";
+
+    $sql = self::prepareSQL($sql, array('_ID_LANG_' => $id_lang,
+                                        '_ID_SHOP_' => $id_shop));
+
+
+    $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+    $names = array();
+    foreach($result as $elem){
+      $names[] = $elem["name"];
+    }
+    return $names;
+  }
+
+  /**
+   * Returns the features of a product
+   * @param int Shop ID.
+   * @param int Language ID.
+   * @return array of rows (assoc arrays).
+   */
+  public static function getAttributeKeysForShopAndLang($id_shop, $id_lang){
+    $sql = "
+      SELECT agl.name
+
+      FROM
+        _DB_PREFIX_attribute_group_shop ags
+        LEFT JOIN _DB_PREFIX_attribute_group_lang agl
+          ON (agl.id_attribute_group = ags.id_attribute_group AND agl.id_lang = _ID_LANG_)
+
+      WHERE
+        ags.id_shop = _ID_SHOP_ 
+    ";
+
+    $sql = self::prepareSQL($sql, array('_ID_LANG_' => $id_lang,
+                                        '_ID_SHOP_' => $id_shop));
+
+    $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+    $names = array();
+    foreach($result as $elem){
+      $names[] = $elem["name"];
+    }
+    return $names;
+  }
+
+  /**
+   * Returns the features of a product
    * @param int Product ID.
    * @param int Language ID.
    * @return array of rows (assoc arrays).
    */
-  public static function getFeaturesForProduct($id_product, $id_lang)
+  public static function getFeaturesForProduct($id_product, $id_lang, $feature_keys)
   {
     $sql = "
       SELECT fl.name,
@@ -190,8 +251,15 @@ class dfTools
     $sql = self::prepareSQL($sql, array('_ID_LANG_' => $id_lang,
                                         '_ID_PRODUCT' => $id_product));
 
+    $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
 
-    return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+    $features = array_fill(0, count($feature_keys), array());
+
+    foreach($result as $elem){
+      array_push($features[array_search($elem['name'], $feature_keys)], $elem['value']);
+    }
+
+    return $features;
   }
 
   /**
@@ -200,7 +268,7 @@ class dfTools
    * @param int Language ID.
    * @return array of rows (assoc arrays).
    */
-  public static function getAttributesForProductVariation($variation_id, $id_lang)
+  public static function getAttributesForProductVariation($variation_id, $id_lang, $attribute_keys)
   {
     $sql = "
       SELECT pc.id_product_attribute,
@@ -222,8 +290,14 @@ class dfTools
     $sql = self::prepareSQL($sql, array('_ID_LANG_' => $id_lang,
                                         '_VARIATION_ID' => $variation_id));
 
+    $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+    $attributes = array_fill(0, count($attribute_keys), "");
 
-    return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+    foreach($result as $elem){
+      $attributes[array_search($elem['group_name'], $attribute_keys)] = $elem['name'];
+    }
+
+    return $attributes;
   }
 
 
