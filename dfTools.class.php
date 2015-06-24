@@ -286,6 +286,8 @@ class dfTools
     if (isset(self::$cached_category_paths[$id_category]))
       return self::$cached_category_paths[$id_category];
 
+    $excluded_ids = implode(',', self::getRootCategoryIds($id_lang));
+
     $sql = "
       SELECT
         cl.name
@@ -299,14 +301,15 @@ class dfTools
         AND cl.id_shop = _ID_SHOP_
         AND cl.id_lang = _ID_LANG_
         AND parent.level_depth <> 0
-        AND parent.active = 1
-        AND parent.id_category NOT IN (_EXCLUDED_IDS_)
-      ORDER BY
-        parent.nleft
-      ;
-    ";
+        AND parent.active = 1 ";
 
-    $excluded_ids = implode(',', self::getRootCategoryIds($id_lang));
+    if(count($excluded_ids) > 0 && $excludes_ids[0] != "")
+      $sql .= "AND parent.id_category NOT IN (_EXCLUDED_IDS_) ";
+      
+    $sql .= "ORDER BY
+        parent.nleft
+      ;";
+
     $sql = self::prepareSQL($sql, array('_ID_CATEGORY_' => $id_category,
                                         '_ID_SHOP_' => $id_shop,
                                         '_ID_LANG_' => $id_lang,
