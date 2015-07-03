@@ -296,7 +296,6 @@ class dfTools
     foreach($result as $elem){
       $attributes[array_search($elem['group_name'], $attribute_keys)] = $elem['name'];
     }
-
     return $attributes;
   }
 
@@ -683,7 +682,8 @@ class dfTools
 
     $text = implode('?', $text);
 
-    return preg_replace(self::VALID_UTF8, '$1', $text);
+    $text = preg_replace(self::VALID_UTF8, '$1', $text);
+    return urldecode($text);
   }
 
   public static function cleanString($text)
