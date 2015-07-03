@@ -128,16 +128,8 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
       // ID
       echo $row['id_product_attribute'].TXT_SEPARATOR;
       // TITLE
-      $variation_attributes = dfTools::getAttributesForProductVariation($row['id_product_attribute'], $lang->id, $attribute_keys);
-      $cleaned_attributes = array();
-      // DELETE EMPTY ATTRIBUTES
-      foreach($variation_attributes as $attr){
-        if(isset($attr) && "" != $attr){
-          $cleaned_attributes[] = $attr;
-        }
-      }
       $product_title = dfTools::cleanString($row['name']);
-      echo $product_title.' '.implode(' ', $cleaned_attributes).TXT_SEPARATOR;
+      echo $product_title.TXT_SEPARATOR;
       echo dfTools::cleanURL($context->link->getProductLink(intval($row['id_product']),
                                      $row['link_rewrite'],
                                      $row['cat_link_rew'],
@@ -243,18 +235,16 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
       
       echo TXT_SEPARATOR;
       echo $row['variation_reference'];
-
-      $attributes = array();
-
+      $variation_attributes = dfTools::getAttributesForProductVariation($row['id_product_attribute'], $lang->id, $attribute_keys);
       foreach($variation_attributes as $attribute){
-        echo TXT_SEPARATOR.$attribute;
+        echo TXT_SEPARATOR.dfTools::cleanString($attribute);
       }
     }
 
     if ($cfg_product_features){
 
       foreach(dfTools::getFeaturesForProduct($row['id_product'], $lang->id, $feature_keys) as $features){
-        echo TXT_SEPARATOR.implode(', ', $features);
+        echo TXT_SEPARATOR.dfTools::cleanString(implode(' ', $features));
       }
         
     }
