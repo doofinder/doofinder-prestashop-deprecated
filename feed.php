@@ -174,11 +174,22 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
     // IMAGE LINK
 
     if($cfg_product_variations && isset($row['id_product_attribute']) and intval($row['id_product_attribute']) > 0){
-        echo dfTools::cleanURL(dfTools::getImageLink(
-        $row['id_product_attribute'],
-        $row['variation_image_id'],
-        $row['link_rewrite'],
-        $cfg_image_size)).TXT_SEPARATOR;
+        $image_link = dfTools::cleanURL(dfTools::getImageLink(
+          $row['id_product_attribute'],
+          $row['variation_image_id'],
+          $row['link_rewrite'],
+          $cfg_image_size));
+
+          // For variations with no specific pictures
+          if (strpos($image_link, "/-") > -1){
+            $image_link = dfTools::cleanURL(dfTools::getImageLink(
+              $row['id_product'],
+              $row['id_image'],
+              $row['link_rewrite'],
+              $cfg_image_size));
+          }
+
+          echo $image_link.TXT_SEPARATOR;
     }
 
     else{
