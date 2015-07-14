@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "1.5.9";
+  const VERSION = "1.5.10";
 
   const YES = 1;
   const NO = 0;
@@ -206,7 +206,8 @@ class Doofinder extends Module
         $optname = $prefix.strtoupper($lang['iso_code']);
         // Cleaning script tags
         if ('DOOFINDER_SCRIPT_' === $prefix){
-          $value = strip_tags(Tools::getValue($optname));
+          $value = str_replace('<script type="text/javascript">', '', Tools::getValue($optname));
+          $value = str_replace('</script>', '', $value);
         }
         else{
           $value = Tools::getValue($optname);
