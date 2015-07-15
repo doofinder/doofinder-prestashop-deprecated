@@ -402,7 +402,7 @@ class dfTools
         p.id_product
     ";
 
-    if (dfTools::cfg($shop->id, 'DF_SHOW_PRODUCT_VARIATIONS')){
+    if (dfTools::cfg($id_shop, 'DF_SHOW_PRODUCT_VARIATIONS')){
       $sql = $sql_variations;
     }
 
