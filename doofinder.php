@@ -175,14 +175,23 @@ class Doofinder extends Module
         'valid' => array('reference', 'supplier_reference', 'ean13', 'upc'),
         'label' => $this->l('MPN Field for Data Feed'),
         ),
+      'DF_FEATURES_SHOWN' => array(
+        'label' => 'Features',
+        ),
       );
 
     foreach ($cfgStrSelectValues as $optname => $cfg)
     {
       $optvalue = Tools::getValue($optname);
 
-      if (dfTools::isBasicValue($optvalue))
+      if (is_array($optvalue))
       {
+          Configuration::updateValue($optname, implode(',', $optvalue));
+      }
+
+      else if (dfTools::isBasicValue($optvalue))
+      {
+        
         if (in_array($optvalue, $cfg['valid']))
         {
           Configuration::updateValue($optname, $optvalue);
@@ -374,9 +383,33 @@ class Doofinder extends Module
     $field = $this->getYesNoSelectFor($optname, $this->l('Export full categories path in the feed'));
     $fields[] = $field;
     $helper->fields_value[$optname] = $this->cfg($optname, self::YES);
+    // PS FEATURES SHOWN
+    $optname = 'DF_FEATURES_SHOWN';
+    $features = dfTools::getFeatureKeysForShopAndLang($this->context->shop->id, $lang['id_lang']);
+    $opts = array();
+    
+    foreach($features as $key => $feature)
+    {  
+        $opts[] = array($optname => $key, 'name' => $feature);
+    }
 
+    $fields[] = array(
+      'label' => 'Select features will be shown in feed',
+      'type' => 'select',
+      'multiple' => true,
+      'options' => array(
+        'query' => $opts,
+
+        'id' => $optname,
+        'name' => 'name',
+        ),
+      'name' => $optname.'[]',
+
+    );
+
+    $helper->fields_value[$optname . '[]'] = explode(',', $this->cfg($optname));
+    
     $fields_form[0]['form']['input'] = $fields;
-
 
 
     //
