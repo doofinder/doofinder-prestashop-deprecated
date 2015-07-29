@@ -183,10 +183,13 @@ class Doofinder extends Module
     foreach ($cfgStrSelectValues as $optname => $cfg)
     {
       $optvalue = Tools::getValue($optname);
-
-      if (is_array($optvalue))
+      
+      if ($optname === "DF_FEATURES_SHOWN")
       {
+        if($optvalue)
           Configuration::updateValue($optname, implode(',', $optvalue));
+        else
+          Configuration::deleteByName($optname);
       }
 
       else if (dfTools::isBasicValue($optvalue))
@@ -404,6 +407,7 @@ class Doofinder extends Module
         'name' => 'name',
         ),
       'name' => $optname.'[]',
+      'required' => false
 
     );
 

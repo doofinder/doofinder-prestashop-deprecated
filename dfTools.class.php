@@ -164,6 +164,27 @@ class dfTools
     return true;
   }
 
+  public static function getSelectedFeatures($features, $selected_keys)
+  {
+    /**
+     * Returns the features selected by user
+     * @param array features
+     * @return array of rows (assoc arrays).
+     */
+
+    $selected_features = array();
+
+    foreach($features as $key => $value)
+    {
+      if(in_array((string)$key, $selected_keys))
+      {
+        $selected_features[] = $value;
+      }
+    }
+
+    return $selected_features;
+  }
+
   /**
    * Returns the features of a product
    * @param int Shop ID.
@@ -255,10 +276,12 @@ class dfTools
 
     $features = array_fill(0, count($feature_keys), array());
 
-    foreach($result as $elem){
-      array_push($features[array_search($elem['name'], $feature_keys)], $elem['value']);
-    }
 
+    foreach($result as $elem){
+      if (in_array($elem['name'], $feature_keys))
+        array_push($features[array_search($elem['name'], $feature_keys)], $elem['value']);
+    }
+    
     return $features;
   }
 

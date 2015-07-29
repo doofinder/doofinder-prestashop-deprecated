@@ -64,6 +64,7 @@ $cfg_image_size = dfTools::cfg($shop->id, 'DF_GS_IMAGE_SIZE');
 $cfg_mod_rewrite = dfTools::cfg($shop->id, 'PS_REWRITING_SETTINGS', Doofinder::YES);
 $cfg_product_variations = dfTools::cfg($shop->id, 'DF_SHOW_PRODUCT_VARIATIONS');
 $cfg_product_features = dfTools::cfg($shop->id, 'DF_SHOW_PRODUCT_FEATURES');
+$cfg_features_shown = explode(',', dfTools::cfg($shop->id, 'DF_FEATURES_SHOWN'));
 
 $debug = dfTools::getBooleanFromRequest('debug', false);
 $limit = Tools::getValue('limit', false);
@@ -103,7 +104,13 @@ if ($cfg_product_variations){
 }
 
 if($cfg_product_features){
-  $feature_keys = dfTools::getFeatureKeysForShopAndLang($shop->id, $lang->id);
+  $all_feature_keys = dfTools::getFeatureKeysForShopAndLang($shop->id, $lang->id);
+
+  if(isset($cfg_features_shown) && count($cfg_features_shown) > 0 && $cfg_features_shown[0] !== "")
+    $feature_keys = dfTools::getSelectedFeatures($all_feature_keys, $cfg_features_shown);
+  else
+    $feature_keys = $all_feature_keys;
+
   foreach($feature_keys as $key){
     $header[] = $key;
   }  
@@ -253,7 +260,6 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
     }
 
     if ($cfg_product_features){
-
       foreach(dfTools::getFeaturesForProduct($row['id_product'], $lang->id, $feature_keys) as $features){
         echo TXT_SEPARATOR.dfTools::cleanString(implode(' ', $features));
       }
