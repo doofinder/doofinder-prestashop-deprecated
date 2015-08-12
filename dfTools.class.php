@@ -516,7 +516,7 @@ class dfTools
         AND parent.level_depth <> 0
         AND parent.active = 1 ";
 
-    if(count($excluded_ids) > 0 && $excludes_ids[0] != "")
+    if(count($excluded_ids) > 0 && $excluded_ids[0] != "")
       $sql .= "AND parent.id_category NOT IN (_EXCLUDED_IDS_) ";
       
     $sql .= "ORDER BY
