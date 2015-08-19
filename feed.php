@@ -133,7 +133,7 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
 
     if($cfg_product_variations && isset($row['id_product_attribute']) and intval($row['id_product_attribute']) > 0){
       // ID
-      echo $row['id_product_attribute'].TXT_SEPARATOR;
+      echo "VAR-".$row['id_product_attribute'].TXT_SEPARATOR;
       // TITLE
       $product_title = dfTools::cleanString($row['name']);
       echo $product_title.TXT_SEPARATOR;
