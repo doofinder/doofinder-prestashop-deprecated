@@ -1,6 +1,6 @@
 {if isset($script)}
   <!-- START OF DOOFINDER SCRIPT -->
-  {$script}
+  {$script|html_entity_decode}
   <!-- END OF DOOFINDER SCRIPT -->
 {/if}
 
