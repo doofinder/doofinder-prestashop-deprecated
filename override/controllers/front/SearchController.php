@@ -26,12 +26,18 @@ class SearchController extends SearchControllerCore{
             if(function_exists($this,'addColorsToProductList')) //RETROCOMPATIBILITY
                 $this->addColorsToProductList($search['result']);
 
+            if(function_exists(ImageType,'getFormatedName')){
+                $imageSize = Image::getSize(ImageType::getFormatedName('home'));
+            }else{
+                $imageSize = Image::getSize($m->getFormatedName('home'));
+            }
+                
             $this->context->smarty->assign(array(
                     'products' => $search['result'], // DEPRECATED (since to 1.4), not use this: conflict with block_cart module
                     'search_products' => $search['result'],
                     'nbProducts' => $search['total'],
                     'search_query' => $original_query,
-                    'homeSize' => Image::getSize(ImageType::getFormatedName('home'))));
+                    'homeSize' => $imageSize));
 
             $this->context->smarty->assign(array('add_prod_display' => Configuration::get('PS_ATTRIBUTE_CATEGORY_DISPLAY'), 'comparator_max_item' => Configuration::get('PS_COMPARATOR_MAX_ITEM')));
 

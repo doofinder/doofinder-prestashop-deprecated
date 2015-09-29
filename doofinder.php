@@ -561,7 +561,7 @@ class Doofinder extends Module
     }
   }
   
-  public function searchOnApi($string,$page=1,$page_size=12,$timeout=8000){
+    public function searchOnApi($string,$page=1,$page_size=12,$timeout=8000){
         if(!class_exists('DoofinderApi')){
             include_once dirname(__FILE__) . '/lib/doofinder_api.php';
         }
@@ -625,5 +625,21 @@ class Doofinder extends Module
         }else{
             return false;
         }
-  }
+    }
+  
+    public function getFormatedName($name)
+    {
+            $theme_name = Context::getContext()->shop->theme_name;
+            $name_without_theme_name = str_replace(array('_'.$theme_name, $theme_name.'_'), '', $name);
+
+            //check if the theme name is already in $name if yes only return $name
+            if (strstr($name, $theme_name) && ImageType::getByNameNType($name))
+                    return $name;
+            elseif (ImageType::getByNameNType($name_without_theme_name.'_'.$theme_name))
+                    return $name_without_theme_name.'_'.$theme_name;
+            elseif (ImageType::getByNameNType($theme_name.'_'.$name_without_theme_name))
+                    return $theme_name.'_'.$name_without_theme_name;
+            else
+                    return $name_without_theme_name.'_default';
+    }
 }
