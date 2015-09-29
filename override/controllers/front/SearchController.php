@@ -23,7 +23,8 @@ class SearchController extends SearchControllerCore{
             $nbProducts = $search['total'];
             $this->pagination($nbProducts);
 
-            $this->addColorsToProductList($search['result']);
+            if(function_exists($this,'addColorsToProductList')) //RETROCOMPATIBILITY
+                $this->addColorsToProductList($search['result']);
 
             $this->context->smarty->assign(array(
                     'products' => $search['result'], // DEPRECATED (since to 1.4), not use this: conflict with block_cart module
