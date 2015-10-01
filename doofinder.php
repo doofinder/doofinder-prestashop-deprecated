@@ -232,7 +232,8 @@ class Doofinder extends Module
     $cfgCodeStrValues = array(
         'DF_EXTRA_CSS',
         'DF_API_KEY',
-        'DF_HASHID'
+        'DF_HASHID',
+        'DF_CUSTOMEXPLODEATTR'
       );
 
     foreach ($cfgCodeStrValues as $optname)
@@ -495,6 +496,19 @@ class Doofinder extends Module
     $helper->fields_value[$optname] = $this->cfg($optname);
 
     $fields_form[1]['form']['input'] = $fields;
+    
+    // DF_CUSTOMEXPLODEATTR
+    $optname = 'DF_CUSTOMEXPLODEATTR';
+    $fields[] = array(
+      'label' => $this->l('Custom separator attribute'),
+      'desc' => $this->l('Used if your feed have a custom separator to concatenate id_product and id_product_attribute .'),
+      'type' => 'text',
+      'name' => $optname,
+      'required' => false,
+      );
+    $helper->fields_value[$optname] = $this->cfg($optname);
+
+    $fields_form[1]['form']['input'] = $fields;
 
 
     //
@@ -579,9 +593,30 @@ class Doofinder extends Module
                 return false;
             
             $dfResultsArray = $dfResults->getResults();
+            
+            $customexplodeattr = Configuration::get('DF_CUSTOMEXPLODEATTR', null);
+            
+            global $product_pool_attributes;
+            $product_pool_attributes = array();
             $product_pool = implode(', ', array_map(function ($entry) {
-                    return $entry['id'];
+                    global $product_pool_attributes;
+                    if(!empty($customexplodeattr) && strpos($entry['id'],$customexplodeattr)!==false){
+                        $id_products = explode($customexplodeattr, $entry['id']);
+                        $product_pool_attributes[] = $id_products[1];
+                        return $id_products[0];
+                    }
+                    if(strpos($entry['id'],'VAR-')===false){
+                        return $entry['id'];
+                    }else{
+                        $id_product_attribute = str_replace('VAR-','',$entry['id']);
+                        if(!in_array($id_product_attribute, $product_pool_attributes)){
+                            $product_pool_attributes[] = $id_product_attribute;
+                        }
+                        $id_product = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('SELECT id_product FROM ps_product_attribute WHERE id_product_attribute = '.$id_product_attribute);
+                        return ((!empty($id_product)) ? $id_product : 0 );
+                    }
                 }, $dfResultsArray));
+
             
             if (!$context)
                 $context = Context::getContext();
@@ -612,8 +647,9 @@ class Doofinder extends Module
 				Shop::addSqlAssociation('image', 'i', false, 'image_shop.cover=1').'
 				LEFT JOIN `'._DB_PREFIX_.'image_lang` il ON (i.`id_image` = il.`id_image` AND il.`id_lang` = '.(int)$id_lang.')
 				WHERE p.`id_product` IN ('.$product_pool.')
-				GROUP BY product_shop.id_product 
-                                ORDER BY FIELD (p.`id_product`,'.$product_pool.')';
+                                AND (pa.`id_product_attribute` IS NULL OR pa.`id_product_attribute` IN ('.$product_pool_attributes.'))
+				GROUP BY product_shop.id_product,  pa.`id_product_attribute`
+                                ORDER BY FIELD (p.`id_product`,'.$product_pool.'),FIELD (pa.`id_product_attribute`,'.$product_pool_attributes.')';
 		$result = $db->executeS($sql);
 
 		if (!$result)
