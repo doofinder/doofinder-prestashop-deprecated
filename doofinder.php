@@ -593,13 +593,12 @@ class Doofinder extends Module
                 return false;
             
             $dfResultsArray = $dfResults->getResults();
-            
-            $customexplodeattr = Configuration::get('DF_CUSTOMEXPLODEATTR', null);
-            
+                     
             global $product_pool_attributes;
             $product_pool_attributes = array();
             $product_pool = implode(', ', array_map(function ($entry) {
                     global $product_pool_attributes;
+                    $customexplodeattr = Configuration::get('DF_CUSTOMEXPLODEATTR', null);
                     if(!empty($customexplodeattr) && strpos($entry['id'],$customexplodeattr)!==false){
                         $id_products = explode($customexplodeattr, $entry['id']);
                         $product_pool_attributes[] = $id_products[1];
