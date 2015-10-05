@@ -618,7 +618,7 @@ class Doofinder extends Module
 
             $product_pool_attributes = implode(',', $product_pool_attributes);
             
-            if (!$context)
+            if (!isset($context) || !$context)
                 $context = Context::getContext();
             
             $db = Db::getInstance(_PS_USE_SQL_SLAVE_);

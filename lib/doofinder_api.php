@@ -202,11 +202,13 @@ class DoofinderApi{
 
         $params = $this->search_options;
 
-        // translate filters
-        foreach($params['filter'] as $filterName => $filterValue){
-            $params['filter'][$filterName] = $this->translateFilter($filterValue);
+        if(isset($params['filter'])){
+            // translate filters
+            foreach($params['filter'] as $filterName => $filterValue){
+                $params['filter'][$filterName] = $this->translateFilter($filterValue);
+            }
         }
-
+        
         // no query? then match all documents
         if(!$this->optionExists('query') || !trim($this->search_options['query'])){
             $params['query_name'] = 'match_all';

@@ -661,8 +661,18 @@ class dfTools
   public static function stripHtml($text)
   {
     $text = html_entity_decode($text, ENT_QUOTES, "ISO-8859-1");
-    $text = preg_replace('/&#(\d+);/me',"chr(\\1)",$text);  // decimal notation
-    $text = preg_replace('/&#x([a-f0-9]+);/mei',"chr(0x\\1)",$text);  // hex notation
+    $text = preg_replace_callback(
+       '/&#(\d+);/mu',
+        function($matches){
+          return chr($matches[1]);
+        },
+        $text);  // decimal notation
+    $text = preg_replace_callback(
+       '/&#x([a-f0-9]+);/miu',
+        function($matches){
+          return chr('0x'.$matches[1]);
+        },
+        $text);  // hex notation
     $text = str_replace("><", "> <", $text);
     $text = preg_replace('/\<br(\s*)?\/?\>/i', " ", $text);
     $text = strip_tags($text);
