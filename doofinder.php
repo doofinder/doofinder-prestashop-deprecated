@@ -616,6 +616,7 @@ class Doofinder extends Module
                     }
                 }, $dfResultsArray));
 
+            $product_pool_attributes = implode(',', $product_pool_attributes);
             
             if (!$context)
                 $context = Context::getContext();
