@@ -2,3 +2,5 @@ config*.xml
 *.zip
 localconfig.json
 node_modules
+/nbproject/private/
+/nbproject

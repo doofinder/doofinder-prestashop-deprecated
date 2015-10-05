@@ -150,6 +150,7 @@ class Doofinder extends Module
       'DF_FEED_FULL_PATH' => $this->l('Export full categories path in the feed'),
       'DF_SHOW_PRODUCT_VARIATIONS' => $this->l('Include product variations in feed'),
       'DF_SHOW_PRODUCT_FEATURES' => $this->l('Include product features in feed'),
+      'DF_OWSEARCH' => $this->l('Overwrite Search page with Doofinder results')
       );
 
     foreach ($cfgIntValues as $optname => $optname_alt)
@@ -230,6 +231,9 @@ class Doofinder extends Module
 
     $cfgCodeStrValues = array(
         'DF_EXTRA_CSS',
+        'DF_API_KEY',
+        'DF_HASHID',
+        'DF_CUSTOMEXPLODEATTR'
       );
 
     foreach ($cfgCodeStrValues as $optname)
@@ -357,6 +361,11 @@ class Doofinder extends Module
     $fields[] = $field;
     $helper->fields_value[$optname] = $this->cfg($optname, self::NO);
 
+    // DF_OWSEARCH
+    $optname = 'DF_OWSEARCH';
+    $field = $this->getYesNoSelectFor($optname, $this->l('Overwrite Search page with Doofinder results'));
+    $fields[] = $field;
+    $helper->fields_value[$optname] = $this->cfg($optname, self::NO);
 
     // DF_GS_MPN_FIELD
     $optname = 'DF_GS_MPN_FIELD';
@@ -462,7 +471,42 @@ class Doofinder extends Module
       'required' => false,
       );
     $helper->fields_value[$optname] = $this->cfg($optname);
+    
+    // DF_API_KEY
+    $optname = 'DF_API_KEY';
+    $fields[] = array(
+      'label' => $this->l('Api Key'),
+      'desc' => $this->l('Api Key, needed to overwrite Search page.'),
+      'type' => 'text',
+      'name' => $optname,
+      'required' => false,
+      );
+    $helper->fields_value[$optname] = $this->cfg($optname);
 
+    
+    // DF_HASHID
+    $optname = 'DF_HASHID';
+    $fields[] = array(
+      'label' => $this->l('Hash ID'),
+      'desc' => $this->l('Hash ID, needed to overwrite Search page.'),
+      'type' => 'text',
+      'name' => $optname,
+      'required' => false,
+      );
+    $helper->fields_value[$optname] = $this->cfg($optname);
+
+    $fields_form[1]['form']['input'] = $fields;
+    
+    // DF_CUSTOMEXPLODEATTR
+    $optname = 'DF_CUSTOMEXPLODEATTR';
+    $fields[] = array(
+      'label' => $this->l('Custom separator attribute'),
+      'desc' => $this->l('Used if your feed have a custom separator to concatenate id_product and id_product_attribute .'),
+      'type' => 'text',
+      'name' => $optname,
+      'required' => false,
+      );
+    $helper->fields_value[$optname] = $this->cfg($optname);
 
     $fields_form[1]['form']['input'] = $fields;
 
@@ -530,4 +574,108 @@ class Doofinder extends Module
       return dfTools::cfg(null, $key, $default);
     }
   }
+  
+    public function searchOnApi($string,$page=1,$page_size=12,$timeout=8000){
+        if(!class_exists('DoofinderApi')){
+            include_once dirname(__FILE__) . '/lib/doofinder_api.php';
+        }
+        $hash_id = Configuration::get('DF_HASHID', null);
+        $api_key = Configuration::get('DF_API_KEY', null);
+        if($hash_id && $api_key){
+            $df = new DoofinderApi($hash_id, $api_key);
+            $dfResults = $df->query($string, $page, array('rpp' => $page_size,         // results per page
+                             'timeout' => $timeout,  // timeout in milisecs
+                             'types' => array(   // types of item 
+                                 'product',
+                             ), 'transformer'=>'dflayer'));
+            
+            if(!$dfResults->isOk())
+                return false;
+            
+            $dfResultsArray = $dfResults->getResults();
+                     
+            global $product_pool_attributes;
+            $product_pool_attributes = array();
+            $product_pool = implode(', ', array_map(function ($entry) {
+                    global $product_pool_attributes;
+                    $customexplodeattr = Configuration::get('DF_CUSTOMEXPLODEATTR', null);
+                    if(!empty($customexplodeattr) && strpos($entry['id'],$customexplodeattr)!==false){
+                        $id_products = explode($customexplodeattr, $entry['id']);
+                        $product_pool_attributes[] = $id_products[1];
+                        return $id_products[0];
+                    }
+                    if(strpos($entry['id'],'VAR-')===false){
+                        return $entry['id'];
+                    }else{
+                        $id_product_attribute = str_replace('VAR-','',$entry['id']);
+                        if(!in_array($id_product_attribute, $product_pool_attributes)){
+                            $product_pool_attributes[] = $id_product_attribute;
+                        }
+                        $id_product = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('SELECT id_product FROM ps_product_attribute WHERE id_product_attribute = '.$id_product_attribute);
+                        return ((!empty($id_product)) ? $id_product : 0 );
+                    }
+                }, $dfResultsArray));
+
+            $product_pool_attributes = implode(',', $product_pool_attributes);
+            
+            if (!$context)
+                $context = Context::getContext();
+            
+            $db = Db::getInstance(_PS_USE_SQL_SLAVE_);
+            $id_lang = $context->language->id;
+            $sql = 'SELECT p.*, product_shop.*, stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity,
+				pl.`description_short`, pl.`available_now`, pl.`available_later`, pl.`link_rewrite`, pl.`name`,
+			 MAX(image_shop.`id_image`) id_image, il.`legend`, m.`name` manufacturer_name '.(Combination::isFeatureActive() ? ', MAX(product_attribute_shop.`id_product_attribute`) id_product_attribute' : '').',
+				DATEDIFF(
+					p.`date_add`,
+					DATE_SUB(
+						NOW(),
+						INTERVAL '.(Validate::isUnsignedInt(Configuration::get('PS_NB_DAYS_NEW_PRODUCT')) ? Configuration::get('PS_NB_DAYS_NEW_PRODUCT') : 20).' DAY
+					)
+				) > 0 new'.(Combination::isFeatureActive() ? ', MAX(product_attribute_shop.minimal_quantity) AS product_attribute_minimal_quantity' : '').'
+				FROM '._DB_PREFIX_.'product p
+				'.Shop::addSqlAssociation('product', 'p').'
+				INNER JOIN `'._DB_PREFIX_.'product_lang` pl ON (
+					p.`id_product` = pl.`id_product`
+					AND pl.`id_lang` = '.(int)$id_lang.Shop::addSqlRestrictionOnLang('pl').'
+				)
+				'.(Combination::isFeatureActive() ? 'LEFT JOIN `'._DB_PREFIX_.'product_attribute` pa	ON (p.`id_product` = pa.`id_product`)
+				'.Shop::addSqlAssociation('product_attribute', 'pa', false, 'product_attribute_shop.`default_on` = 1').'
+				'.Product::sqlStock('p', 'product_attribute_shop', false, $context->shop) :  Product::sqlStock('p', 'product', false, Context::getContext()->shop)).'
+				LEFT JOIN `'._DB_PREFIX_.'manufacturer` m ON m.`id_manufacturer` = p.`id_manufacturer`
+				LEFT JOIN `'._DB_PREFIX_.'image` i ON (i.`id_product` = p.`id_product`)'.
+				Shop::addSqlAssociation('image', 'i', false, 'image_shop.cover=1').'
+				LEFT JOIN `'._DB_PREFIX_.'image_lang` il ON (i.`id_image` = il.`id_image` AND il.`id_lang` = '.(int)$id_lang.')
+				WHERE p.`id_product` IN ('.$product_pool.')
+                                AND (pa.`id_product_attribute` IS NULL OR pa.`id_product_attribute` IN ('.$product_pool_attributes.'))
+				GROUP BY product_shop.id_product,  pa.`id_product_attribute`
+                                ORDER BY FIELD (p.`id_product`,'.$product_pool.'),FIELD (pa.`id_product_attribute`,'.$product_pool_attributes.')';
+		$result = $db->executeS($sql);
+
+		if (!$result)
+			return false;
+		else
+			$result_properties = Product::getProductsProperties((int)$id_lang, $result);
+
+		return array('total' => $dfResults->getProperty('total'),'result' => $result_properties);
+        }else{
+            return false;
+        }
+    }
+  
+    public function getFormatedName($name)
+    {
+            $theme_name = Context::getContext()->shop->theme_name;
+            $name_without_theme_name = str_replace(array('_'.$theme_name, $theme_name.'_'), '', $name);
+
+            //check if the theme name is already in $name if yes only return $name
+            if (strstr($name, $theme_name) && ImageType::getByNameNType($name))
+                    return $name;
+            elseif (ImageType::getByNameNType($name_without_theme_name.'_'.$theme_name))
+                    return $name_without_theme_name.'_'.$theme_name;
+            elseif (ImageType::getByNameNType($theme_name.'_'.$name_without_theme_name))
+                    return $theme_name.'_'.$name_without_theme_name;
+            else
+                    return $name_without_theme_name.'_default';
+    }
 }
