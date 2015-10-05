@@ -1,6 +1,6 @@
 {if isset($script)}
   <!-- START OF DOOFINDER SCRIPT -->
-  {$script|html_entity_decode}
+  {$script|html_entity_decode:2:"UTF-8"}
   <!-- END OF DOOFINDER SCRIPT -->
 {/if}
 
