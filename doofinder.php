@@ -615,6 +615,10 @@ class Doofinder extends Module
                         return ((!empty($id_product)) ? $id_product : 0 );
                     }
                 }, $dfResultsArray));
+            // To avoid SQL errors.
+            if($product_pool == ""){
+              $product_pool = "0";
+            }
 
             $product_pool_attributes = implode(',', $product_pool_attributes);
             
