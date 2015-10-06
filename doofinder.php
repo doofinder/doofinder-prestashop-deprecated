@@ -620,7 +620,10 @@ class Doofinder extends Module
             
             if (!isset($context) || !$context)
                 $context = Context::getContext();
-            
+            // Avoids SQL Error  
+            if ($product_pool_attributes == ""){
+              $product_pool_attributes = "0";
+            }
             $db = Db::getInstance(_PS_USE_SQL_SLAVE_);
             $id_lang = $context->language->id;
             $sql = 'SELECT p.*, product_shop.*, stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity,
