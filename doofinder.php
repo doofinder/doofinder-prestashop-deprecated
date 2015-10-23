@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "2.0.3";
+  const VERSION = "2.0.4";
 
   const YES = 1;
   const NO = 0;
@@ -596,7 +596,7 @@ class Doofinder extends Module
             global $product_pool_attributes;
             $product_pool_attributes = array();
             $product_pool = implode(', ', array_map(function ($entry) {
-                    if($entry['type'] == 'product'){
+                    
                       global $product_pool_attributes;
                       $customexplodeattr = Configuration::get('DF_CUSTOMEXPLODEATTR', null);
                       if(!empty($customexplodeattr) && strpos($entry['id'],$customexplodeattr)!==false){
@@ -614,7 +614,7 @@ class Doofinder extends Module
                           $id_product = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('SELECT id_product FROM ps_product_attribute WHERE id_product_attribute = '.$id_product_attribute);
                           return ((!empty($id_product)) ? $id_product : 0 );
                       }
-                    }
+                    
                     
                 }, $dfResultsArray));
             // To avoid SQL errors.
@@ -627,9 +627,7 @@ class Doofinder extends Module
             if (!isset($context) || !$context)
                 $context = Context::getContext();
             // Avoids SQL Error  
-            if ($product_pool_attributes == ""){
-              $product_pool_attributes = "0";
-            }
+            
             $db = Db::getInstance(_PS_USE_SQL_SLAVE_);
             $id_lang = $context->language->id;
             $sql = 'SELECT p.*, product_shop.*, stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity,
