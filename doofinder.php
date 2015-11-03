@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "2.0.4";
+  const VERSION = "2.0.5";
 
   const YES = 1;
   const NO = 0;
@@ -581,6 +581,7 @@ class Doofinder extends Module
         }
         $hash_id = Configuration::get('DF_HASHID', null);
         $api_key = Configuration::get('DF_API_KEY', null);
+
         if($hash_id && $api_key){
             $df = new DoofinderApi($hash_id, $api_key);
             $dfResults = $df->query($string, $page, array('rpp' => $page_size,         // results per page
@@ -621,12 +622,12 @@ class Doofinder extends Module
             if($product_pool == ""){
               $product_pool = "0";
             }
-
+            if($product_pool_attributes == ""){
+              $product_pool_attributes = "0";
+            }
             $product_pool_attributes = implode(',', $product_pool_attributes);
-            
             if (!isset($context) || !$context)
-                $context = Context::getContext();
-            // Avoids SQL Error  
+                $context = Context::getContext(); 
             
             $db = Db::getInstance(_PS_USE_SQL_SLAVE_);
             $id_lang = $context->language->id;
@@ -657,8 +658,7 @@ class Doofinder extends Module
                                 AND (pa.`id_product_attribute` IS NULL OR pa.`id_product_attribute` IN ('.$product_pool_attributes.'))
 				GROUP BY product_shop.id_product,  pa.`id_product_attribute`
                                 ORDER BY FIELD (p.`id_product`,'.$product_pool.'),FIELD (pa.`id_product_attribute`,'.$product_pool_attributes.')';
-		$result = $db->executeS($sql);
-
+    $result = $db->executeS($sql);
 		if (!$result)
 			return false;
 		else
