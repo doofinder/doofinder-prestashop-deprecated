@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "2.0.5";
+  const VERSION = "2.0.6";
 
   const YES = 1;
   const NO = 0;
@@ -576,6 +576,7 @@ class Doofinder extends Module
   }
   
     public function searchOnApi($string,$page=1,$page_size=12,$timeout=8000){
+        error_log("START SEARCH ON API\n", 3, __DIR__ . "/doofinder.log");
         if(!class_exists('DoofinderApi')){
             include_once dirname(__FILE__) . '/lib/doofinder_api.php';
         }
@@ -622,10 +623,12 @@ class Doofinder extends Module
             if($product_pool == ""){
               $product_pool = "0";
             }
+            $product_pool_attributes = implode(",", $product_pool_attributes);
+          
             if($product_pool_attributes == ""){
               $product_pool_attributes = "0";
             }
-            $product_pool_attributes = implode(',', $product_pool_attributes);
+    
             if (!isset($context) || !$context)
                 $context = Context::getContext(); 
             
