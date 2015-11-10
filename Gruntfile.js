@@ -16,7 +16,7 @@ module.exports = function(grunt) {
                 paths.push({expand: true, src: 'css/**', dest: dest});
                 paths.push({expand: true, src: 'img/**', dest: dest});
                 paths.push({expand: true, src: 'translations/**', dest: dest});
-            }
+	   }
 
             return paths;
         })(localconfig.sites);
@@ -36,7 +36,9 @@ module.exports = function(grunt) {
                     {expand: true, src: 'logo.*', dest: 'release/doofinder'},
 
                     {expand: true, src: 'css/**', dest: 'release/doofinder'},
-                    {expand: true, src: 'translations/**', dest: 'release/doofinder'}
+                    {expand: true, src: 'translations/**', dest: 'release/doofinder'},
+		    {expand: true, src: 'override/**', dest: 'release/doofinder'},
+		    {expand: true, src: 'lib/**', dest: 'release/doofinder'}
                 ]
             },
             latest_to_version: {
