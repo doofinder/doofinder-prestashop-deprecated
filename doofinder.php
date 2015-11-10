@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "2.0.6";
+  const VERSION = "2.0.7";
 
   const YES = 1;
   const NO = 0;
@@ -576,13 +576,11 @@ class Doofinder extends Module
   }
   
     public function searchOnApi($string,$page=1,$page_size=12,$timeout=8000){
-        error_log("START SEARCH ON API\n", 3, __DIR__ . "/doofinder.log");
         if(!class_exists('DoofinderApi')){
             include_once dirname(__FILE__) . '/lib/doofinder_api.php';
         }
         $hash_id = Configuration::get('DF_HASHID', null);
         $api_key = Configuration::get('DF_API_KEY', null);
-
         if($hash_id && $api_key){
             $df = new DoofinderApi($hash_id, $api_key);
             $dfResults = $df->query($string, $page, array('rpp' => $page_size,         // results per page
@@ -598,7 +596,7 @@ class Doofinder extends Module
             global $product_pool_attributes;
             $product_pool_attributes = array();
             $product_pool = implode(', ', array_map(function ($entry) {
-                    
+                    if($entry['type'] == 'product'){
                       global $product_pool_attributes;
                       $customexplodeattr = Configuration::get('DF_CUSTOMEXPLODEATTR', null);
                       if(!empty($customexplodeattr) && strpos($entry['id'],$customexplodeattr)!==false){
@@ -616,22 +614,22 @@ class Doofinder extends Module
                           $id_product = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('SELECT id_product FROM ps_product_attribute WHERE id_product_attribute = '.$id_product_attribute);
                           return ((!empty($id_product)) ? $id_product : 0 );
                       }
-                    
+                    }
                     
                 }, $dfResultsArray));
             // To avoid SQL errors.
             if($product_pool == ""){
               $product_pool = "0";
             }
-            $product_pool_attributes = implode(",", $product_pool_attributes);
-          
-            if($product_pool_attributes == ""){
+
+            $product_pool_attributes = implode(',', $product_pool_attributes);
+            
+            if (!isset($context) || !$context)
+                $context = Context::getContext();
+            // Avoids SQL Error  
+            if ($product_pool_attributes == ""){
               $product_pool_attributes = "0";
             }
-    
-            if (!isset($context) || !$context)
-                $context = Context::getContext(); 
-            
             $db = Db::getInstance(_PS_USE_SQL_SLAVE_);
             $id_lang = $context->language->id;
             $sql = 'SELECT p.*, product_shop.*, stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity,
@@ -658,10 +656,11 @@ class Doofinder extends Module
 				Shop::addSqlAssociation('image', 'i', false, 'image_shop.cover=1').'
 				LEFT JOIN `'._DB_PREFIX_.'image_lang` il ON (i.`id_image` = il.`id_image` AND il.`id_lang` = '.(int)$id_lang.')
 				WHERE p.`id_product` IN ('.$product_pool.')
-                                AND (pa.`id_product_attribute` IS NULL OR pa.`id_product_attribute` IN ('.$product_pool_attributes.'))
-				GROUP BY product_shop.id_product,  pa.`id_product_attribute`
-                                ORDER BY FIELD (p.`id_product`,'.$product_pool.'),FIELD (pa.`id_product_attribute`,'.$product_pool_attributes.')';
-    $result = $db->executeS($sql);
+                                AND (product_attribute_shop.`id_product_attribute` IS NULL OR product_attribute_shop.`id_product_attribute` IN ('.$product_pool_attributes.'))
+				GROUP BY product_shop.id_product,  product_attribute_shop.`id_product_attribute`
+                                ORDER BY FIELD (p.`id_product`,'.$product_pool.'),FIELD (product_attribute_shop.`id_product_attribute`,'.$product_pool_attributes.')';
+		$result = $db->executeS($sql);
+
 		if (!$result)
 			return false;
 		else
