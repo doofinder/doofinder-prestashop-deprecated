@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "2.0.2";
+  const VERSION = "2.0.7";
 
   const YES = 1;
   const NO = 0;
@@ -592,28 +592,30 @@ class Doofinder extends Module
             if(!$dfResults->isOk())
                 return false;
             
-            $dfResultsArray = $dfResults->getResults();
-                     
+            $dfResultsArray = $dfResults->getResults();  
             global $product_pool_attributes;
             $product_pool_attributes = array();
             $product_pool = implode(', ', array_map(function ($entry) {
-                    global $product_pool_attributes;
-                    $customexplodeattr = Configuration::get('DF_CUSTOMEXPLODEATTR', null);
-                    if(!empty($customexplodeattr) && strpos($entry['id'],$customexplodeattr)!==false){
-                        $id_products = explode($customexplodeattr, $entry['id']);
-                        $product_pool_attributes[] = $id_products[1];
-                        return $id_products[0];
+                    if($entry['type'] == 'product'){
+                      global $product_pool_attributes;
+                      $customexplodeattr = Configuration::get('DF_CUSTOMEXPLODEATTR', null);
+                      if(!empty($customexplodeattr) && strpos($entry['id'],$customexplodeattr)!==false){
+                          $id_products = explode($customexplodeattr, $entry['id']);
+                          $product_pool_attributes[] = $id_products[1];
+                          return $id_products[0];
+                      }
+                      if(strpos($entry['id'],'VAR-')===false){
+                          return $entry['id'];
+                      }else{
+                          $id_product_attribute = str_replace('VAR-','',$entry['id']);
+                          if(!in_array($id_product_attribute, $product_pool_attributes)){
+                              $product_pool_attributes[] = $id_product_attribute;
+                          }
+                          $id_product = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('SELECT id_product FROM ps_product_attribute WHERE id_product_attribute = '.$id_product_attribute);
+                          return ((!empty($id_product)) ? $id_product : 0 );
+                      }
                     }
-                    if(strpos($entry['id'],'VAR-')===false){
-                        return $entry['id'];
-                    }else{
-                        $id_product_attribute = str_replace('VAR-','',$entry['id']);
-                        if(!in_array($id_product_attribute, $product_pool_attributes)){
-                            $product_pool_attributes[] = $id_product_attribute;
-                        }
-                        $id_product = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('SELECT id_product FROM ps_product_attribute WHERE id_product_attribute = '.$id_product_attribute);
-                        return ((!empty($id_product)) ? $id_product : 0 );
-                    }
+                    
                 }, $dfResultsArray));
             // To avoid SQL errors.
             if($product_pool == ""){
@@ -654,9 +656,9 @@ class Doofinder extends Module
 				Shop::addSqlAssociation('image', 'i', false, 'image_shop.cover=1').'
 				LEFT JOIN `'._DB_PREFIX_.'image_lang` il ON (i.`id_image` = il.`id_image` AND il.`id_lang` = '.(int)$id_lang.')
 				WHERE p.`id_product` IN ('.$product_pool.')
-                                AND (pa.`id_product_attribute` IS NULL OR pa.`id_product_attribute` IN ('.$product_pool_attributes.'))
-				GROUP BY product_shop.id_product,  pa.`id_product_attribute`
-                                ORDER BY FIELD (p.`id_product`,'.$product_pool.'),FIELD (pa.`id_product_attribute`,'.$product_pool_attributes.')';
+                                AND (product_attribute_shop.`id_product_attribute` IS NULL OR product_attribute_shop.`id_product_attribute` IN ('.$product_pool_attributes.'))
+				GROUP BY product_shop.id_product,  product_attribute_shop.`id_product_attribute`
+                                ORDER BY FIELD (p.`id_product`,'.$product_pool.'),FIELD (product_attribute_shop.`id_product_attribute`,'.$product_pool_attributes.')';
 		$result = $db->executeS($sql);
 
 		if (!$result)
