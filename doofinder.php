@@ -581,6 +581,8 @@ class Doofinder extends Module
         }
         $hash_id = Configuration::get('DF_HASHID', null);
         $api_key = Configuration::get('DF_API_KEY', null);
+        $show_variations = Configuration::get('DF_SHOW_PRODUCT_VARIATIONS', null);
+        
         if($hash_id && $api_key){
             $df = new DoofinderApi($hash_id, $api_key);
             $dfResults = $df->query($string, $page, array('rpp' => $page_size,         // results per page
@@ -655,10 +657,10 @@ class Doofinder extends Module
 				LEFT JOIN `'._DB_PREFIX_.'image` i ON (i.`id_product` = p.`id_product`)'.
 				Shop::addSqlAssociation('image', 'i', false, 'image_shop.cover=1').'
 				LEFT JOIN `'._DB_PREFIX_.'image_lang` il ON (i.`id_image` = il.`id_image` AND il.`id_lang` = '.(int)$id_lang.')
-				WHERE p.`id_product` IN ('.$product_pool.')
-                                AND (product_attribute_shop.`id_product_attribute` IS NULL OR product_attribute_shop.`id_product_attribute` IN ('.$product_pool_attributes.'))
-				GROUP BY product_shop.id_product,  product_attribute_shop.`id_product_attribute`
-                                ORDER BY FIELD (p.`id_product`,'.$product_pool.'),FIELD (product_attribute_shop.`id_product_attribute`,'.$product_pool_attributes.')';
+				WHERE p.`id_product` IN ('.$product_pool.') '.
+                                (($show_variations)? ' AND (product_attribute_shop.`id_product_attribute` IS NULL OR product_attribute_shop.`id_product_attribute` IN ('.$product_pool_attributes.')) ':'').
+				' GROUP BY product_shop.id_product '.(($show_variations)?:' ,  product_attribute_shop.`id_product_attribute` ').
+                                ' ORDER BY FIELD (p.`id_product`,'.$product_pool.') '.(($show_variations)?' , FIELD (product_attribute_shop.`id_product_attribute`,'.$product_pool_attributes.')':'');
 		$result = $db->executeS($sql);
 
 		if (!$result)
