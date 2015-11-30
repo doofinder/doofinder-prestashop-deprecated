@@ -666,12 +666,16 @@ class dfTools
 
   public static function stripHtml($text)
   {
-    function cb1($matches){
-      return chr($matches[1]);
+    if (!function_exists('cb1')){
+      function cb1($matches){
+        return chr($matches[1]);
+      }
     }
-
-    function cb2($matches){
-      return chr('0x'.$matches[1]);
+    
+    if (!function_exists('cb2')){
+      function cb2($matches){
+        return chr('0x'.$matches[1]);
+      } 
     }
     $text = html_entity_decode($text, ENT_QUOTES, "ISO-8859-1");
     $text = preg_replace_callback(
