@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "2.0.10";
+  const VERSION = "2.0.11";
 
   const YES = 1;
   const NO = 0;
@@ -597,7 +597,7 @@ class Doofinder extends Module
             $dfResultsArray = $dfResults->getResults();  
             global $product_pool_attributes;
             $product_pool_attributes = array();
-            $product_pool = implode(', ', array_map(function ($entry) {
+            function cb($entry){
                     if($entry['type'] == 'product'){
                       global $product_pool_attributes;
                       $customexplodeattr = Configuration::get('DF_CUSTOMEXPLODEATTR', null);
@@ -618,7 +618,9 @@ class Doofinder extends Module
                       }
                     }
                     
-                }, $dfResultsArray));
+            }
+            $map = array_map(cb, $dfResultsArray);
+            $product_pool = implode(', ', $map);
             // To avoid SQL errors.
             if($product_pool == ""){
               $product_pool = "0";
