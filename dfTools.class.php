@@ -680,11 +680,11 @@ class dfTools
     $text = html_entity_decode($text, ENT_QUOTES, "ISO-8859-1");
     $text = preg_replace_callback(
        '/&#(\d+);/mu',
-        cb1,
+        'cb1',
         $text);  // decimal notation
     $text = preg_replace_callback(
        '/&#x([a-f0-9]+);/miu',
-        cb2,
+        'cb2',
         $text);  // hex notation
     $text = str_replace("><", "> <", $text);
     $text = preg_replace('/\<br(\s*)?\/?\>/i', " ", $text);
