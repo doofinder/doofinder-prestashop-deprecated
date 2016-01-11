@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "2.0.9";
+  const VERSION = "2.0.13";
 
   const YES = 1;
   const NO = 0;
@@ -150,7 +150,8 @@ class Doofinder extends Module
       'DF_FEED_FULL_PATH' => $this->l('Export full categories path in the feed'),
       'DF_SHOW_PRODUCT_VARIATIONS' => $this->l('Include product variations in feed'),
       'DF_SHOW_PRODUCT_FEATURES' => $this->l('Include product features in feed'),
-      'DF_OWSEARCH' => $this->l('Overwrite Search page with Doofinder results')
+      'DF_OWSEARCH' => $this->l('Overwrite Search page with Doofinder results'),
+      'DF_DEBUG' => $this->l('Activate to write debug info in file.')
       );
 
     foreach ($cfgIntValues as $optname => $optname_alt)
@@ -367,6 +368,12 @@ class Doofinder extends Module
     $fields[] = $field;
     $helper->fields_value[$optname] = $this->cfg($optname, self::NO);
 
+    // DF_DEBUG
+    $optname = 'DF_DEBUG';
+    $field = $this->getYesNoSelectFor($optname, $this->l('Debug Mode. Write info logs in doofinder.log file.'));
+    $fields[] = $field;
+    $helper->fields_value[$optname] = $this->cfg($optname, self::NO);
+
     // DF_GS_MPN_FIELD
     $optname = 'DF_GS_MPN_FIELD';
     $fields[] = array(
@@ -574,14 +581,22 @@ class Doofinder extends Module
       return dfTools::cfg(null, $key, $default);
     }
   }
-  
+    private function debug($message){
+      error_log("$message\n", 3, dirname(__FILE__).'/doofinder.log');
+    }
     public function searchOnApi($string,$page=1,$page_size=12,$timeout=8000){
+        $debug = Configuration::get('DF_DEBUG', null);
+        if (isset($debug) && $debug){
+          $this->debug('Search On API Start');
+        }
+        
         if(!class_exists('DoofinderApi')){
             include_once dirname(__FILE__) . '/lib/doofinder_api.php';
         }
         $hash_id = Configuration::get('DF_HASHID', null);
         $api_key = Configuration::get('DF_API_KEY', null);
         $show_variations = Configuration::get('DF_SHOW_PRODUCT_VARIATIONS', null);
+
         
         if($hash_id && $api_key){
             $df = new DoofinderApi($hash_id, $api_key);
@@ -597,7 +612,7 @@ class Doofinder extends Module
             $dfResultsArray = $dfResults->getResults();  
             global $product_pool_attributes;
             $product_pool_attributes = array();
-            $product_pool = implode(', ', array_map(function ($entry) {
+            function cb($entry){
                     if($entry['type'] == 'product'){
                       global $product_pool_attributes;
                       $customexplodeattr = Configuration::get('DF_CUSTOMEXPLODEATTR', null);
@@ -618,10 +633,17 @@ class Doofinder extends Module
                       }
                     }
                     
-                }, $dfResultsArray));
+            }
+            $map = array_map('cb', $dfResultsArray);
+            $product_pool = implode(', ', $map);
+            
             // To avoid SQL errors.
             if($product_pool == ""){
               $product_pool = "0";
+            }
+
+            if (isset($debug) && $debug){
+              $this->debug("Product Pool: $product_pool");
             }
 
             $product_pool_attributes = implode(',', $product_pool_attributes);
@@ -631,6 +653,10 @@ class Doofinder extends Module
             // Avoids SQL Error  
             if ($product_pool_attributes == ""){
               $product_pool_attributes = "0";
+            }
+
+            if (isset($debug) && $debug){
+              $this->debug("Product Pool Attributes: $product_pool_attributes");
             }
             $db = Db::getInstance(_PS_USE_SQL_SLAVE_);
             $id_lang = $context->language->id;
@@ -661,7 +687,19 @@ class Doofinder extends Module
                                 (($show_variations)? ' AND (product_attribute_shop.`id_product_attribute` IS NULL OR product_attribute_shop.`id_product_attribute` IN ('.$product_pool_attributes.')) ':'').
 				' GROUP BY product_shop.id_product '.(($show_variations)?' ,  product_attribute_shop.`id_product_attribute` ':'').
                                 ' ORDER BY FIELD (p.`id_product`,'.$product_pool.') '.(($show_variations)?' , FIELD (product_attribute_shop.`id_product_attribute`,'.$product_pool_attributes.')':'');
-		$result = $db->executeS($sql);
+		if (isset($debug) && $debug){
+      $this->debug("SQL: $sql");
+    }
+    $result = $db->executeS($sql);
+    if (isset($debug) && $debug && $result){
+      $out = "";
+      foreach($result as $elem){
+        $out .= "ID: ".$elem['id_product']. " ATTRIBUTE: ".$elem['id_product_attribute']."\n";
+      }
+
+      $this->debug("RESULT: $out") ;
+    }
+
 
 		if (!$result)
 			return false;

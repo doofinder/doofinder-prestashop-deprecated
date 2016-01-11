@@ -64,6 +64,7 @@ $cfg_image_size = dfTools::cfg($shop->id, 'DF_GS_IMAGE_SIZE');
 $cfg_mod_rewrite = dfTools::cfg($shop->id, 'PS_REWRITING_SETTINGS', Doofinder::YES);
 $cfg_product_variations = dfTools::cfg($shop->id, 'DF_SHOW_PRODUCT_VARIATIONS');
 $cfg_product_features = dfTools::cfg($shop->id, 'DF_SHOW_PRODUCT_FEATURES');
+$cfg_debug = dfTools::cfg($shop->id, 'DF_DEBUG');
 $cfg_features_shown = explode(',', dfTools::cfg($shop->id, 'DF_FEATURES_SHOWN'));
 
 $debug = dfTools::getBooleanFromRequest('debug', false);
@@ -75,6 +76,11 @@ if ($debug)
   error_reporting(E_ALL);
   ini_set('display_errors', 1);
 }
+
+if ($cfg_debug){
+  error_log("Starting feed.\n", 3, dirname(__FILE__).'/doofinder.log');
+}
+
 
 // OUTPUT
 if (isset($_SERVER['HTTPS']))
@@ -128,7 +134,9 @@ if (!$limit || ($offset !== false && intval($offset) === 0))
 foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, $offset) as $row)
 {
 
-  if(intval($row['id_product']) > 0){
+  if(intval($row['id_product']) > 0 && 
+    (isset($row['title']) && $row['title'] != "" || 
+    isset($row['description']) && $row['description'] != "")){
     // ID, TITLE, LINK
 
     if($cfg_product_variations && isset($row['id_product_attribute']) and intval($row['id_product_attribute']) > 0){
@@ -238,12 +246,23 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
     echo dfTools::splitReferences($product_title);
 
     // PRODUCT PRICE & ON SALE PRICE
-    if ($cfg_display_prices)
+    if ($cfg_display_prices && !$cfg_product_variations)
     {
       echo TXT_SEPARATOR;
 
       $product_price = Product::getPriceStatic($row['id_product'], $cfg_prices_w_taxes, null, 2, null, false, false);
       $onsale_price = Product::getPriceStatic($row['id_product'], $cfg_prices_w_taxes, null, 2);
+
+      echo ($product_price ? Tools::convertPrice($product_price, $currency) : "").TXT_SEPARATOR;
+      echo (($product_price && $onsale_price && $product_price != $onsale_price) ? Tools::convertPrice($onsale_price, $currency) : "");
+    }
+
+    else if ($cfg_display_prices && $cfg_product_variations)
+    {
+      echo TXT_SEPARATOR;
+
+      $product_price = Product::getPriceStatic($row['id_product'], $cfg_prices_w_taxes, $row['id_product_attribute'], 2, null, false, false);
+      $onsale_price = Product::getPriceStatic($row['id_product'], $cfg_prices_w_taxes, $row['id_product_attribute'], 2);
 
       echo ($product_price ? Tools::convertPrice($product_price, $currency) : "").TXT_SEPARATOR;
       echo (($product_price && $onsale_price && $product_price != $onsale_price) ? Tools::convertPrice($onsale_price, $currency) : "");
