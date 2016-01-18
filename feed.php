@@ -134,9 +134,7 @@ if (!$limit || ($offset !== false && intval($offset) === 0))
 foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, $offset) as $row)
 {
 
-  if(intval($row['id_product']) > 0 && 
-    (isset($row['title']) && $row['title'] != "" || 
-    isset($row['description']) && $row['description'] != "")){
+  if(intval($row['id_product']) > 0){
     // ID, TITLE, LINK
 
     if($cfg_product_variations && isset($row['id_product_attribute']) and intval($row['id_product_attribute']) > 0){
