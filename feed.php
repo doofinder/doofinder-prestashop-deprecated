@@ -47,6 +47,32 @@ require_once(dirname(__FILE__) . '/../../config/config.inc.php');
 require_once(dirname(__FILE__) . '/../../init.php');
 require_once(dirname(__FILE__) . '/doofinder.php');
 
+function slugify($text)
+{ 
+  // replace non letter or digits by -
+  $text = preg_replace('~[^\\pL\d]+~u', '-', $text);
+
+  // trim
+  $text = trim($text, '-');
+
+  // transliterate
+  $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
+
+  // lowercase
+  $text = strtolower($text);
+
+  // remove unwanted characters
+  $text = preg_replace('~[^-\w]+~', '', $text);
+
+  if (empty($text))
+  {
+    return 'n-a';
+  }
+
+  return $text;
+}
+
+
 $context = Context::getContext();
 
 $shop = new Shop((int) $context->shop->id);
@@ -105,7 +131,7 @@ if ($cfg_product_variations){
   $header[] = 'variation_reference';
   $attribute_keys = dfTools::getAttributeKeysForShopAndLang($shop->id, $lang->id);
   foreach($attribute_keys as $key){
-    $header[] = $key;
+    $header[] = slugify($key);
   }
 }
 
@@ -118,7 +144,7 @@ if($cfg_product_features){
     $feature_keys = $all_feature_keys;
 
   foreach($feature_keys as $key){
-    $header[] = $key;
+    $header[] = slugify($key);
   }  
 }
 
