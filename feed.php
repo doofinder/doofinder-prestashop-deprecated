@@ -213,9 +213,10 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
     // IMAGE LINK
 
     if($cfg_product_variations && isset($row['id_product_attribute']) and intval($row['id_product_attribute']) > 0){
+        $cover = Product::getCover($row['id_product_attribute']);
         $image_link = dfTools::cleanURL(dfTools::getImageLink(
           $row['id_product_attribute'],
-          $row['variation_image_id'],
+          $cover['id_image'],
           $row['link_rewrite'],
           $cfg_image_size));
 
