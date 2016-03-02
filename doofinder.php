@@ -487,6 +487,7 @@ class Doofinder extends Module
       'type' => 'text',
       'name' => $optname,
       'required' => false,
+      'size' => 100,
       );
     $helper->fields_value[$optname] = $this->cfg($optname);
 
@@ -499,6 +500,7 @@ class Doofinder extends Module
       'type' => 'text',
       'name' => $optname,
       'required' => false,
+      'size' => 100,
       );
     $helper->fields_value[$optname] = $this->cfg($optname);
 

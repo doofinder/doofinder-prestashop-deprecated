@@ -175,7 +175,7 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
                                      $row['ean13'],
                                      $lang->id,
                                      $shop->id,
-                                     $row['id_product_attribute'],
+                                     intval($row['id_product_attribute']),
                                      $cfg_mod_rewrite)).TXT_SEPARATOR;
     }
 
