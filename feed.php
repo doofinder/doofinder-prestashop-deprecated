@@ -214,22 +214,31 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
 
     if($cfg_product_variations && isset($row['id_product_attribute']) and intval($row['id_product_attribute']) > 0){
         $cover = Product::getCover($row['id_product_attribute']);
-        $image_link = dfTools::cleanURL(dfTools::getImageLink(
-          $row['id_product_attribute'],
-          $cover['id_image'],
-          $row['link_rewrite'],
-          $cfg_image_size));
+        if($cover){
+          $image_link = dfTools::cleanURL(dfTools::getImageLink(
+            $row['id_product_attribute'],
+            $cover['id_image'],
+            $row['link_rewrite'],
+            $cfg_image_size));
+        }
+        else{
+          $image_link = dfTools::cleanURL(dfTools::getImageLink(
+            $row['id_product_attribute'],
+            $row['id_image'],
+            $row['link_rewrite'],
+            $cfg_image_size));
+        }
 
-          // For variations with no specific pictures
-          if (strpos($image_link, "/-") > -1){
-            $image_link = dfTools::cleanURL(dfTools::getImageLink(
-              $row['id_product'],
-              $row['id_image'],
-              $row['link_rewrite'],
-              $cfg_image_size));
-          }
+        // For variations with no specific pictures
+        if (strpos($image_link, "/-") > -1){
+          $image_link = dfTools::cleanURL(dfTools::getImageLink(
+            $row['id_product'],
+            $row['id_image'],
+            $row['link_rewrite'],
+            $cfg_image_size));
+        }
 
-          echo $image_link.TXT_SEPARATOR;
+        echo $image_link.TXT_SEPARATOR;
     }
 
     else{
