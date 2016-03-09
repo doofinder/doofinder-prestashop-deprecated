@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "2.0.19";
+  const VERSION = "2.0.20";
 
   const YES = 1;
   const NO = 0;
@@ -601,14 +601,22 @@ class Doofinder extends Module
 
         
         if($hash_id && $api_key){
+          $fail = false;
+          try {
             $df = new DoofinderApi($hash_id, $api_key);
             $dfResults = $df->query($string, $page, array('rpp' => $page_size,         // results per page
                              'timeout' => $timeout,  // timeout in milisecs
                              'types' => array(   // types of item 
                                  'product',
                              ), 'transformer'=>'dflayer'));
+          }
+          
+          catch(Exception $e){
+            $fail = true;
+          }  
             
-            if(!$dfResults->isOk())
+            
+            if($fail || !$dfResults->isOk())
                 return false;
             
             $dfResultsArray = $dfResults->getResults();  
