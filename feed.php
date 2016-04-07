@@ -47,6 +47,32 @@ require_once(dirname(__FILE__) . '/../../config/config.inc.php');
 require_once(dirname(__FILE__) . '/../../init.php');
 require_once(dirname(__FILE__) . '/doofinder.php');
 
+function slugify($text)
+{ 
+  // replace non letter or digits by -
+  $text = preg_replace('~[^\\pL\d]+~u', '-', $text);
+
+  // trim
+  $text = trim($text, '-');
+
+  // transliterate
+  $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
+
+  // lowercase
+  $text = strtolower($text);
+
+  // remove unwanted characters
+  $text = preg_replace('~[^-\w]+~', '', $text);
+
+  if (empty($text))
+  {
+    return 'n-a';
+  }
+
+  return $text;
+}
+
+
 $context = Context::getContext();
 
 $shop = new Shop((int) $context->shop->id);
@@ -105,7 +131,7 @@ if ($cfg_product_variations){
   $header[] = 'variation_reference';
   $attribute_keys = dfTools::getAttributeKeysForShopAndLang($shop->id, $lang->id);
   foreach($attribute_keys as $key){
-    $header[] = $key;
+    $header[] = slugify($key);
   }
 }
 
@@ -118,7 +144,7 @@ if($cfg_product_features){
     $feature_keys = $all_feature_keys;
 
   foreach($feature_keys as $key){
-    $header[] = $key;
+    $header[] = slugify($key);
   }  
 }
 
@@ -134,9 +160,7 @@ if (!$limit || ($offset !== false && intval($offset) === 0))
 foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, $offset) as $row)
 {
 
-  if(intval($row['id_product']) > 0 && 
-    (isset($row['title']) && $row['title'] != "" || 
-    isset($row['description']) && $row['description'] != "")){
+  if(intval($row['id_product']) > 0){
     // ID, TITLE, LINK
 
     if($cfg_product_variations && isset($row['id_product_attribute']) and intval($row['id_product_attribute']) > 0){
@@ -189,9 +213,10 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
     // IMAGE LINK
 
     if($cfg_product_variations && isset($row['id_product_attribute']) and intval($row['id_product_attribute']) > 0){
+        $cover = Product::getCover($row['id_product_attribute']);
         $image_link = dfTools::cleanURL(dfTools::getImageLink(
           $row['id_product_attribute'],
-          $row['variation_image_id'],
+          $cover['id_image'],
           $row['link_rewrite'],
           $cfg_image_size));
 

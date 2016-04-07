@@ -23,10 +23,10 @@ class SearchController extends SearchControllerCore{
             $nbProducts = $search['total'];
             $this->pagination($nbProducts);
 
-            if(function_exists($this,'addColorsToProductList')) //RETROCOMPATIBILITY
+            if(method_exists($this,'addColorsToProductList')) //RETROCOMPATIBILITY
                 $this->addColorsToProductList($search['result']);
 
-            if(function_exists(ImageType,'getFormatedName')){
+            if(method_exists(ImageType,'getFormatedName')){
                 $imageSize = Image::getSize(ImageType::getFormatedName('home'));
             }else{
                 $imageSize = Image::getSize($m->getFormatedName('home'));
