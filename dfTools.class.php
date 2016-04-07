@@ -246,6 +246,38 @@ class dfTools
     return $names;
   }
 
+
+  /**
+   * Returns the features of a product
+   * @param int Shop ID.
+   * @param int Language ID.
+   * @return array of rows (assoc arrays).
+   */
+  public static function getVariationImg($id_product, $id_product_attribute){
+    $sql = 
+      "select i.id_image
+            from
+            (
+            select pa.id_product, pa.id_product_attribute,paic.id_attribute,min(i.position) as posicion
+            from ps_product_attribute pa
+             inner join ps_product_attribute_image pai
+               on pai.id_product_attribute = pa.id_product_attribute
+             inner join  ps_product_attribute_combination paic
+               on pai.id_product_attribute = paic.id_product_attribute
+             inner join ps_image i
+               on pai.id_image = i.id_image   
+            where pa.id_product = $id_product and pa.id_product_attribute = $id_product_attribute      
+            group by pa.id_product, pa.id_product_attribute,paic.id_attribute
+            ) as P
+            inner join ps_image i
+             on i.id_product = P.id_product and i.position =  P.posicion";
+    $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+    
+    return $result[0]['id_image'];
+
+  }  
+
+
   /**
    * Returns the features of a product
    * @param int Product ID.

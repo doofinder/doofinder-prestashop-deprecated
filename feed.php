@@ -175,7 +175,7 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
                                      $row['ean13'],
                                      $lang->id,
                                      $shop->id,
-                                     $row['id_product_attribute'],
+                                     intval($row['id_product_attribute']),
                                      $cfg_mod_rewrite)).TXT_SEPARATOR;
     }
 
@@ -214,22 +214,33 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
 
     if($cfg_product_variations && isset($row['id_product_attribute']) and intval($row['id_product_attribute']) > 0){
         $cover = Product::getCover($row['id_product_attribute']);
-        $image_link = dfTools::cleanURL(dfTools::getImageLink(
-          $row['id_product_attribute'],
-          $cover['id_image'],
-          $row['link_rewrite'],
-          $cfg_image_size));
+        $id_image = dfTools::getVariationImg($row['id_product'], $row['id_product_attribute']);
 
-          // For variations with no specific pictures
-          if (strpos($image_link, "/-") > -1){
-            $image_link = dfTools::cleanURL(dfTools::getImageLink(
-              $row['id_product'],
-              $row['id_image'],
-              $row['link_rewrite'],
-              $cfg_image_size));
-          }
+        if(isset($id_image)){
+          $image_link = dfTools::cleanURL(dfTools::getImageLink(
+            $row['id_product_attribute'],
+            $id_image,
+            $row['link_rewrite'],
+            $cfg_image_size));
+        }
+        else{
+          $image_link = dfTools::cleanURL(dfTools::getImageLink(
+            $row['id_product_attribute'],
+            $row['id_image'],
+            $row['link_rewrite'],
+            $cfg_image_size));
+        }
 
-          echo $image_link.TXT_SEPARATOR;
+        // For variations with no specific pictures
+        if (strpos($image_link, "/-") > -1){
+          $image_link = dfTools::cleanURL(dfTools::getImageLink(
+            $row['id_product'],
+            $row['id_image'],
+            $row['link_rewrite'],
+            $cfg_image_size));
+        }
+
+        echo $image_link.TXT_SEPARATOR;
     }
 
     else{
