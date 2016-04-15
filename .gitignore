@@ -4,3 +4,4 @@ localconfig.json
 node_modules
 /nbproject/private/
 /nbproject
+doofinder.log

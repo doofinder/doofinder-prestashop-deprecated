@@ -9,7 +9,7 @@ class SearchController extends SearchControllerCore{
         $m = Module::getInstanceByName('doofinder');
         $this->p = abs((int)(Tools::getValue('p', 1)));
         $this->n = abs((int)(Tools::getValue('n', Configuration::get('PS_PRODUCTS_PER_PAGE'))));
-        if (Module::isEnabled('doofinder') && ($search = $m->searchOnApi($query,$this->p,$this->n)) 
+        if (Module::isEnabled('doofinder') && ($search = $m->generateSearch(true)) 
                 && $overwrite_search && $query
                 && !is_array($query)){
             
@@ -26,7 +26,7 @@ class SearchController extends SearchControllerCore{
             if(method_exists($this,'addColorsToProductList')) //RETROCOMPATIBILITY
                 $this->addColorsToProductList($search['result']);
 
-            if(method_exists(ImageType,'getFormatedName')){
+            if(method_exists('ImageType','getFormatedName')){
                 $imageSize = Image::getSize(ImageType::getFormatedName('home'));
             }else{
                 $imageSize = Image::getSize($m->getFormatedName('home'));
