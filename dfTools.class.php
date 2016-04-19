@@ -459,6 +459,7 @@ class dfTools
       WHERE
         __IS_ACTIVE__
         __VISIBILITY__
+      GROUP BY pa.id_product_attribute
       ORDER BY
         p.id_product
     ";
@@ -496,7 +497,7 @@ class dfTools
                                         '__ID_CATEGORY_DEFAULT__' => $id_category_default,
                                         '__IS_ACTIVE__' => $is_active,
                                         '__VISIBILITY__' => $visibility));
-
+    
     return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
   }
 

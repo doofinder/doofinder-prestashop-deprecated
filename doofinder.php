@@ -71,6 +71,16 @@ class Doofinder extends Module
         !$this->registerHook('header') ||
         !$this->registerHook('displayMobileTopSiteMap'))
       return false;
+    
+    if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
+        // Hook the module either on the left or right column
+        $theme = new Theme(Context::getContext()->shop->id_theme);
+        if ((!$theme->default_left_column || !$this->registerHook('leftColumn')) && (!$theme->default_right_column || !$this->registerHook('rightColumn'))) {
+            // If there are no colums implemented by the template, throw an error and uninstall the module
+            $this->_errors[] = $this->l('This module need to be hooked in a column and your theme does not implement one if you want Search Facets');
+        }
+    } else
+        $this->registerHook('leftColumn');
 
     return true;
   }
@@ -95,6 +105,30 @@ class Doofinder extends Module
   public function hookHeader($params)
   {
     $this->configureHookCommon($params);
+    if(isset($this->context->controller->php_self) && $this->context->controller->php_self == 'search' ){
+        
+        //$this->context->controller->addCSS(_PS_CSS_DIR_ . 'jquery-ui-1.8.10.custom.css');
+
+        //This is to keep the same styles that theme has
+        if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true){
+            $this->context->controller->addJS(($this->_path) . 'js/doofinder-pagination.js');
+            $this->context->controller->addCSS(($this->_path) . '../blocklayered/blocklayered.css', 'all');
+        }else if (file_exists(($this->_path) . '../blocklayered/blocklayered-15.css')){
+            $this->context->controller->addJS(($this->_path) . 'js/doofinder-pagination_15.js');
+            $this->context->controller->addCSS(($this->_path) . '../blocklayered/blocklayered-15.css', 'all');
+        }else{
+            $this->context->controller->addJS(($this->_path) . 'js/doofinder-pagination_15.js');
+            $this->context->controller->addCSS(($this->_path) . 'css/doofinder-filters-15.css', 'all');
+        }
+        $this->context->controller->addJS(($this->_path) . 'js/doofinder_facets.js');
+        $this->context->controller->addJQueryUI('ui.slider');
+        $this->context->controller->addJQueryUI('ui.accordion');
+        $this->context->controller->addJqueryPlugin('multiaccordion');
+        $this->context->controller->addJQueryUI('ui.sortable');
+        $this->context->controller->addJqueryPlugin('jscrollpane');
+        
+        $this->context->controller->addJQueryPlugin('scrollTo');
+    }
     return $this->display(__FILE__, 'script.tpl');
   }
 
@@ -151,6 +185,7 @@ class Doofinder extends Module
       'DF_SHOW_PRODUCT_VARIATIONS' => $this->l('Include product variations in feed'),
       'DF_SHOW_PRODUCT_FEATURES' => $this->l('Include product features in feed'),
       'DF_OWSEARCH' => $this->l('Overwrite Search page with Doofinder results'),
+      'DF_OWSEARCHFAC' => $this->l('Enable facets on Overwrite Search Page'),
       'DF_DEBUG' => $this->l('Activate to write debug info in file.')
       );
 
@@ -365,6 +400,12 @@ class Doofinder extends Module
     // DF_OWSEARCH
     $optname = 'DF_OWSEARCH';
     $field = $this->getYesNoSelectFor($optname, $this->l('Overwrite Search page with Doofinder results'));
+    $fields[] = $field;
+    $helper->fields_value[$optname] = $this->cfg($optname, self::NO);
+    
+    // DF_OWSEARCHFAC
+    $optname = 'DF_OWSEARCHFAC';
+    $field = $this->getYesNoSelectFor($optname, $this->l('Enable facets on Overwrite Search Page'));
     $fields[] = $field;
     $helper->fields_value[$optname] = $this->cfg($optname, self::NO);
 
@@ -586,7 +627,52 @@ class Doofinder extends Module
     private function debug($message){
       error_log("$message\n", 3, dirname(__FILE__).'/doofinder.log');
     }
-    public function searchOnApi($string,$page=1,$page_size=12,$timeout=8000){
+    
+    public function getDoofinderTermsOptions($only_facets=true){
+        $debug = Configuration::get('DF_DEBUG', null);
+        if (isset($debug) && $debug){
+            $this->debug('Get Terms Options API Start');
+        }
+        
+        if(!class_exists('DoofinderApi')){
+            include_once dirname(__FILE__) . '/lib/doofinder_api.php';
+        }
+        $hash_id = Configuration::get('DF_HASHID', null);
+        $api_key = Configuration::get('DF_API_KEY', null);
+        if($hash_id && $api_key){
+            $fail = false;
+            try {
+                $df = new DoofinderApi($hash_id, $api_key,false,array('apiVersion'=>'5'));
+                $dfOptions = $df->getOptions();
+                if($dfOptions){
+                    $options = json_decode($dfOptions, true);
+                }
+                if (isset($debug) && $debug){
+                    $this->debug("Options: ".  var_export($dfOptions,true));
+                }
+                if($only_facets){
+                    $facets = $options['facets'];
+                    $r_facets = array();
+                    foreach($facets as $f_key => $f_values){
+                        $r_facets[$f_values['name']] = $f_values['label'];
+                    }
+                    return $r_facets;
+                }else{
+                    return $options;
+                }
+            }
+
+            catch(Exception $e){
+                $fail = true;
+                if (isset($debug) && $debug){
+                    $this->debug("Exception:  ".$e->getMessage());
+                }
+            }
+          
+        }
+    }
+    
+    public function searchOnApi($string,$page=1,$page_size=12,$timeout=8000,$filters = null,$return_facets = false){
         $debug = Configuration::get('DF_DEBUG', null);
         if (isset($debug) && $debug){
           $this->debug('Search On API Start');
@@ -601,48 +687,50 @@ class Doofinder extends Module
 
         
         if($hash_id && $api_key){
-          $fail = false;
-          try {
-            $df = new DoofinderApi($hash_id, $api_key);
-            $dfResults = $df->query($string, $page, array('rpp' => $page_size,         // results per page
-                             'timeout' => $timeout,  // timeout in milisecs
-                             'types' => array(   // types of item 
-                                 'product',
-                             ), 'transformer'=>'dflayer'));
-          }
-          
-          catch(Exception $e){
-            $fail = true;
-          }  
+            $fail = false;
+            try {
+                $df = new DoofinderApi($hash_id, $api_key);
+                $dfResults = $df->query($string, $page, array('rpp' => $page_size,         // results per page
+                                 'timeout' => $timeout,  // timeout in milisecs
+                                 'types' => array(   // types of item 
+                                     'product',
+                                 ), 'transformer'=>'dflayer', 'filter' => $filters));
+            }
+            catch(Exception $e){
+                $fail = true;
+            }  
             
             
             if($fail || !$dfResults->isOk())
                 return false;
             
+            
             $dfResultsArray = $dfResults->getResults();  
             global $product_pool_attributes;
             $product_pool_attributes = array();
-            function cb($entry){
-                    if($entry['type'] == 'product'){
-                      global $product_pool_attributes;
-                      $customexplodeattr = Configuration::get('DF_CUSTOMEXPLODEATTR', null);
-                      if(!empty($customexplodeattr) && strpos($entry['id'],$customexplodeattr)!==false){
-                          $id_products = explode($customexplodeattr, $entry['id']);
-                          $product_pool_attributes[] = $id_products[1];
-                          return $id_products[0];
-                      }
-                      if(strpos($entry['id'],'VAR-')===false){
-                          return $entry['id'];
-                      }else{
-                          $id_product_attribute = str_replace('VAR-','',$entry['id']);
-                          if(!in_array($id_product_attribute, $product_pool_attributes)){
-                              $product_pool_attributes[] = $id_product_attribute;
-                          }
-                          $id_product = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('SELECT id_product FROM ps_product_attribute WHERE id_product_attribute = '.$id_product_attribute);
-                          return ((!empty($id_product)) ? $id_product : 0 );
-                      }
-                    }
-                    
+            if(!function_exists('cb')){
+                function cb($entry){
+                        if($entry['type'] == 'product'){
+                            global $product_pool_attributes;
+                            $customexplodeattr = Configuration::get('DF_CUSTOMEXPLODEATTR', null);
+                            if(!empty($customexplodeattr) && strpos($entry['id'],$customexplodeattr)!==false){
+                                $id_products = explode($customexplodeattr, $entry['id']);
+                                $product_pool_attributes[] = $id_products[1];
+                                return $id_products[0];
+                            }
+                            if(strpos($entry['id'],'VAR-')===false){
+                                return $entry['id'];
+                            }else{
+                                $id_product_attribute = str_replace('VAR-','',$entry['id']);
+                                if(!in_array($id_product_attribute, $product_pool_attributes)){
+                                    $product_pool_attributes[] = $id_product_attribute;
+                                }
+                                $id_product = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('SELECT id_product FROM ps_product_attribute WHERE id_product_attribute = '.$id_product_attribute);
+                                return ((!empty($id_product)) ? $id_product : 0 );
+                            }
+                        }
+
+                }
             }
             $map = array_map('cb', $dfResultsArray);
             $product_pool = implode(', ', $map);
@@ -672,7 +760,7 @@ class Doofinder extends Module
             $id_lang = $context->language->id;
             $sql = 'SELECT p.*, product_shop.*, stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity,
 				pl.`description_short`, pl.`available_now`, pl.`available_later`, pl.`link_rewrite`, pl.`name`,
-			 MAX(image_shop.`id_image`) id_image, il.`legend`, m.`name` manufacturer_name '.(Combination::isFeatureActive() ? ', MAX(product_attribute_shop.`id_product_attribute`) id_product_attribute' : '').',
+			 IF(pai.`id_image` IS NULL OR pai.`id_image` = 0, MAX(image_shop.`id_image`),pai.`id_image`) id_image, il.`legend`, m.`name` manufacturer_name '.(Combination::isFeatureActive() ? ', MAX(product_attribute_shop.`id_product_attribute`) id_product_attribute' : '').',
 				DATEDIFF(
 					p.`date_add`,
 					DATE_SUB(
@@ -687,11 +775,12 @@ class Doofinder extends Module
 					AND pl.`id_lang` = '.(int)$id_lang.Shop::addSqlRestrictionOnLang('pl').'
 				)
 				'.(Combination::isFeatureActive() ? 'LEFT JOIN `'._DB_PREFIX_.'product_attribute` pa	ON (p.`id_product` = pa.`id_product`)
-				'.Shop::addSqlAssociation('product_attribute', 'pa', false, 'product_attribute_shop.`default_on` = 1').'
+				'.Shop::addSqlAssociation('product_attribute', 'pa', false, '').'
 				'.Product::sqlStock('p', 'product_attribute_shop', false, $context->shop) :  Product::sqlStock('p', 'product', false, Context::getContext()->shop)).'
 				LEFT JOIN `'._DB_PREFIX_.'manufacturer` m ON m.`id_manufacturer` = p.`id_manufacturer`
-				LEFT JOIN `'._DB_PREFIX_.'image` i ON (i.`id_product` = p.`id_product`)'.
-				Shop::addSqlAssociation('image', 'i', false, 'image_shop.cover=1').'
+				LEFT JOIN `'._DB_PREFIX_.'image` i ON (i.`id_product` = p.`id_product`) 
+                                LEFT JOIN `ps_product_attribute_image` pai ON (pai.`id_product_attribute` = product_attribute_shop.`id_product_attribute`) '.
+				Shop::addSqlAssociation('image', 'i', false, '').' 
 				LEFT JOIN `'._DB_PREFIX_.'image_lang` il ON (i.`id_image` = il.`id_image` AND il.`id_lang` = '.(int)$id_lang.')
 				WHERE p.`id_product` IN ('.$product_pool.') '.
                                 (($show_variations)? ' AND (product_attribute_shop.`id_product_attribute` IS NULL OR product_attribute_shop.`id_product_attribute` IN ('.$product_pool_attributes.')) ':'').
@@ -700,6 +789,7 @@ class Doofinder extends Module
 		if (isset($debug) && $debug){
       $this->debug("SQL: $sql");
     }
+   
     $result = $db->executeS($sql);
     if (isset($debug) && $debug && $result){
       $out = "";
@@ -716,6 +806,9 @@ class Doofinder extends Module
 		else
 			$result_properties = Product::getProductsProperties((int)$id_lang, $result);
 
+                if($return_facets){
+                    return array('total' => $dfResults->getProperty('total'),'result' => $result_properties, 'facets' => $dfResults->getFacets(), 'filters'=> $df->getFilters());
+                }
 		return array('total' => $dfResults->getProperty('total'),'result' => $result_properties);
         }else{
             return false;
@@ -736,5 +829,245 @@ class Doofinder extends Module
                     return $theme_name.'_'.$name_without_theme_name;
             else
                     return $name_without_theme_name.'_default';
+    }
+    
+    public function hookLeftColumn($params) {
+        if(isset($this->context->controller->php_self) && $this->context->controller->php_self == 'search' ){
+            return $this->generateSearch();
+        }
+        return false;
+    }
+
+    public function hookRightColumn($params) {
+        return $this->hookLeftColumn($params);
+    }
+    
+    public function generateSearch($returnToSearchController=false){
+        $overwrite_search = Configuration::get('DF_OWSEARCH', null);
+        $overwrite_facets = Configuration::get('DF_OWSEARCHFAC', null);
+        if ($overwrite_search && ($overwrite_facets || $returnToSearchController)){
+            $query = Tools::getValue('search_query', Tools::getValue('ref'));
+            $p = abs((int)(Tools::getValue('p', 1)));
+            $n = abs((int)(Tools::getValue('n', Configuration::get('PS_PRODUCTS_PER_PAGE'))));
+            $filters = Tools::getValue('filters', NULL);
+            if (($search = $this->searchOnApi($query,$p,$n,8000,$filters,true)) 
+                    && $query
+                    && !is_array($query)){
+                if($returnToSearchController){
+                    return $search;
+                }
+                
+                return $this->generateFiltersBlock($search['facets'],$search['filters']);
+            }else{
+                return false;
+            }
+        }
+    }
+    
+    public function generateFiltersBlock($facets,$filters){
+        global $smarty;
+        if ($filter_block = $this->getFilterBlock($facets,$filters)) {
+            if ($filter_block['nbr_filterBlocks'] == 0)
+                return false;
+
+            $translate = array();
+            $translate['price'] = $this->l('price');
+            $translate['weight'] = $this->l('weight');
+
+            $smarty->assign($filter_block);
+            $smarty->assign(array(
+                'hide_0_values' => Configuration::get('PS_LAYERED_HIDE_0_VALUES'),
+                'blocklayeredSliderName' => $translate,
+                'col_img_dir' => _PS_COL_IMG_DIR_
+            ));
+            return $this->display(__FILE__, 'views/templates/front/doofinder_facets.tpl');
+        } else
+            return false;
+    }
+    
+    public function getFilterBlock($facets,$filters){ 
+        $cacheOptionsDoofinderFileName = _PS_CACHE_DIR_.'smarty/compile/OptionsDoofinderFileName-'.Context::getContext()->shop->id.'-'.hash_hmac('sha256', 'OptionsDoofinderFileName', 'cache').'-'.date('Ymd').'.html';
+        $optionsDoofinder = '';
+        if(file_exists($cacheOptionsDoofinderFileName)){
+            $optionsDoofinder = json_decode(file_get_contents($cacheOptionsDoofinderFileName),true);
+        }      
+        if(empty($optionsDoofinder)){
+            $optionsDoofinder = $this->getDoofinderTermsOptions();
+            $jsonCacheOptionsDoofinder = json_encode($optionsDoofinder);
+            file_put_contents($cacheOptionsDoofinderFileName, $jsonCacheOptionsDoofinder);
+        }
+        
+        //Reorder filter block as doofinder dashboard
+        $facetsBlock = array();
+        foreach($optionsDoofinder as $key_o => $value_o){
+            $facetsBlock[$key_o] = $facets[$key_o];
+        }
+        $facets = $facetsBlock;
+        /*
+        echo '<h2>Opciones</h2>';
+        ppp($optionsDoofinder);
+        echo '<h2>Facetas</h2>';
+        ppp($facets);
+        echo '<h2>Filtros</h2>';
+        ppp($filters);    
+        */
+        
+        return array('options'=>$optionsDoofinder,
+            'facets'=>$facets,
+            'filters'=>$filters,
+            'nbr_filterBlocks' => 1);
+                
+        
+        return false;
+    }
+    
+    public function getSelectedFilters(){
+        $options = $this->getDoofinderTermsOptions();
+        
+        $filters = array();
+        foreach($options as $key => $value){
+            if($selected = Tools::getValue('layered_terms_'.$key,false)){
+                $filters[$key] = $selected;
+            }else if($selected = Tools::getValue('layered_'.$key.'_slider',false)){
+                $selected = explode('_', $selected);
+                $filters[$key] = array(
+                    'from'=>$selected[0],
+                    'to'=>$selected[1]
+                );
+            }
+        }
+        return $filters;
+    }
+    
+    public function getPaginationValues($nb_products,$p,$n,&$pages_nb,&$range,&$start,&$stop){
+        $range = 2; /* how many pages around page selected */
+
+        if ($n <= 0)
+            $n = 1;
+
+        if ($p < 0)
+            $p = 0;
+
+        if ($p > ($nb_products / $n))
+            $p = ceil($nb_products / $n);
+        $pages_nb = ceil($nb_products / (int) ($n));
+
+        $start = (int) ($p - $range);
+        if ($start < 1)
+            $start = 1;
+
+        $stop = (int) ($p + $range);
+        if ($stop > $pages_nb)
+            $stop = (int) ($pages_nb);
+    }
+    
+    public function ajaxCall() {
+        global $smarty, $cookie;
+
+        $selected_filters = $this->getSelectedFilters();
+        $_POST['filters'] = $selected_filters;
+
+        
+        $search = $this->generateSearch(true);
+        $products = $search['result'];
+        $p = abs((int)(Tools::getValue('p', 1)));
+        $n = abs((int)(Tools::getValue('n', Configuration::get('PS_PRODUCTS_PER_PAGE'))));
+        if(!$n)
+        {
+            $n = Configuration::get('PS_PRODUCTS_PER_PAGE');
+        }
+        
+        // Add pagination variable
+        $nArray = (int) Configuration::get('PS_PRODUCTS_PER_PAGE') != 10 ? array((int) Configuration::get('PS_PRODUCTS_PER_PAGE'), 10, 20, 50) : array(10, 20, 50);
+        // Clean duplicate values
+        $nArray = array_unique($nArray);
+        asort($nArray);
+
+        if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true)
+            $this->context->controller->addColorsToProductList($products);
+
+        $category = new Category(Tools::getValue('id_category_layered', Configuration::get('PS_HOME_CATEGORY')), (int) $cookie->id_lang);
+
+        // Generate meta title and meta description
+        $category_title = (empty($category->meta_title) ? $category->name : $category->meta_title);
+        $category_metas = Meta::getMetaTags((int) $cookie->id_lang, 'category');
+        $title = '';
+        $keywords = '';
+
+        if (is_array($filter_block['title_values']))
+            foreach ($filter_block['title_values'] as $key => $val) {
+                $title .= ' > ' . $key . ' ' . implode('/', $val);
+                $keywords .= $key . ' ' . implode('/', $val) . ', ';
+            }
+
+        $title = $category_title . $title;
+
+        if (!empty($title))
+            $meta_title = $title;
+        else
+            $meta_title = $category_metas['meta_title'];
+
+        $meta_description = $category_metas['meta_description'];
+
+        $keywords = substr(strtolower($keywords), 0, 1000);
+        if (!empty($keywords))
+            $meta_keywords = rtrim($category_title . ', ' . $keywords . ', ' . $category_metas['meta_keywords'], ', ');
+
+        $nb_products = $search['total'];
+        //var_dump($search);
+        $this->getPaginationValues($nb_products, $p, $n, $pages_nb, $range, $start, $stop);
+        $smarty->assign(
+                array(
+                    'homeSize' => Image::getSize(ImageType::getFormatedName('home')),
+                    'nb_products' => $nb_products,
+                    'category' => $category,
+                    'pages_nb' => (int) $pages_nb,
+                    'p' => (int) $p,
+                    'n' => (int) $n,
+                    'range' => (int) $range,
+                    'start' => (int) $start,
+                    'stop' => (int) $stop,
+                    'n_array' => ((int) Configuration::get('PS_PRODUCTS_PER_PAGE') != 10) ? array((int) Configuration::get('PS_PRODUCTS_PER_PAGE'), 10, 20, 50) : array(10, 20, 50),
+                    'comparator_max_item' => (int) (Configuration::get('PS_COMPARATOR_MAX_ITEM')),
+                    'products' => $products,
+                    'products_per_page' => (int) Configuration::get('PS_PRODUCTS_PER_PAGE'),
+                    'static_token' => Tools::getToken(false),
+                    'page_name' => 'search',
+                    'nArray' => $nArray,
+                    'compareProducts' => CompareProduct::getCompareProducts((int) $this->context->cookie->id_compare)
+                )
+        );
+
+        // Prevent bug with old template where category.tpl contain the title of the category and category-count.tpl do not exists
+        if (file_exists(_PS_THEME_DIR_ . 'category-count.tpl'))
+            $category_count = $smarty->fetch(_PS_THEME_DIR_ . 'category-count.tpl');
+        else
+            $category_count = '';
+
+        if ($nb_products == 0)
+            $product_list = $this->display(__FILE__, 'views/templates/front/doofinder-no-products.tpl');
+        else{
+            $product_list = $smarty->fetch(_PS_THEME_DIR_ . 'product-list.tpl');
+        }
+        $vars = array(
+            //'filtersBlock' => utf8_encode($this->generateFiltersBlock($search['facets'],$search['filters'])),
+            'productList' => utf8_encode($product_list),
+            'pagination' => $smarty->fetch(_PS_THEME_DIR_ . 'pagination.tpl'),
+            'categoryCount' => $category_count,
+            'meta_title' => $meta_title . ' - ' . Configuration::get('PS_SHOP_NAME'),
+            'heading' => $meta_title,
+            'meta_keywords' => isset($meta_keywords) ? $meta_keywords : null,
+            'meta_description' => $meta_description,
+            'current_friendly_url' => ((int) $n == (int) $nb_products) ? '#/show-all' : '#' . $filter_block['current_friendly_url'],
+            //'filters' => $filter_block['filters'],
+            'nbRenderedProducts' => (int) $nb_products,
+            'nbAskedProducts' => (int) $n
+        );
+
+        if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true)
+            $vars = array_merge($vars, array('pagination_bottom' => $smarty->assign('paginationId', 'bottom')
+                        ->fetch(_PS_THEME_DIR_ . 'pagination.tpl')));
+        /* We are sending an array in jSon to the .js controller, it will update both the filters and the products zones */
+        return Tools::jsonEncode($vars);
     }
 }
