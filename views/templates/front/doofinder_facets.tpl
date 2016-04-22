@@ -26,12 +26,7 @@
 <!-- Doofinder Block layered navigation module -->
 {if $nbr_filterBlocks != 0}
 <script type="text/javascript">
-current_friendly_url = '#{$current_friendly_url}';
-{*if version_compare($smarty.const._PS_VERSION_,'1.5','>')}
-param_product_url = '#{$param_product_url}';
-{else}
-param_product_url = '';
-{/if*}
+
 </script>
 <div id="layered_block_left" class="block">
 	<h4 class="title_block">{l s='Filtrar' mod='doofinder'}</h4>
@@ -112,7 +107,7 @@ param_product_url = '';
                                 {/foreach}
 				
 			</div>
-			<input type="hidden" name="id_category_layered" value="{$id_category_layered}" />
+			<input type="hidden" name="id_category_layered" value="0" />
 			<input type="hidden" name="search_query" id="doofinder_facets_search_query" value="" />
 		</form>
 	</div>
