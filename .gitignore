@@ -6,3 +6,4 @@ node_modules
 /nbproject
 doofinder.log
 test_doofinder.php
+/deploy
