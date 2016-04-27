@@ -151,7 +151,8 @@ class DoofinderApi{
     private function reqHeaders(){
         $headers = array();
         $headers[] = 'Expect:'; //Fixes the HTTP/1.1 417 Expectation Failed
-        $headers[] = "API Token: " . $this->api_key; //API Authorization
+        $authHeaderName = $this->apiVersion == '4' ? 'API Token: ' : 'authorization: ';
+        $headers[] = $authHeaderName . $this->api_key; //API Authorization
         return $headers;
     }
 
