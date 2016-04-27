@@ -34,11 +34,12 @@ module.exports = function(grunt) {
                     {expand: true, src: '*.tpl', dest: 'release/doofinder'},
                     {expand: true, src: '*.md', dest: 'release/doofinder'},
                     {expand: true, src: 'logo.*', dest: 'release/doofinder'},
-
                     {expand: true, src: 'css/**', dest: 'release/doofinder'},
+                    {expand: true, src: 'js/**', dest: 'release/doofinder'},
                     {expand: true, src: 'translations/**', dest: 'release/doofinder'},
-		    {expand: true, src: 'override/**', dest: 'release/doofinder'},
-		    {expand: true, src: 'lib/**', dest: 'release/doofinder'}
+        		    {expand: true, src: 'override/**', dest: 'release/doofinder'},
+        		    {expand: true, src: 'lib/**', dest: 'release/doofinder'},
+                    {expand: true, src: 'views/**', dest: 'release/doofinder'}
                 ]
             },
             latest_to_version: {

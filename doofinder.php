@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "2.0.21";
+  const VERSION = "2.1.0";
 
   const YES = 1;
   const NO = 0;
@@ -725,7 +725,7 @@ class Doofinder extends Module
                                 if(!in_array($id_product_attribute, $product_pool_attributes)){
                                     $product_pool_attributes[] = $id_product_attribute;
                                 }
-                                $id_product = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('SELECT id_product FROM ps_product_attribute WHERE id_product_attribute = '.$id_product_attribute);
+                                $id_product = Db::getInstance(_PS_USE_SQL_SLAVE_)->getValue('SELECT id_product FROM '._DB_PREFIX_.'product_attribute WHERE id_product_attribute = '.$id_product_attribute);
                                 return ((!empty($id_product)) ? $id_product : 0 );
                             }
                         }
@@ -779,7 +779,7 @@ class Doofinder extends Module
 				'.Product::sqlStock('p', 'product_attribute_shop', false, $context->shop) :  Product::sqlStock('p', 'product', false, Context::getContext()->shop)).'
 				LEFT JOIN `'._DB_PREFIX_.'manufacturer` m ON m.`id_manufacturer` = p.`id_manufacturer`
 				LEFT JOIN `'._DB_PREFIX_.'image` i ON (i.`id_product` = p.`id_product`) 
-                                LEFT JOIN `ps_product_attribute_image` pai ON (pai.`id_product_attribute` = product_attribute_shop.`id_product_attribute`) '.
+                                LEFT JOIN `'._DB_PREFIX_.'product_attribute_image` pai ON (pai.`id_product_attribute` = product_attribute_shop.`id_product_attribute`) '.
 				Shop::addSqlAssociation('image', 'i', false, '').' 
 				LEFT JOIN `'._DB_PREFIX_.'image_lang` il ON (i.`id_image` = il.`id_image` AND il.`id_lang` = '.(int)$id_lang.')
 				WHERE p.`id_product` IN ('.$product_pool.') '.
