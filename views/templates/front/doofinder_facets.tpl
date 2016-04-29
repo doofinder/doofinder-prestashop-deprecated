@@ -41,7 +41,7 @@ param_product_url = '';
                                         {if isset($facet.ranges)}
                                         <div class="layered_price">
                                         {else}
-                                        <div class="layered_filter">
+                                        <div class="layered_filter {if !isset($facet.terms) OR $facet.terms|@count lt 1}hidden{/if}">
                                         {/if}
                                             <span class="layered_subtitle">{$options[$facet@key]|escape:html:'UTF-8'}</span>
                                             <span class="layered_close"><a href="#" data-rel="ul_layered_{$facet._type}_{$facet@key}">v</a></span>
