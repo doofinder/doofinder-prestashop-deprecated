@@ -103,10 +103,6 @@ if ($debug)
   ini_set('display_errors', 1);
 }
 
-if ($cfg_debug){
-  error_log("Starting feed.\n", 3, dirname(__FILE__).'/doofinder.log');
-}
-
 
 // OUTPUT
 if (isset($_SERVER['HTTPS']))
@@ -165,6 +161,9 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
 
     if($cfg_product_variations && isset($row['id_product_attribute']) and intval($row['id_product_attribute']) > 0){
       // ID
+      if($row['id_product_attribute'] == '1006'){
+        error_log(var_export($row), 3, dirname(__FILE__).'/doofinder.log');
+      }
       echo "VAR-".$row['id_product_attribute'].TXT_SEPARATOR;
       // TITLE
       $product_title = dfTools::cleanString($row['name']);

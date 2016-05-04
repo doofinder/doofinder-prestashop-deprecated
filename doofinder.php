@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "2.1.0";
+  const VERSION = "2.1.1";
 
   const YES = 1;
   const NO = 0;
@@ -635,7 +635,9 @@ class Doofinder extends Module
     }
   }
     private function debug($message){
-      error_log("$message\n", 3, dirname(__FILE__).'/doofinder.log');
+      $debug = Configuration::get('DF_DEBUG', null);
+      if(isset($debug) && $debug)
+        error_log("$message\n", 3, dirname(__FILE__).'/doofinder.log');
     }
     
     public function getDoofinderTermsOptions($only_facets=true){
