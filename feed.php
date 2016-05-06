@@ -103,6 +103,10 @@ if ($debug)
   ini_set('display_errors', 1);
 }
 
+if ($cfg_debug){
+  error_log("Starting feed.\n", 3, dirname(__FILE__).'/doofinder.log');
+}
+
 
 // OUTPUT
 if (isset($_SERVER['HTTPS']))
@@ -161,9 +165,6 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
 
     if($cfg_product_variations && isset($row['id_product_attribute']) and intval($row['id_product_attribute']) > 0){
       // ID
-      if($row['id_product_attribute'] == '1006'){
-        error_log(var_export($row), 3, dirname(__FILE__).'/doofinder.log');
-      }
       echo "VAR-".$row['id_product_attribute'].TXT_SEPARATOR;
       // TITLE
       $product_title = dfTools::cleanString($row['name']);
@@ -295,16 +296,14 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
     else if ($cfg_display_prices && $cfg_product_variations)
     {
       echo TXT_SEPARATOR;
-
       $product_price = Product::getPriceStatic($row['id_product'], $cfg_prices_w_taxes, $row['id_product_attribute'], 2, null, false, false);
       $onsale_price = Product::getPriceStatic($row['id_product'], $cfg_prices_w_taxes, $row['id_product_attribute'], 2);
-
       echo ($product_price ? Tools::convertPrice($product_price, $currency) : "").TXT_SEPARATOR;
       echo (($product_price && $onsale_price && $product_price != $onsale_price) ? Tools::convertPrice($onsale_price, $currency) : "");
     }
 
-    if ($cfg_product_variations){
-      
+    if ($cfg_product_variations)
+    {  
       echo TXT_SEPARATOR;
       echo $row['variation_reference'];
       $variation_attributes = dfTools::getAttributesForProductVariation($row['id_product_attribute'], $lang->id, $attribute_keys);
