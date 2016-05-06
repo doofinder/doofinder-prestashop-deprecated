@@ -399,7 +399,7 @@ function reloadContent(params_plus)
             data += '&n=' + $('div.pagination form.showall').find('input[name=n]').val();
     }
 
-    var slideUp = true;
+    var slideUp = false;
     if (params_plus == undefined)
     {
         params_plus = '';
