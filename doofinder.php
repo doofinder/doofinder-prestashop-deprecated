@@ -111,25 +111,28 @@ class Doofinder extends Module
 
         //echo ($this->_path) . '../blocklayered/blocklayered.css';
         //This is to keep the same styles that theme has
-        $css_path = str_replace('doofinder', 'blocklayered',$this->_path);
-        if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true){
-            $this->context->controller->addJS(($this->_path) . 'js/doofinder-pagination.js');
-            if (file_exists(_PS_MODULE_DIR_.'blocklayered/blocklayered.css')){
-                $this->context->controller->addCSS($css_path.'blocklayered.css', 'all');
+        $overwrite_search = Configuration::get('DF_OWSEARCH', null);
+        $overwrite_facets = Configuration::get('DF_OWSEARCHFAC', null);
+        if ($overwrite_search && $overwrite_facets){
+            $css_path = str_replace('doofinder', 'blocklayered',$this->_path);
+            if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true){
+                $this->context->controller->addJS(($this->_path) . 'js/doofinder-pagination.js');
+                if (file_exists(_PS_MODULE_DIR_.'blocklayered/blocklayered.css')){
+                    $this->context->controller->addCSS($css_path.'blocklayered.css', 'all');
+                }else{
+                    $this->context->controller->addCSS(($this->_path) . 'css/doofinder-filters.css', 'all');
+                }
             }else{
-                $this->context->controller->addCSS(($this->_path) . 'css/doofinder-filters.css', 'all');
+                $this->context->controller->addJS(($this->_path) . 'js/doofinder-pagination_15.js');
+                if (file_exists(_PS_MODULE_DIR_.'blocklayered/blocklayered-15.css')){
+                    $this->context->controller->addCSS($css_path.'blocklayered-15.css', 'all');
+                }else{       
+                    $this->context->controller->addCSS(($this->_path) . 'css/doofinder-filters-15.css', 'all');
+                }
+
             }
-        }else{
-            $this->context->controller->addJS(($this->_path) . 'js/doofinder-pagination_15.js');
-            if (file_exists(_PS_MODULE_DIR_.'blocklayered/blocklayered-15.css')){
-                $this->context->controller->addCSS($css_path.'blocklayered-15.css', 'all');
-            }else{       
-                $this->context->controller->addCSS(($this->_path) . 'css/doofinder-filters-15.css', 'all');
-            }
-            
+            $this->context->controller->addJS(($this->_path) . 'js/doofinder_facets.js');
         }
-            
-        $this->context->controller->addJS(($this->_path) . 'js/doofinder_facets.js');
         $this->context->controller->addJQueryUI('ui.slider');
         $this->context->controller->addJQueryUI('ui.accordion');
         $this->context->controller->addJqueryPlugin('multiaccordion');
