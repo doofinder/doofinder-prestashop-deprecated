@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "2.1.0";
+  const VERSION = "2.1.3";
 
   const YES = 1;
   const NO = 0;
@@ -265,6 +265,7 @@ class Doofinder extends Module
         // Cleaning script tags
         if ('DOOFINDER_SCRIPT_' === $prefix){
           $value = str_replace('<script type="text/javascript">', '', Tools::getValue($optname));
+          $value = str_replace("<script type='text/javascript'>", '', Tools::getValue($optname));
           $value = str_replace('</script>', '', $value);
         }
         else{
@@ -634,7 +635,9 @@ class Doofinder extends Module
     }
   }
     private function debug($message){
-      error_log("$message\n", 3, dirname(__FILE__).'/doofinder.log');
+      $debug = Configuration::get('DF_DEBUG', null);
+      if(isset($debug) && $debug)
+        error_log("$message\n", 3, dirname(__FILE__).'/doofinder.log');
     }
     
     public function getDoofinderTermsOptions($only_facets=true){
@@ -1003,7 +1006,7 @@ class Doofinder extends Module
         $title = '';
         $keywords = '';
 
-        if (is_array($filter_block['title_values']))
+        if (isset($filter_block) && is_array($filter_block['title_values']))
             foreach ($filter_block['title_values'] as $key => $val) {
                 $title .= ' > ' . $key . ' ' . implode('/', $val);
                 $keywords .= $key . ' ' . implode('/', $val) . ', ';
@@ -1057,6 +1060,10 @@ class Doofinder extends Module
             $product_list = $this->display(__FILE__, 'views/templates/front/doofinder-no-products.tpl');
         else{
             $product_list = $smarty->fetch(_PS_THEME_DIR_ . 'product-list.tpl');
+        }
+        // To avoid Notice
+        if (!isset($filter_block)){
+          $filter_block = array('current_friendly_url' => '');
         }
         $vars = array(
             //'filtersBlock' => utf8_encode($this->generateFiltersBlock($search['facets'],$search['filters'])),

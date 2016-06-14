@@ -30,7 +30,6 @@ current_friendly_url = '#';
 param_product_url = '';
 </script>
 <div id="layered_block_left" class="block">
-	<h4 class="title_block">{l s='Filtrar' mod='doofinder'}</h4>
 	<div class="block_content">
 		<form action="#" id="layered_form">
 			<div>
@@ -66,7 +65,7 @@ param_product_url = '';
                                                     {/if}
                                                 {/foreach}
                                             {else}
-                                                <label for="{$facet@key}">{l s='Range:' mod='doofinder'}</label> <span id="layered_{$facet@key}_range"></span>
+                                                <span id="layered_{$facet@key}_range"></span>
 								<div class="layered_slider_container">
 									<div class="layered_slider" id="layered_{$facet@key}_slider"></div>
 								</div>

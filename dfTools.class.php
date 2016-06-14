@@ -272,8 +272,10 @@ class dfTools
             inner join ps_image i
              on i.id_product = P.id_product and i.position =  P.posicion";
     $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
-    
-    return $result[0]['id_image'];
+    if(isset($result[0]))
+      return $result[0]['id_image'];
+    else
+      return "";
 
   }  
 
@@ -305,6 +307,13 @@ class dfTools
                                         '_ID_PRODUCT' => $id_product));
 
     $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
+
+    if(count($feature_keys) > 0){
+          $features = array_fill(0, count($feature_keys), array());
+    }
+    else {
+      $features = array();
+    }
 
     $features = array_fill(0, count($feature_keys), array());
 
@@ -352,7 +361,12 @@ class dfTools
       $result = array();
     }
     
-    $attributes = array_fill(0, count($attribute_keys), "");
+    if(count($attribute_keys) > 0){
+      $attributes = array_fill(0, count($attribute_keys), "");
+    }
+    else{
+      $attributes = array();
+    }
 
     foreach($result as $elem){
       $attributes[array_search($elem['group_name'], $attribute_keys)] = $elem['name'];
