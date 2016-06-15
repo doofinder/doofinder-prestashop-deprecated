@@ -1,3 +1,6 @@
+if(typeof(current_friendly_url) == 'undefined'){
+    var current_friendly_url = '';
+}
 function paginationButton(nulled,nulled_1) {
     $('#pagination a').not(':hidden').each(function () {
             if ($(this).attr('href').search(/[&|\?]p=/) == -1)
