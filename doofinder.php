@@ -43,7 +43,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "2.1.5";
+  const VERSION = "2.1.6";
 
   const YES = 1;
   const NO = 0;
@@ -133,6 +133,8 @@ class Doofinder extends Module
             }
             $this->context->controller->addJS(($this->_path) . 'js/doofinder_facets.js');
         }
+        $this->context->controller->addJS(($this->_path) . 'js/js.cookie.js');
+        $this->context->controller->addJS(($this->_path) . 'js/doofinder-registerClicks.js');
         $this->context->controller->addJQueryUI('ui.slider');
         $this->context->controller->addJQueryUI('ui.accordion');
         $this->context->controller->addJqueryPlugin('multiaccordion');

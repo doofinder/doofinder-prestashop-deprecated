@@ -20,7 +20,7 @@ function paginationButton(nbProductsIn, nbProductOut) {
         else if ($(this).hasClass('pagination_previous'))
             nbPage = parseInt($('div.pagination li.current').children().children().html()) - 1;
 
-        $(this).children().children().on('click', function(e)
+        $(this).children().on('click', function(e)
         {
             e.preventDefault();
             if (nbPage == 0)
