@@ -110,10 +110,6 @@ class Doofinder extends Module
     $this->configureHookCommon($params);
     if(isset($this->context->controller->php_self) && $this->context->controller->php_self == 'search' ){
         
-        //$this->context->controller->addCSS(_PS_CSS_DIR_ . 'jquery-ui-1.8.10.custom.css');
-
-        //echo ($this->_path) . '../blocklayered/blocklayered.css';
-        //This is to keep the same styles that theme has
         $overwrite_search = Configuration::get('DF_OWSEARCH', null);
         $overwrite_facets = Configuration::get('DF_OWSEARCHFAC', null);
         if ($overwrite_search && $overwrite_facets){
@@ -166,7 +162,9 @@ class Doofinder extends Module
       if (!count($this->_postErrors))
       {
         $this->_html .= $this->displayConfirmation($this->l('Settings updated!'));
+        $this->_html .= $this->displayError($this->l('IF YOU HAVE CHANGED ANY IN YOUR DATA FEED SETTINGS, REMEMBER YOU MUST REPROCESS.'));
       }
+
       else
       {
         foreach ($this->_postErrors as $error)
