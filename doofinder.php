@@ -40,6 +40,7 @@ class Doofinder extends Module
 {
   protected $_html = '';
   protected $_postErrors = array();
+  protected $_productLinks = array();
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
@@ -96,6 +97,7 @@ class Doofinder extends Module
       'lang' => strtolower($lang),
       'script' => dfTools::fixScriptTag($script),
       'extra_css' => dfTools::fixStyleTag($extra_css),
+      'productLinks' => $this->_productLinks,
       'self' => dirname(__FILE__),
     ));
 
@@ -134,7 +136,6 @@ class Doofinder extends Module
             $this->context->controller->addJS(($this->_path) . 'js/doofinder_facets.js');
         }
         $this->context->controller->addJS(($this->_path) . 'js/js.cookie.js');
-        $this->context->controller->addJS(($this->_path) . 'js/doofinder-registerClicks.js');
         $this->context->controller->addJQueryUI('ui.slider');
         $this->context->controller->addJQueryUI('ui.accordion');
         $this->context->controller->addJqueryPlugin('multiaccordion');
@@ -808,20 +809,18 @@ class Doofinder extends Module
     }
    
     $result = $db->executeS($sql);
-    if (isset($debug) && $debug && $result){
-      $out = "";
-      foreach($result as $elem){
-        $out .= "ID: ".$elem['id_product']. " ATTRIBUTE: ".$elem['id_product_attribute']."\n";
-      }
-
-      $this->debug("RESULT: $out") ;
-    }
-
+    
 
 		if (!$result)
 			return false;
 		else
 			$result_properties = Product::getProductsProperties((int)$id_lang, $result);
+    // To print the id and links in the javascript so I can register the clicks
+    $this->_productLinks = array();
+    
+    foreach($result_properties as $rp){
+      $this->_productLinks[$rp['link']] = $rp['id_product'];
+    }
 
                 if($return_facets){
                     return array('total' => $dfResults->getProperty('total'),'result' => $result_properties, 'facets' => $dfResults->getFacets(), 'filters'=> $df->getFilters());
@@ -920,14 +919,7 @@ class Doofinder extends Module
             $facetsBlock[$key_o] = $facets[$key_o];
         }
         $facets = $facetsBlock;
-        /*
-        echo '<h2>Opciones</h2>';
-        ppp($optionsDoofinder);
-        echo '<h2>Facetas</h2>';
-        ppp($facets);
-        echo '<h2>Filtros</h2>';
-        ppp($filters);    
-        */
+
         
         return array('options'=>$optionsDoofinder,
             'facets'=>$facets,
