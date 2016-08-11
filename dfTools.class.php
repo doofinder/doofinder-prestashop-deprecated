@@ -401,7 +401,7 @@ class dfTools
         pl.meta_title,
         pl.meta_keywords,
         pl.meta_description,
-
+        GROUP_CONCAT(tag.name SEPARATOR '/') AS tags,
         pl.link_rewrite,
         cl.link_rewrite AS cat_link_rew,
 
@@ -420,9 +420,14 @@ class dfTools
           ON (p.id_category_default = cl.id_category AND cl.id_shop = _ID_SHOP_ AND cl.id_lang = _ID_LANG_)
         LEFT JOIN (_DB_PREFIX_image im INNER JOIN _DB_PREFIX_image_shop ims ON im.id_image = ims.id_image)
           ON (p.id_product = im.id_product AND ims.id_shop = _ID_SHOP_ AND _IMS_COVER_)
+        LEFT JOIN (_DB_PREFIX_tag tag INNER JOIN _DB_PREFIX_product_tag pt ON tag.id_tag = pt.id_tag AND tag.id_lang = _ID_LANG_)
+          ON (pt.id_product = p.id_product)
+
       WHERE
         __IS_ACTIVE__
         __VISIBILITY__
+      GROUP BY
+        p.id_product
       ORDER BY
         p.id_product
     ";
@@ -447,7 +452,7 @@ class dfTools
         pl.meta_title,
         pl.meta_keywords,
         pl.meta_description,
-
+        GROUP_CONCAT(tag.name SEPARATOR '/') AS tags,
         pl.link_rewrite,
         cl.link_rewrite AS cat_link_rew,
 
@@ -470,6 +475,8 @@ class dfTools
           ON (p.id_product = pa.id_product)
         LEFT JOIN _DB_PREFIX_product_attribute_image pa_im 
           ON (pa_im.id_product_attribute = pa.id_product_attribute)
+        LEFT JOIN (_DB_PREFIX_tag tag INNER JOIN _DB_PREFIX_product_tag pt ON tag.id_tag = pt.id_tag AND tag.id_lang = _ID_LANG_)
+          ON (pt.id_product = p.id_product)  
       WHERE
         __IS_ACTIVE__
         __VISIBILITY__
@@ -511,6 +518,7 @@ class dfTools
                                         '__ID_CATEGORY_DEFAULT__' => $id_category_default,
                                         '__IS_ACTIVE__' => $is_active,
                                         '__VISIBILITY__' => $visibility));
+
     
     return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
   }

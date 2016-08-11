@@ -118,7 +118,7 @@ header("Content-Type:text/plain; charset=utf-8");
 $header = array('id', 'title', 'link', 'description', 'alternate_description',
                 'meta_keywords', 'meta_title', 'meta_description', 'image_link',
                 'categories', 'availability', 'brand', 'mpn',
-                'extra_title_1', 'extra_title_2');
+                'extra_title_1', 'extra_title_2', 'tags');
 
 
 if ($cfg_display_prices)
@@ -279,7 +279,10 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
     echo dfTools::cleanReferences($product_title).TXT_SEPARATOR;
 
     // EXTRA_TITLE_2
-    echo dfTools::splitReferences($product_title);
+    echo dfTools::splitReferences($product_title).TXT_SEPARATOR;
+
+    // TAGS
+    echo $row['tags'];
 
     // PRODUCT PRICE & ON SALE PRICE
     if ($cfg_display_prices && !$cfg_product_variations)
