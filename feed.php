@@ -163,7 +163,7 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
   if(intval($row['id_product']) > 0){
     // ID, TITLE, LINK
 
-    if($cfg_product_variations && isset($row['id_product_attribute']) and intval($row['id_product_attribute']) > 0){
+    if($cfg_product_variations && isset($row['id_product_attribute']) && intval($row['id_product_attribute']) > 0){
       // ID
       echo "VAR-".$row['id_product_attribute'].TXT_SEPARATOR;
       // TITLE
