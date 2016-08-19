@@ -732,7 +732,7 @@ class dfTools
         return chr('0x'.$matches[1]);
       } 
     }
-    $text = html_entity_decode($text, ENT_QUOTES, "ISO-8859-1");
+    html_entity_decode($text, ENT_QUOTES, "ISO-8859-1");
     $text = preg_replace_callback(
        '/&#(\d+);/mu',
         'cb1',
