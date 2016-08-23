@@ -160,7 +160,7 @@ class Doofinder extends Module
       if (!count($this->_postErrors))
       {
         $this->_html .= $this->displayConfirmation($this->l('Settings updated!'));
-        $this->_html .= $this->displayError($this->l('IF YOU HAVE CHANGED ANY IN YOUR DATA FEED SETTINGS, REMEMBER YOU MUST REPROCESS.'));
+        $this->_html .= $this->displayError($this->l('IF YOU HAVE CHANGED ANYTHING IN YOUR DATA FEED SETTINGS, REMEMBER YOU MUST REPROCESS.'));
       }
 
       else
