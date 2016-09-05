@@ -307,19 +307,12 @@ class dfTools
 
     $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
 
-    if(count($feature_keys) > 0){
-          $features = array_fill(0, count($feature_keys), array());
-    }
-    else {
-      $features = array();
-    }
-
-    $features = array_fill(0, count($feature_keys), array());
+    $features = array();
 
 
     foreach($result as $elem){
       if (in_array($elem['name'], $feature_keys))
-        array_push($features[array_search($elem['name'], $feature_keys)], $elem['value']);
+        $features[$elem['name']] = $elem['value'];
     }
     
     return $features;

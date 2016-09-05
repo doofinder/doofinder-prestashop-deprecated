@@ -143,9 +143,10 @@ if($cfg_product_features){
   else
     $feature_keys = $all_feature_keys;
 
-  foreach($feature_keys as $key){
+  /*foreach($feature_keys as $key){
     $header[] = slugify($key);
-  }  
+  } */
+  $header[] = "attributes"; 
 }
 
 if (!$limit || ($offset !== false && intval($offset) === 0))
@@ -316,8 +317,9 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
     }
 
     if ($cfg_product_features){
-      foreach(dfTools::getFeaturesForProduct($row['id_product'], $lang->id, $feature_keys) as $features){
-        echo TXT_SEPARATOR.dfTools::cleanString(implode(' ', $features));
+      echo TXT_SEPARATOR;
+      foreach(dfTools::getFeaturesForProduct($row['id_product'], $lang->id, $feature_keys) as $key => $value){
+        echo slugify($key)."=$value/";
       }
         
     }
