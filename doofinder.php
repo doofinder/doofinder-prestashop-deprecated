@@ -44,7 +44,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "2.1.9";
+  const VERSION = "2.1.10";
   const YES = 1;
   const NO = 0;
 
@@ -799,7 +799,8 @@ class Doofinder extends Module
 				LEFT JOIN `'._DB_PREFIX_.'image_lang` il ON (i.`id_image` = il.`id_image` AND il.`id_lang` = '.(int)$id_lang.')
 				WHERE p.`id_product` IN ('.$product_pool.') '.
                                 (($show_variations)? ' AND (product_attribute_shop.`id_product_attribute` IS NULL OR product_attribute_shop.`id_product_attribute` IN ('.$product_pool_attributes.')) ':'').
-				' GROUP BY product_shop.id_product '.(($show_variations)?' ,  product_attribute_shop.`id_product_attribute` ':'').
+				' AND and image_shop.`id_image` IS NOT NULL'.
+        ' GROUP BY product_shop.id_product '.(($show_variations)?' ,  product_attribute_shop.`id_product_attribute` ':'').
                                 ' ORDER BY FIELD (p.`id_product`,'.$product_pool.') '.(($show_variations)?' , FIELD (product_attribute_shop.`id_product_attribute`,'.$product_pool_attributes.')':'');
 		if (isset($debug) && $debug){
       $this->debug("SQL: $sql");
