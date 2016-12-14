@@ -40,11 +40,11 @@ class Doofinder extends Module
 {
   protected $_html = '';
   protected $_postErrors = array();
+  protected $_productLinks = array();
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "2.1.5";
-
+  const VERSION = "2.1.9";
   const YES = 1;
   const NO = 0;
 
@@ -96,6 +96,7 @@ class Doofinder extends Module
       'lang' => strtolower($lang),
       'script' => dfTools::fixScriptTag($script),
       'extra_css' => dfTools::fixStyleTag($extra_css),
+      'productLinks' => $this->_productLinks,
       'self' => dirname(__FILE__),
     ));
 
@@ -107,10 +108,6 @@ class Doofinder extends Module
     $this->configureHookCommon($params);
     if(isset($this->context->controller->php_self) && $this->context->controller->php_self == 'search' ){
         
-        //$this->context->controller->addCSS(_PS_CSS_DIR_ . 'jquery-ui-1.8.10.custom.css');
-
-        //echo ($this->_path) . '../blocklayered/blocklayered.css';
-        //This is to keep the same styles that theme has
         $overwrite_search = Configuration::get('DF_OWSEARCH', null);
         $overwrite_facets = Configuration::get('DF_OWSEARCHFAC', null);
         if ($overwrite_search && $overwrite_facets){
@@ -133,6 +130,7 @@ class Doofinder extends Module
             }
             $this->context->controller->addJS(($this->_path) . 'js/doofinder_facets.js');
         }
+        $this->context->controller->addJS(($this->_path) . 'js/js.cookie.js');
         $this->context->controller->addJQueryUI('ui.slider');
         $this->context->controller->addJQueryUI('ui.accordion');
         $this->context->controller->addJqueryPlugin('multiaccordion');
@@ -162,7 +160,9 @@ class Doofinder extends Module
       if (!count($this->_postErrors))
       {
         $this->_html .= $this->displayConfirmation($this->l('Settings updated!'));
+        $this->_html .= $this->displayError($this->l('IF YOU HAVE CHANGED ANYTHING IN YOUR DATA FEED SETTINGS, REMEMBER YOU MUST REPROCESS.'));
       }
+
       else
       {
         foreach ($this->_postErrors as $error)
@@ -774,8 +774,9 @@ class Doofinder extends Module
             $db = Db::getInstance(_PS_USE_SQL_SLAVE_);
             $id_lang = $context->language->id;
             $sql = 'SELECT p.*, product_shop.*, stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity,
-				pl.`description_short`, pl.`available_now`, pl.`available_later`, pl.`link_rewrite`, pl.`name`,
-			 IF(pai.`id_image` IS NULL OR pai.`id_image` = 0, MAX(image_shop.`id_image`),pai.`id_image`) id_image, il.`legend`, m.`name` manufacturer_name '.(Combination::isFeatureActive() ? ', MAX(product_attribute_shop.`id_product_attribute`) id_product_attribute' : '').',
+				pl.`description_short`, pl.`available_now`, pl.`available_later`, pl.`link_rewrite`, pl.`name`,'.
+        (($show_variations)?'IF(pai.`id_image` IS NULL OR pai.`id_image` = 0, MAX(image_shop.`id_image`),pai.`id_image`) id_image, il.`legend`, m.`name` manufacturer_name '.(Combination::isFeatureActive() ? ', MAX(product_attribute_shop.`id_product_attribute`) id_product_attribute' : ''):'image_shop.`id_image` id_image, il.`legend`, m.`name` manufacturer_name '.(Combination::isFeatureActive() ? ', MAX(product_attribute_shop.`id_product_attribute`) id_product_attribute' : '')).
+			 ',
 				DATEDIFF(
 					p.`date_add`,
 					DATE_SUB(
@@ -793,8 +794,7 @@ class Doofinder extends Module
 				'.Shop::addSqlAssociation('product_attribute', 'pa', false, '').'
 				'.Product::sqlStock('p', 'product_attribute_shop', false, $context->shop) :  Product::sqlStock('p', 'product', false, Context::getContext()->shop)).'
 				LEFT JOIN `'._DB_PREFIX_.'manufacturer` m ON m.`id_manufacturer` = p.`id_manufacturer`
-				LEFT JOIN `'._DB_PREFIX_.'image` i ON (i.`id_product` = p.`id_product`) 
-                                LEFT JOIN `'._DB_PREFIX_.'product_attribute_image` pai ON (pai.`id_product_attribute` = product_attribute_shop.`id_product_attribute`) '.
+				LEFT JOIN `'._DB_PREFIX_.'image` i ON (i.`id_product` = p.`id_product`) '.
 				Shop::addSqlAssociation('image', 'i', false, '').' 
 				LEFT JOIN `'._DB_PREFIX_.'image_lang` il ON (i.`id_image` = il.`id_image` AND il.`id_lang` = '.(int)$id_lang.')
 				WHERE p.`id_product` IN ('.$product_pool.') '.
@@ -806,20 +806,18 @@ class Doofinder extends Module
     }
    
     $result = $db->executeS($sql);
-    if (isset($debug) && $debug && $result){
-      $out = "";
-      foreach($result as $elem){
-        $out .= "ID: ".$elem['id_product']. " ATTRIBUTE: ".$elem['id_product_attribute']."\n";
-      }
-
-      $this->debug("RESULT: $out") ;
-    }
-
+    
 
 		if (!$result)
 			return false;
 		else
 			$result_properties = Product::getProductsProperties((int)$id_lang, $result);
+    // To print the id and links in the javascript so I can register the clicks
+    $this->_productLinks = array();
+    
+    foreach($result_properties as $rp){
+      $this->_productLinks[$rp['link']] = $rp['id_product'];
+    }
 
                 if($return_facets){
                     return array('total' => $dfResults->getProperty('total'),'result' => $result_properties, 'facets' => $dfResults->getFacets(), 'filters'=> $df->getFilters());
@@ -918,14 +916,7 @@ class Doofinder extends Module
             $facetsBlock[$key_o] = $facets[$key_o];
         }
         $facets = $facetsBlock;
-        /*
-        echo '<h2>Opciones</h2>';
-        ppp($optionsDoofinder);
-        echo '<h2>Facetas</h2>';
-        ppp($facets);
-        echo '<h2>Filtros</h2>';
-        ppp($filters);    
-        */
+
         
         return array('options'=>$optionsDoofinder,
             'facets'=>$facets,

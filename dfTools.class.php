@@ -33,7 +33,6 @@
 define('CATEGORY_SEPARATOR', '%%');
 define('CATEGORY_TREE_SEPARATOR', '>');
 define('TXT_SEPARATOR', '|');
-
 class dfTools
 {
   // http://stackoverflow.com/questions/4224141/php-removing-invalid-utf-8-characters-in-xml-using-filter
@@ -308,19 +307,12 @@ class dfTools
 
     $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
 
-    if(count($feature_keys) > 0){
-          $features = array_fill(0, count($feature_keys), array());
-    }
-    else {
-      $features = array();
-    }
-
-    $features = array_fill(0, count($feature_keys), array());
+    $features = array();
 
 
     foreach($result as $elem){
       if (in_array($elem['name'], $feature_keys))
-        array_push($features[array_search($elem['name'], $feature_keys)], $elem['value']);
+        $features[$elem['name']] = $elem['value'];
     }
     
     return $features;
@@ -401,7 +393,7 @@ class dfTools
         pl.meta_title,
         pl.meta_keywords,
         pl.meta_description,
-
+        GROUP_CONCAT(tag.name SEPARATOR '/') AS tags,
         pl.link_rewrite,
         cl.link_rewrite AS cat_link_rew,
 
@@ -420,9 +412,14 @@ class dfTools
           ON (p.id_category_default = cl.id_category AND cl.id_shop = _ID_SHOP_ AND cl.id_lang = _ID_LANG_)
         LEFT JOIN (_DB_PREFIX_image im INNER JOIN _DB_PREFIX_image_shop ims ON im.id_image = ims.id_image)
           ON (p.id_product = im.id_product AND ims.id_shop = _ID_SHOP_ AND _IMS_COVER_)
+        LEFT JOIN (_DB_PREFIX_tag tag INNER JOIN _DB_PREFIX_product_tag pt ON tag.id_tag = pt.id_tag AND tag.id_lang = _ID_LANG_)
+          ON (pt.id_product = p.id_product)
+
       WHERE
         __IS_ACTIVE__
         __VISIBILITY__
+      GROUP BY
+        p.id_product
       ORDER BY
         p.id_product
     ";
@@ -447,7 +444,7 @@ class dfTools
         pl.meta_title,
         pl.meta_keywords,
         pl.meta_description,
-
+        GROUP_CONCAT(tag.name SEPARATOR '/') AS tags,
         pl.link_rewrite,
         cl.link_rewrite AS cat_link_rew,
 
@@ -466,14 +463,16 @@ class dfTools
           ON (p.id_category_default = cl.id_category AND cl.id_shop = _ID_SHOP_ AND cl.id_lang = _ID_LANG_)
         LEFT JOIN (_DB_PREFIX_image im INNER JOIN _DB_PREFIX_image_shop ims ON im.id_image = ims.id_image)
           ON (p.id_product = im.id_product AND ims.id_shop = _ID_SHOP_ AND _IMS_COVER_)
-        LEFT JOIN _DB_PREFIX_product_attribute pa 
+        LEFT OUTER JOIN _DB_PREFIX_product_attribute pa 
           ON (p.id_product = pa.id_product)
         LEFT JOIN _DB_PREFIX_product_attribute_image pa_im 
           ON (pa_im.id_product_attribute = pa.id_product_attribute)
+        LEFT JOIN (_DB_PREFIX_tag tag INNER JOIN _DB_PREFIX_product_tag pt ON tag.id_tag = pt.id_tag AND tag.id_lang = _ID_LANG_)
+          ON (pt.id_product = p.id_product)  
       WHERE
         __IS_ACTIVE__
         __VISIBILITY__
-      GROUP BY pa.id_product_attribute
+      GROUP BY pa.id_product_attribute, p.id_product
       ORDER BY
         p.id_product
     ";
@@ -511,6 +510,8 @@ class dfTools
                                         '__ID_CATEGORY_DEFAULT__' => $id_category_default,
                                         '__IS_ACTIVE__' => $is_active,
                                         '__VISIBILITY__' => $visibility));
+
+
     
     return Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
   }
@@ -724,7 +725,7 @@ class dfTools
         return chr('0x'.$matches[1]);
       } 
     }
-    $text = html_entity_decode($text, ENT_QUOTES, "ISO-8859-1");
+    html_entity_decode($text, ENT_QUOTES, "ISO-8859-1");
     $text = preg_replace_callback(
        '/&#(\d+);/mu',
         'cb1',

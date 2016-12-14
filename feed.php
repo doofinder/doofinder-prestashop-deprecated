@@ -118,7 +118,7 @@ header("Content-Type:text/plain; charset=utf-8");
 $header = array('id', 'title', 'link', 'description', 'alternate_description',
                 'meta_keywords', 'meta_title', 'meta_description', 'image_link',
                 'categories', 'availability', 'brand', 'mpn',
-                'extra_title_1', 'extra_title_2');
+                'extra_title_1', 'extra_title_2', 'tags');
 
 
 if ($cfg_display_prices)
@@ -143,9 +143,10 @@ if($cfg_product_features){
   else
     $feature_keys = $all_feature_keys;
 
-  foreach($feature_keys as $key){
+  /*foreach($feature_keys as $key){
     $header[] = slugify($key);
-  }  
+  } */
+  $header[] = "attributes"; 
 }
 
 if (!$limit || ($offset !== false && intval($offset) === 0))
@@ -163,7 +164,7 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
   if(intval($row['id_product']) > 0){
     // ID, TITLE, LINK
 
-    if($cfg_product_variations && isset($row['id_product_attribute']) and intval($row['id_product_attribute']) > 0){
+    if($cfg_product_variations && isset($row['id_product_attribute']) && intval($row['id_product_attribute']) > 0){
       // ID
       echo "VAR-".$row['id_product_attribute'].TXT_SEPARATOR;
       // TITLE
@@ -279,7 +280,10 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
     echo dfTools::cleanReferences($product_title).TXT_SEPARATOR;
 
     // EXTRA_TITLE_2
-    echo dfTools::splitReferences($product_title);
+    echo dfTools::splitReferences($product_title).TXT_SEPARATOR;
+
+    // TAGS
+    echo $row['tags'];
 
     // PRODUCT PRICE & ON SALE PRICE
     if ($cfg_display_prices && !$cfg_product_variations)
@@ -313,8 +317,9 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
     }
 
     if ($cfg_product_features){
-      foreach(dfTools::getFeaturesForProduct($row['id_product'], $lang->id, $feature_keys) as $features){
-        echo TXT_SEPARATOR.dfTools::cleanString(implode(' ', $features));
+      echo TXT_SEPARATOR;
+      foreach(dfTools::getFeaturesForProduct($row['id_product'], $lang->id, $feature_keys) as $key => $value){
+        echo slugify($key)."=$value/";
       }
         
     }
