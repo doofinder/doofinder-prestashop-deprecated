@@ -153,6 +153,8 @@ class Doofinder extends Module
   {
     $this->addCSS('css/doofinder.css');
 
+    $doofinder_hash = Configuration::get('DF_FEED_HASH');
+    
     if (isset($_POST['submit'.$this->name]))
     {
       $this->_updateConfiguration();
@@ -161,6 +163,9 @@ class Doofinder extends Module
       {
         $this->_html .= $this->displayConfirmation($this->l('Settings updated!'));
         $this->_html .= $this->displayError($this->l('IF YOU HAVE CHANGED ANYTHING IN YOUR DATA FEED SETTINGS, REMEMBER YOU MUST REPROCESS.'));
+        if(empty($doofinder_hash)){
+            $this->_html .= $this->displayError($this->l('CHECK ALSO THAT THE NEW FEED URL IS THE SAME THAT ON YOUR DOOFINDER PANEL.'));
+        }
       }
 
       else
@@ -186,6 +191,11 @@ class Doofinder extends Module
    */
   protected function _updateConfiguration()
   {
+    $doofinder_hash = Configuration::get('DF_FEED_HASH');
+    if(empty($doofinder_hash)){
+        $doofinder_hash = md5('PrestaShop_Doofinder_'.date('YmdHis'));
+        Configuration::updateValue('DF_FEED_HASH',$doofinder_hash);
+    }  
     $df_invalid_msg = $this->l('Please, select a valid option for %s.');
     $df_required_msg = $this->l('%s field is mandatory.');
 
@@ -502,10 +512,14 @@ class Doofinder extends Module
     // DOOFINDER_SCRIPT
     $optname = 'DOOFINDER_SCRIPT_';
     $desc = $this->l('Paste the script as you got it from Doofinder.');
+    $doofinder_hash = Configuration::get('DF_FEED_HASH');
     foreach (Language::getLanguages(true, $this->context->shop->id) as $lang)
     {
       $realoptname = $optname.strtoupper($lang['iso_code']);
       $url = dfTools::getFeedURL($lang['iso_code']);
+      if(!empty($doofinder_hash)){
+          $url.='&dfsec_hash='.$doofinder_hash;
+      }
       $fields[] = array(
         'label' => $lang['name'],
         'desc' => sprintf('<span class="df-notice"><b>%s [%s]:</b> <a href="%s" target="_blank">%s</a></span>%s', $this->l('Data Feed URL'), strtoupper($lang['iso_code']), $url, htmlentities($url), $desc),
