@@ -153,7 +153,6 @@ class Doofinder extends Module
   {
     $this->addCSS('css/doofinder.css');
 
-    $doofinder_hash = Configuration::get('DF_FEED_HASH');
     
     if (isset($_POST['submit'.$this->name]))
     {
@@ -161,9 +160,11 @@ class Doofinder extends Module
 
       if (!count($this->_postErrors))
       {
+        $doofinder_hash = Configuration::get('DF_FEED_HASH');
+        $enable_hash = Configuration::get('DF_ENABLE_HASH', null);
         $this->_html .= $this->displayConfirmation($this->l('Settings updated!'));
         $this->_html .= $this->displayError($this->l('IF YOU HAVE CHANGED ANYTHING IN YOUR DATA FEED SETTINGS, REMEMBER YOU MUST REPROCESS.'));
-        if(empty($doofinder_hash)){
+        if(!empty($doofinder_hash) && $enable_hash){
             $this->_html .= $this->displayError($this->l('CHECK ALSO THAT THE NEW FEED URL IS THE SAME THAT ON YOUR DOOFINDER PANEL.'));
         }
       }
@@ -191,11 +192,7 @@ class Doofinder extends Module
    */
   protected function _updateConfiguration()
   {
-    $doofinder_hash = Configuration::get('DF_FEED_HASH');
-    if(empty($doofinder_hash)){
-        $doofinder_hash = md5('PrestaShop_Doofinder_'.date('YmdHis'));
-        Configuration::updateValue('DF_FEED_HASH',$doofinder_hash);
-    }  
+      
     $df_invalid_msg = $this->l('Please, select a valid option for %s.');
     $df_required_msg = $this->l('%s field is mandatory.');
 
@@ -208,6 +205,7 @@ class Doofinder extends Module
       'DF_SHOW_PRODUCT_FEATURES' => $this->l('Include product features in feed'),
       'DF_OWSEARCH' => $this->l('Overwrite Search page with Doofinder results'),
       'DF_OWSEARCHFAC' => $this->l('Enable facets on Overwrite Search Page'),
+      'DF_ENABLE_HASH' => $this->l('Enable security hash on feed URL'),
       'DF_DEBUG' => $this->l('Activate to write debug info in file.')
       );
 
@@ -224,6 +222,16 @@ class Doofinder extends Module
         $this->_postErrors[] = sprintf($df_invalid_msg, $optname_alt);
       }
     }
+    
+    $doofinder_hash = Configuration::get('DF_FEED_HASH');
+    if(empty($doofinder_hash)){
+        $enable_hash = Configuration::get('DF_ENABLE_HASH', null);
+        if($enable_hash){
+            $doofinder_hash = md5('PrestaShop_Doofinder_'.date('YmdHis'));
+            Configuration::updateValue('DF_FEED_HASH',$doofinder_hash);
+        }
+    }
+    
 
     $cfgStrSelectValues = array(
       'DF_GS_IMAGE_SIZE' => array( // Image Size
@@ -431,6 +439,12 @@ class Doofinder extends Module
     $field = $this->getYesNoSelectFor($optname, $this->l('Enable facets on Overwrite Search Page'));
     $fields[] = $field;
     $helper->fields_value[$optname] = $this->cfg($optname, self::NO);
+    
+    // DF_ENABLE_HASH
+    $optname = 'DF_ENABLE_HASH';
+    $field = $this->getYesNoSelectFor($optname, $this->l('Enable security hash on feed URL'));
+    $fields[] = $field;
+    $helper->fields_value[$optname] = $this->cfg($optname, self::NO);
 
     // DF_DEBUG
     $optname = 'DF_DEBUG';
@@ -513,11 +527,12 @@ class Doofinder extends Module
     $optname = 'DOOFINDER_SCRIPT_';
     $desc = $this->l('Paste the script as you got it from Doofinder.');
     $doofinder_hash = Configuration::get('DF_FEED_HASH');
+    $enable_hash = Configuration::get('DF_ENABLE_HASH', null);
     foreach (Language::getLanguages(true, $this->context->shop->id) as $lang)
     {
       $realoptname = $optname.strtoupper($lang['iso_code']);
       $url = dfTools::getFeedURL($lang['iso_code']);
-      if(!empty($doofinder_hash)){
+      if(!empty($doofinder_hash) && $enable_hash){
           $url.='&dfsec_hash='.$doofinder_hash;
       }
       $fields[] = array(
