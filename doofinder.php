@@ -678,14 +678,14 @@ class Doofinder extends Module
             $this->debug('Get Terms Options API Start');
         }
         
-        if(!class_exists('DoofinderApi')){
-            include_once dirname(__FILE__) . '/lib/doofinder_api.php';
-        }
         $hash_id = Configuration::get('DF_HASHID', null);
         $api_key = Configuration::get('DF_API_KEY', null);
         if($hash_id && $api_key){
             $fail = false;
             try {
+                if(!class_exists('DoofinderApi')){
+                    include_once dirname(__FILE__) . '/lib/doofinder_api.php';
+                }
                 $df = new DoofinderApi($hash_id, $api_key,false,array('apiVersion'=>'5'));
                 $dfOptions = $df->getOptions();
                 if($dfOptions){
@@ -722,9 +722,6 @@ class Doofinder extends Module
           $this->debug('Search On API Start');
         }
         
-        if(!class_exists('DoofinderApi')){
-            include_once dirname(__FILE__) . '/lib/doofinder_api.php';
-        }
         $hash_id = Configuration::get('DF_HASHID', null);
         $api_key = Configuration::get('DF_API_KEY', null);
         $show_variations = Configuration::get('DF_SHOW_PRODUCT_VARIATIONS', null);
@@ -733,7 +730,10 @@ class Doofinder extends Module
         if($hash_id && $api_key){
             $fail = false;
             try {
-                $df = new DoofinderApi($hash_id, $api_key);
+                if(!class_exists('DoofinderApi')){
+                    include_once dirname(__FILE__) . '/lib/doofinder_api.php';
+                }
+                $df = new DoofinderApi($hash_id, $api_key,false,array('apiVersion'=>'5'));
                 $dfResults = $df->query($string, $page, array('rpp' => $page_size,         // results per page
                                  'timeout' => $timeout,  // timeout in milisecs
                                  'types' => array(   // types of item 
@@ -934,20 +934,43 @@ class Doofinder extends Module
             $optionsDoofinder = json_decode(file_get_contents($cacheOptionsDoofinderFileName),true);
         }      
         if(empty($optionsDoofinder)){
-            $optionsDoofinder = $this->getDoofinderTermsOptions();
+            $optionsDoofinder = $this->getDoofinderTermsOptions(false);
             $jsonCacheOptionsDoofinder = json_encode($optionsDoofinder);
             file_put_contents($cacheOptionsDoofinderFileName, $jsonCacheOptionsDoofinder);
         }
-        
+		
+        $r_facets = array();
+        $t_facets = array();
+        foreach($optionsDoofinder['facets'] as $f_key => $f_values){
+                $r_facets[$f_values['name']] = $f_values['label'];
+                $t_facets[$f_values['name']] = $f_values['type'];
+        }
+		
         //Reorder filter block as doofinder dashboard
         $facetsBlock = array();
-        foreach($optionsDoofinder as $key_o => $value_o){
+        foreach($r_facets as $key_o => $value_o){
             $facetsBlock[$key_o] = $facets[$key_o];
+            $this->multi_rename_key($facetsBlock[$key_o]['terms']['buckets'],array("key","doc_count"), array("term","count"));
+            $facetsBlock[$key_o]['terms'] = $facetsBlock[$key_o]['terms']['buckets'];
+            $facetsBlock[$key_o]['_type'] = $t_facets[$key_o];
+            if($t_facets[$key_o] == 'range'){
+                $facetsBlock[$key_o]['ranges'][0] = array(
+                    'from' => $facets[$key_o]['range']['buckets'][0]['from'],
+                    'count' => $facets[$key_o]['range']['buckets'][0]['doc_count'],
+                    'min' => $facets[$key_o]['range']['buckets'][0]['stats']['min'],
+                    'max' => $facets[$key_o]['range']['buckets'][0]['stats']['max'],
+                    'total_count' => $facets[$key_o]['range']['buckets'][0]['stats']['count'],
+                    'total' => $facets[$key_o]['range']['buckets'][0]['stats']['sum'],
+                    'mean' => $facets[$key_o]['range']['buckets'][0]['stats']['avg'],
+                    'selected_from' => false,
+                    'selected_to' => false,
+                );
+            }
         }
         $facets = $facetsBlock;
 
         
-        return array('options'=>$optionsDoofinder,
+        return array('options'=>$r_facets,
             'facets'=>$facets,
             'filters'=>$filters,
             'nbr_filterBlocks' => 1);
@@ -1109,4 +1132,29 @@ class Doofinder extends Module
         /* We are sending an array in jSon to the .js controller, it will update both the filters and the products zones */
         return Tools::jsonEncode($vars);
     }
+    
+    //http://stackoverflow.com/a/17254761
+    function multi_rename_key(&$array, $old_keys, $new_keys)
+    {
+        if(!is_array($array)){
+            ($array=="") ? $array=array() : false;
+            return $array;
+        }
+        foreach($array as &$arr){
+            if (is_array($old_keys))
+            {
+                    foreach($new_keys as $k => $new_key)
+                    {
+                            (isset($old_keys[$k])) ? true : $old_keys[$k]=NULL;
+                            $arr[$new_key] = (isset($arr[$old_keys[$k]]) ? $arr[$old_keys[$k]] : null);
+                            unset($arr[$old_keys[$k]]);
+                    }
+            }else{
+                    $arr[$new_keys] = (isset($arr[$old_keys]) ? $arr[$old_keys] : null);
+                    unset($arr[$old_keys]);
+            }
+        }
+        return $array;
+    }
+    
 }
