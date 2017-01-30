@@ -331,7 +331,7 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
     if ($cfg_product_features){
       echo TXT_SEPARATOR;
       foreach(dfTools::getFeaturesForProduct($row['id_product'], $lang->id, $feature_keys) as $key => $value){
-        echo slugify($key)."=$value/";
+        echo slugify($key)."=".dfTools::cleanString($value)."/";
       }
         
     }
