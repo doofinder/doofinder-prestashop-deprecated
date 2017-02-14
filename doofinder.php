@@ -1099,7 +1099,7 @@ class Doofinder extends Module
             $vars = array_merge($vars, array('pagination_bottom' => $smarty->assign('paginationId', 'bottom')
                         ->fetch(_PS_THEME_DIR_ . 'pagination.tpl')));
         /* We are sending an array in jSon to the .js controller, it will update both the filters and the products zones */
-        return Tools::Tools::jsonEncode($vars);
+        return Tools::jsonEncode($vars);
     }
 
     //http://stackoverflow.com/a/17254761

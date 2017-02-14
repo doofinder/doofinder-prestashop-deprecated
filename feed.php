@@ -71,7 +71,7 @@ function slugify($text)
   $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
 
   // lowercase
-  $text = Tools::Tools::strtolower($text);
+  $text = Tools::strtolower($text);
 
   // remove unwanted characters
   $text = preg_replace('~[^-\w]+~', '', $text);
