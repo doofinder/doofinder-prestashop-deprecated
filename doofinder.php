@@ -87,13 +87,13 @@ class Doofinder extends Module
 
     private function configureHookCommon($params)
     {
-        $lang = strtoupper($this->context->language->iso_code);
+        $lang = Tools::strtoupper($this->context->language->iso_code);
         $script = $this->cfg("DOOFINDER_SCRIPT_$lang");
         $extra_css = $this->cfg('DF_EXTRA_CSS');
 
         $this->smarty->assign(array(
             'ENT_QUOTES' => ENT_QUOTES,
-            'lang' => strtolower($lang),
+            'lang' => Tools::strtolower($lang),
             'script' => dfTools::fixScriptTag($script),
             'extra_css' => dfTools::fixStyleTag($extra_css),
             'productLinks' => $this->_productLinks,
@@ -106,7 +106,7 @@ class Doofinder extends Module
     public function hookHeader($params)
     {
         $this->configureHookCommon($params);
-        if (isset($this->context->controller->php_self) && $this->context->controller->php_self == 'search') {
+        if (Tools::getIsset($this->context->controller->php_self) && $this->context->controller->php_self == 'search') {
 
             $overwrite_search = Configuration::get('DF_OWSEARCH', null);
             $overwrite_facets = Configuration::get('DF_OWSEARCHFAC', null);
@@ -898,11 +898,11 @@ class Doofinder extends Module
         $cacheOptionsDoofinderFileName = _PS_CACHE_DIR_ . 'smarty/compile/OptionsDoofinderFileName-' . Context::getContext()->shop->id . '-' . hash_hmac('sha256', 'OptionsDoofinderFileName', 'cache') . '-' . date('Ymd') . '.html';
         $optionsDoofinder = '';
         if (file_exists($cacheOptionsDoofinderFileName)) {
-            $optionsDoofinder = json_decode(file_get_contents($cacheOptionsDoofinderFileName), true);
+            $optionsDoofinder = Tools::json_decode(Tools::file_get_contents($cacheOptionsDoofinderFileName), true);
         }
         if (empty($optionsDoofinder)) {
             $optionsDoofinder = $this->getDoofinderTermsOptions(false);
-            $jsonCacheOptionsDoofinder = json_encode($optionsDoofinder);
+            $jsonCacheOptionsDoofinder = Tools::json_encode($optionsDoofinder);
             file_put_contents($cacheOptionsDoofinderFileName, $jsonCacheOptionsDoofinder);
         }
 
@@ -1036,7 +1036,7 @@ class Doofinder extends Module
 
         $meta_description = $category_metas['meta_description'];
 
-        $keywords = substr(Tools::strtolower($keywords), 0, 1000);
+        $keywords = Tools::substr(Tools::strtolower($keywords), 0, 1000);
         if (!empty($keywords))
             $meta_keywords = rtrim($category_title . ', ' . $keywords . ', ' . $category_metas['meta_keywords'], ', ');
 
