@@ -744,6 +744,7 @@ class dfTools
   public static function cleanURL($text)
   {
     $text = trim($text);
+    $text = preg_replace( "/\r|\n/", "", $text);
     $text = explode("?", $text);
 
     $baseUrl = array();

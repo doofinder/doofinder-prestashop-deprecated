@@ -295,7 +295,7 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
     echo dfTools::splitReferences($product_title).TXT_SEPARATOR;
 
     // TAGS
-    echo $row['tags'];
+    echo dfTools::cleanString($row['tags']);
 
     // PRODUCT PRICE & ON SALE PRICE
     if ($cfg_display_prices && !$cfg_product_variations)
