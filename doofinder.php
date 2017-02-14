@@ -58,7 +58,7 @@ class Doofinder extends Module
         $this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.6');
 
         parent::__construct();
-
+        $this->module_key = 'ec39233d5e6e250b7219cb771d7f20f0';
         $this->displayName = 'Doofinder';
         $this->description = $this->l('Install Doofinder in your shop with no effort.');
 
