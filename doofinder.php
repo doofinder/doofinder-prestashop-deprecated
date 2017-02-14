@@ -38,95 +38,94 @@ if (!class_exists('dfTools'))
 
 class Doofinder extends Module
 {
-  protected $_html = '';
-  protected $_postErrors = array();
-  protected $_productLinks = array();
 
-  const GS_SHORT_DESCRIPTION = 1;
-  const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "2.1.15";
-  const YES = 1;
-  const NO = 0;
+    protected $_html = '';
+    protected $_postErrors = array();
+    protected $_productLinks = array();
 
-  public function __construct()
-  {
-    $this->name = "doofinder";
-    $this->tab = "search_filter";
-    $this->version = self::VERSION;
-    $this->author = "Doofinder (http://www.doofinder.com)";
-    $this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.6');
+    const GS_SHORT_DESCRIPTION = 1;
+    const GS_LONG_DESCRIPTION = 2;
+    const VERSION = "2.1.15";
+    const YES = 1;
+    const NO = 0;
 
-    parent::__construct();
+    public function __construct()
+    {
+        $this->name = "doofinder";
+        $this->tab = "search_filter";
+        $this->version = self::VERSION;
+        $this->author = "Doofinder (http://www.doofinder.com)";
+        $this->ps_versions_compliancy = array('min' => '1.5', 'max' => '1.6');
 
-    $this->displayName = 'Doofinder';
-    $this->description = $this->l('Install Doofinder in your shop with no effort.');
+        parent::__construct();
 
-    $this->confirmUninstall = $this->l('Are you sure? This will not cancel your account in Doofinder service.');
-  }
+        $this->displayName = 'Doofinder';
+        $this->description = $this->l('Install Doofinder in your shop with no effort.');
 
+        $this->confirmUninstall = $this->l('Are you sure? This will not cancel your account in Doofinder service.');
+    }
 
-  public function install()
-  {
-    if (!parent::install() ||
-        !$this->registerHook('header') ||
-        !$this->registerHook('displayMobileTopSiteMap'))
-      return false;
-    
-    if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
-        // Hook the module either on the left or right column
-        $theme = new Theme(Context::getContext()->shop->id_theme);
-        if ((!$theme->default_left_column || !$this->registerHook('leftColumn')) && (!$theme->default_right_column || !$this->registerHook('rightColumn'))) {
-            // If there are no colums implemented by the template, throw an error and uninstall the module
-            $this->_errors[] = $this->l('This module need to be hooked in a column and your theme does not implement one if you want Search Facets');
-        }
-    } else
-        $this->registerHook('leftColumn');
+    public function install()
+    {
+        if (!parent::install() ||
+                !$this->registerHook('header') ||
+                !$this->registerHook('displayMobileTopSiteMap'))
+            return false;
 
-    return true;
-  }
+        if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
+            // Hook the module either on the left or right column
+            $theme = new Theme(Context::getContext()->shop->id_theme);
+            if ((!$theme->default_left_column || !$this->registerHook('leftColumn')) && (!$theme->default_right_column || !$this->registerHook('rightColumn'))) {
+                // If there are no colums implemented by the template, throw an error and uninstall the module
+                $this->_errors[] = $this->l('This module need to be hooked in a column and your theme does not implement one if you want Search Facets');
+            }
+        } else
+            $this->registerHook('leftColumn');
 
-  private function configureHookCommon($params)
-  {
-    $lang = strtoupper($this->context->language->iso_code);
-    $script = $this->cfg("DOOFINDER_SCRIPT_$lang");
-    $extra_css = $this->cfg('DF_EXTRA_CSS');
+        return true;
+    }
 
-    $this->smarty->assign(array(
-      'ENT_QUOTES' => ENT_QUOTES,
-      'lang' => strtolower($lang),
-      'script' => dfTools::fixScriptTag($script),
-      'extra_css' => dfTools::fixStyleTag($extra_css),
-      'productLinks' => $this->_productLinks,
-      'self' => dirname(__FILE__),
-    ));
+    private function configureHookCommon($params)
+    {
+        $lang = strtoupper($this->context->language->iso_code);
+        $script = $this->cfg("DOOFINDER_SCRIPT_$lang");
+        $extra_css = $this->cfg('DF_EXTRA_CSS');
 
-    return true;
-  }
+        $this->smarty->assign(array(
+            'ENT_QUOTES' => ENT_QUOTES,
+            'lang' => strtolower($lang),
+            'script' => dfTools::fixScriptTag($script),
+            'extra_css' => dfTools::fixStyleTag($extra_css),
+            'productLinks' => $this->_productLinks,
+            'self' => dirname(__FILE__),
+        ));
 
-  public function hookHeader($params)
-  {
-    $this->configureHookCommon($params);
-    if(isset($this->context->controller->php_self) && $this->context->controller->php_self == 'search' ){
-        
-        $overwrite_search = Configuration::get('DF_OWSEARCH', null);
-        $overwrite_facets = Configuration::get('DF_OWSEARCHFAC', null);
-        if ($overwrite_search && $overwrite_facets){
-            $css_path = str_replace('doofinder', 'blocklayered',$this->_path);
-            if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true){
-                $this->context->controller->addJS(($this->_path) . 'js/doofinder-pagination.js');
-                if (file_exists(_PS_MODULE_DIR_.'blocklayered/blocklayered.css')){
-                    $this->context->controller->addCSS($css_path.'blocklayered.css', 'all');
-                }else{
-                    $this->context->controller->addCSS(($this->_path) . 'css/doofinder-filters.css', 'all');
-                }
-            }else{
-                $this->context->controller->addJS(($this->_path) . 'js/doofinder-pagination_15.js');
-                if (file_exists(_PS_MODULE_DIR_.'blocklayered/blocklayered-15.css')){
-                    $this->context->controller->addCSS($css_path.'blocklayered-15.css', 'all');
-                }else{       
-                    $this->context->controller->addCSS(($this->_path) . 'css/doofinder-filters-15.css', 'all');
-                }
+        return true;
+    }
 
+    public function hookHeader($params)
+    {
+        $this->configureHookCommon($params);
+        if (isset($this->context->controller->php_self) && $this->context->controller->php_self == 'search') {
+
+            $overwrite_search = Configuration::get('DF_OWSEARCH', null);
+            $overwrite_facets = Configuration::get('DF_OWSEARCHFAC', null);
+            if ($overwrite_search && $overwrite_facets) {
+                $css_path = str_replace('doofinder', 'blocklayered', $this->_path);
+                if (version_compare(_PS_VERSION_, '1.6.0', '>=') === true) {
+                    $this->context->controller->addJS(($this->_path) . 'js/doofinder-pagination.js');
+                    if (file_exists(_PS_MODULE_DIR_ . 'blocklayered/blocklayered.css')) {
+                        $this->context->controller->addCSS($css_path . 'blocklayered.css', 'all');
+                    } else {
+                        $this->context->controller->addCSS(($this->_path) . 'css/doofinder-filters.css', 'all');
+                    }
+                } else {
+                    $this->context->controller->addJS(($this->_path) . 'js/doofinder-pagination_15.js');
+                    if (file_exists(_PS_MODULE_DIR_ . 'blocklayered/blocklayered-15.css')) {
+                        $this->context->controller->addCSS($css_path . 'blocklayered-15.css', 'all');
+                    } else {
+                        $this->context->controller->addCSS(($this->_path) . 'css/doofinder-filters-15.css', 'all');
+                    }
                 }
                 $this->context->controller->addJS(($this->_path) . 'js/doofinder_facets.js');
             }

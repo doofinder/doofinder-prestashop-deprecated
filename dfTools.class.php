@@ -264,7 +264,7 @@ class dfTools
             inner join ps_image i
              on i.id_product = P.id_product and i.position =  P.posicion";
         $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
-        if (Tools::getIsset($result[0]))
+        if (isset($result[0]))
             return $result[0]['id_image'];
         else
             return "";
@@ -317,7 +317,7 @@ class dfTools
      */
     public static function getAttributesForProductVariation($variation_id, $id_lang, $attribute_keys)
     {
-        if (Tools::getIsset($variation_id) && $variation_id > 0) {
+        if (isset($variation_id) && $variation_id > 0) {
             $sql = "
         SELECT pc.id_product_attribute,
                pal.name,
@@ -532,7 +532,7 @@ class dfTools
      */
     public static function getCategoryPath($id_category, $id_lang, $id_shop, $full = true)
     {
-        if (Tools::getIsset(self::$cached_category_paths[$id_category]))
+        if (isset(self::$cached_category_paths[$id_category]))
             return self::$cached_category_paths[$id_category];
 
         $excluded_ids = implode(',', self::getRootCategoryIds($id_lang));
@@ -665,13 +665,13 @@ class dfTools
         $l = intval($length);
         $c = trim(preg_replace('/\s+/', ' ', $text));
 
-        if (Tools::strlen($c) <= $l)
+        if (strlen($c) <= $l)
             return $c;
 
         $n = 0;
         $r = "";
         foreach (explode(' ', $c) as $p) {
-            if (($tmp = $n + Tools::strlen($p) + 1) <= $l) {
+            if (($tmp = $n + strlen($p) + 1) <= $l) {
                 $n = $tmp;
                 $r .= " $p";
             } else
@@ -715,11 +715,12 @@ class dfTools
     public static function cleanURL($text)
     {
         $text = trim($text);
+        $text = preg_replace("/\r|\n/", "", $text);
         $text = explode("?", $text);
 
         $baseUrl = array();
         foreach (explode("/", $text[0]) as $part) {
-            if (in_array(Tools::strtolower($part), array('http:', 'https:', '')))
+            if (in_array(strtolower($part), array('http:', 'https:', '')))
                 $baseUrl[] = $part;
             else
                 $baseUrl[] = rawurlencode($part);
@@ -730,7 +731,7 @@ class dfTools
             $text[0] = 'http://' . $text[0];
         }
 
-        if (Tools::getIsset($text[1])) {
+        if (isset($text[1])) {
             $params = array();
             foreach (explode("&", $text[1]) as $param) {
                 $param = explode("=", $param);
@@ -796,7 +797,7 @@ class dfTools
         if ($v === null)
             return $default;
 
-        switch (Tools::strtolower($v)) {
+        switch (strtolower($v)) {
             case 'false':
             case 'off':
             case 'no':
@@ -839,7 +840,7 @@ class dfTools
      */
     public static function getCurrencyForLanguage($code)
     {
-        $optname = 'DF_GS_CURRENCY_' . Tools::strtoupper($code);
+        $optname = 'DF_GS_CURRENCY_' . strtoupper($code);
         $id_currency = Configuration::get($optname);
 
         if ($id_currency)
@@ -863,10 +864,10 @@ class dfTools
             if (is_numeric($id_currency))
                 $id_currency = intval($id_currency);
             else
-                $id_currency = Currency::getIdByIsoCode(Tools::strtoupper($id_currency));
+                $id_currency = Currency::getIdByIsoCode(strtoupper($id_currency));
         }
         else {
-            $optname = 'DF_GS_CURRENCY_' . Tools::strtoupper($lang->iso_code);
+            $optname = 'DF_GS_CURRENCY_' . strtoupper($lang->iso_code);
             $id_currency = Currency::getIdByIsoCode(Configuration::get($optname));
         }
 
@@ -917,7 +918,7 @@ class dfTools
     public static function getFeedURL($langIsoCode)
     {
         $currency = self::getCurrencyForLanguage($langIsoCode);
-        return self::getModuleLink('feed.php') . "?language=" . Tools::strtoupper($langIsoCode) . "&currency=" . Tools::strtoupper($currency->iso_code);
+        return self::getModuleLink('feed.php') . "?language=" . strtoupper($langIsoCode) . "&currency=" . strtoupper($currency->iso_code);
     }
 
     /**
@@ -928,7 +929,7 @@ class dfTools
     public static function fixScriptTag($jsCode)
     {
         $result = trim(preg_replace('/<!--(.*?)-->/', '', $jsCode));
-        if (Tools::strlen($result) && !preg_match('/<script([^>]*?)>/', $result))
+        if (strlen($result) && !preg_match('/<script([^>]*?)>/', $result))
             $result = "<script type=\"text/javascript\">\n$result\n</script>";
         return $result;
     }
@@ -941,7 +942,7 @@ class dfTools
     public static function fixStyleTag($cssCode)
     {
         $result = trim(preg_replace('/<!--(.*?)-->/', '', $cssCode));
-        if (Tools::strlen($result) && !preg_match('/<style([^>]*?)>/', $result))
+        if (strlen($result) && !preg_match('/<style([^>]*?)>/', $result))
             $result = "<style type=\"text/css\">\n$result\n</style>";
         return $result;
     }
