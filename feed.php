@@ -71,7 +71,7 @@ function slugify($text)
   $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
 
   // lowercase
-  $text = strtolower($text);
+  $text = Tools::Tools::strtolower($text);
 
   // remove unwanted characters
   $text = preg_replace('~[^-\w]+~', '', $text);
@@ -121,7 +121,7 @@ if ($cfg_debug){
 
 
 // OUTPUT
-if (isset($_SERVER['HTTPS']))
+if (Tools::getIsset($_SERVER['HTTPS']))
   header('Strict-Transport-Security: max-age=500');
 
 header("Content-Type:text/plain; charset=utf-8");
@@ -150,7 +150,7 @@ if ($cfg_product_variations){
 if($cfg_product_features){
   $all_feature_keys = dfTools::getFeatureKeysForShopAndLang($shop->id, $lang->id);
 
-  if(isset($cfg_features_shown) && count($cfg_features_shown) > 0 && $cfg_features_shown[0] !== "")
+  if(Tools::getIsset($cfg_features_shown) && count($cfg_features_shown) > 0 && $cfg_features_shown[0] !== "")
     $feature_keys = dfTools::getSelectedFeatures($all_feature_keys, $cfg_features_shown);
   else
     $feature_keys = $all_feature_keys;
@@ -176,7 +176,7 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
   if(intval($row['id_product']) > 0){
     // ID, TITLE, LINK
 
-    if($cfg_product_variations && isset($row['id_product_attribute']) && intval($row['id_product_attribute']) > 0){
+    if($cfg_product_variations && Tools::getIsset($row['id_product_attribute']) && intval($row['id_product_attribute']) > 0){
       // ID
       echo "VAR-".$row['id_product_attribute'].TXT_SEPARATOR;
       // TITLE
@@ -225,11 +225,11 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
 
     // IMAGE LINK
 
-    if($cfg_product_variations && isset($row['id_product_attribute']) and intval($row['id_product_attribute']) > 0){
+    if($cfg_product_variations && Tools::getIsset($row['id_product_attribute']) and intval($row['id_product_attribute']) > 0){
         $cover = Product::getCover($row['id_product_attribute']);
         $id_image = dfTools::getVariationImg($row['id_product'], $row['id_product_attribute']);
 
-        if(isset($id_image)){
+        if(Tools::getIsset($id_image)){
           $image_link = dfTools::cleanURL(dfTools::getImageLink(
             $row['id_product_attribute'],
             $id_image,
