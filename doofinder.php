@@ -106,7 +106,7 @@ class Doofinder extends Module
     public function hookHeader($params)
     {
         $this->configureHookCommon($params);
-        if (Tools::getIsset($this->context->controller->php_self) && $this->context->controller->php_self == 'search') {
+        if (isset($this->context->controller->php_self) && $this->context->controller->php_self == 'search') {
 
             $overwrite_search = Configuration::get('DF_OWSEARCH', null);
             $overwrite_facets = Configuration::get('DF_OWSEARCHFAC', null);
@@ -154,7 +154,7 @@ class Doofinder extends Module
         $this->addCSS('css/doofinder.css');
 
 
-        if (Tools::getIsset($_POST['submit' . $this->name])) {
+        if (isset($_POST['submit' . $this->name])) {
             $this->_updateConfiguration();
 
             if (!count($this->_postErrors)) {
@@ -622,7 +622,7 @@ class Doofinder extends Module
 
     public function cfg($key, $default = null)
     {
-        if (Tools::getIsset($this->context->id_shop)) {
+        if (isset($this->context->id_shop)) {
             return dfTools::cfg($this->context->id_shop, $key, $default);
         } else {
             return dfTools::cfg(null, $key, $default);
@@ -632,14 +632,14 @@ class Doofinder extends Module
     private function debug($message)
     {
         $debug = Configuration::get('DF_DEBUG', null);
-        if (Tools::getIsset($debug) && $debug)
+        if (isset($debug) && $debug)
             error_log("$message\n", 3, dirname(__FILE__) . '/doofinder.log');
     }
 
     public function getDoofinderTermsOptions($only_facets = true)
     {
         $debug = Configuration::get('DF_DEBUG', null);
-        if (Tools::getIsset($debug) && $debug) {
+        if (isset($debug) && $debug) {
             $this->debug('Get Terms Options API Start');
         }
 
@@ -656,7 +656,7 @@ class Doofinder extends Module
                 if ($dfOptions) {
                     $options = json_decode($dfOptions, true);
                 }
-                if (Tools::getIsset($debug) && $debug) {
+                if (isset($debug) && $debug) {
                     $this->debug("Options: " . var_export($dfOptions, true));
                 }
                 if ($only_facets) {
@@ -671,7 +671,7 @@ class Doofinder extends Module
                 }
             } catch (Exception $e) {
                 $fail = true;
-                if (Tools::getIsset($debug) && $debug) {
+                if (isset($debug) && $debug) {
                     $this->debug("Exception:  " . $e->getMessage());
                 }
             }
@@ -681,7 +681,7 @@ class Doofinder extends Module
     public function searchOnApi($string, $page = 1, $page_size = 12, $timeout = 8000, $filters = null, $return_facets = false)
     {
         $debug = Configuration::get('DF_DEBUG', null);
-        if (Tools::getIsset($debug) && $debug) {
+        if (isset($debug) && $debug) {
             $this->debug('Search On API Start');
         }
 
@@ -748,20 +748,20 @@ class Doofinder extends Module
                 $product_pool = "0";
             }
 
-            if (Tools::getIsset($debug) && $debug) {
+            if (isset($debug) && $debug) {
                 $this->debug("Product Pool: $product_pool");
             }
 
             $product_pool_attributes = implode(',', $product_pool_attributes);
 
-            if (!Tools::getIsset($context) || !$context)
+            if (!isset($context) || !$context)
                 $context = Context::getContext();
             // Avoids SQL Error  
             if ($product_pool_attributes == "") {
                 $product_pool_attributes = "0";
             }
 
-            if (Tools::getIsset($debug) && $debug) {
+            if (isset($debug) && $debug) {
                 $this->debug("Product Pool Attributes: $product_pool_attributes");
             }
             $db = Db::getInstance(_PS_USE_SQL_SLAVE_);
@@ -794,7 +794,7 @@ class Doofinder extends Module
                     (($show_variations) ? ' AND (product_attribute_shop.`id_product_attribute` IS NULL OR product_attribute_shop.`id_product_attribute` IN (' . $product_pool_attributes . ')) ' : '') .
                     ' GROUP BY product_shop.id_product ' . (($show_variations) ? ' ,  product_attribute_shop.`id_product_attribute` ' : '') .
                     ' ORDER BY FIELD (p.`id_product`,' . $product_pool . ') ' . (($show_variations) ? ' , FIELD (product_attribute_shop.`id_product_attribute`,' . $product_pool_attributes . ')' : '');
-            if (Tools::getIsset($debug) && $debug) {
+            if (isset($debug) && $debug) {
                 $this->debug("SQL: $sql");
             }
 
@@ -839,7 +839,7 @@ class Doofinder extends Module
 
     public function hookLeftColumn($params)
     {
-        if (Tools::getIsset($this->context->controller->php_self) && $this->context->controller->php_self == 'search') {
+        if (isset($this->context->controller->php_self) && $this->context->controller->php_self == 'search') {
             return $this->generateSearch();
         }
         return false;
@@ -1021,7 +1021,7 @@ class Doofinder extends Module
         $title = '';
         $keywords = '';
 
-        if (Tools::getIsset($filter_block) && is_array($filter_block['title_values']))
+        if (isset($filter_block) && is_array($filter_block['title_values']))
             foreach ($filter_block['title_values'] as $key => $val) {
                 $title .= ' > ' . $key . ' ' . implode('/', $val);
                 $keywords .= $key . ' ' . implode('/', $val) . ', ';
@@ -1077,7 +1077,7 @@ class Doofinder extends Module
             $product_list = $smarty->fetch(_PS_THEME_DIR_ . 'product-list.tpl');
         }
         // To avoid Notice
-        if (!Tools::getIsset($filter_block)) {
+        if (!isset($filter_block)) {
             $filter_block = array('current_friendly_url' => '');
         }
         $vars = array(
@@ -1087,7 +1087,7 @@ class Doofinder extends Module
             'categoryCount' => $category_count,
             'meta_title' => $meta_title . ' - ' . Configuration::get('PS_SHOP_NAME'),
             'heading' => $meta_title,
-            'meta_keywords' => Tools::getIsset($meta_keywords) ? $meta_keywords : null,
+            'meta_keywords' => isset($meta_keywords) ? $meta_keywords : null,
             'meta_description' => $meta_description,
             'current_friendly_url' => ((int) $n == (int) $nb_products) ? '#/show-all' : '#' . $filter_block['current_friendly_url'],
             //'filters' => $filter_block['filters'],
@@ -1112,12 +1112,12 @@ class Doofinder extends Module
         foreach ($array as &$arr) {
             if (is_array($old_keys)) {
                 foreach ($new_keys as $k => $new_key) {
-                    (Tools::getIsset($old_keys[$k])) ? true : $old_keys[$k] = NULL;
-                    $arr[$new_key] = (Tools::getIsset($arr[$old_keys[$k]]) ? $arr[$old_keys[$k]] : null);
+                    (isset($old_keys[$k])) ? true : $old_keys[$k] = NULL;
+                    $arr[$new_key] = (isset($arr[$old_keys[$k]]) ? $arr[$old_keys[$k]] : null);
                     unset($arr[$old_keys[$k]]);
                 }
             } else {
-                $arr[$new_keys] = (Tools::getIsset($arr[$old_keys]) ? $arr[$old_keys] : null);
+                $arr[$new_keys] = (isset($arr[$old_keys]) ? $arr[$old_keys] : null);
                 unset($arr[$old_keys]);
             }
         }

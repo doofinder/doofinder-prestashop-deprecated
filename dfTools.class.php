@@ -264,7 +264,7 @@ class dfTools
             inner join ps_image i
              on i.id_product = P.id_product and i.position =  P.posicion";
         $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
-        if (Tools::getIsset($result[0]))
+        if (isset($result[0]))
             return $result[0]['id_image'];
         else
             return "";
@@ -317,7 +317,7 @@ class dfTools
      */
     public static function getAttributesForProductVariation($variation_id, $id_lang, $attribute_keys)
     {
-        if (Tools::getIsset($variation_id) && $variation_id > 0) {
+        if (isset($variation_id) && $variation_id > 0) {
             $sql = "
         SELECT pc.id_product_attribute,
                pal.name,
@@ -532,7 +532,7 @@ class dfTools
      */
     public static function getCategoryPath($id_category, $id_lang, $id_shop, $full = true)
     {
-        if (Tools::getIsset(self::$cached_category_paths[$id_category]))
+        if (isset(self::$cached_category_paths[$id_category]))
             return self::$cached_category_paths[$id_category];
 
         $excluded_ids = implode(',', self::getRootCategoryIds($id_lang));
@@ -731,7 +731,7 @@ class dfTools
             $text[0] = 'http://' . $text[0];
         }
 
-        if (Tools::getIsset($text[1])) {
+        if (isset($text[1])) {
             $params = array();
             foreach (explode("&", $text[1]) as $param) {
                 $param = explode("=", $param);

@@ -301,7 +301,7 @@ class DoofinderApi
      */
     public function getFilter($filterName)
     {
-        if ($this->optionExists('filter') && Tools::getIsset($this->search_options['filter'][$filterName])) {
+        if ($this->optionExists('filter') && isset($this->search_options['filter'][$filterName])) {
             return $this->filter[$filterName];
         }
         return false;
@@ -330,7 +330,7 @@ class DoofinderApi
         if (!$this->optionExists('filter')) {
             $this->search_options['filter'] = array($filterName => array());
         }
-        if (!Tools::getIsset($this->search_options['filter'][$filterName])) {
+        if (!isset($this->search_options['filter'][$filterName])) {
             $this->filter[$filterName] = array();
             $this->search_options['filter'][$filterName] = array();
         }
@@ -347,7 +347,7 @@ class DoofinderApi
      */
     public function removeTerm($filterName, $term)
     {
-        if ($this->optionExists('filter') && Tools::getIsset($this->search_options['filter'][$filterName]) &&
+        if ($this->optionExists('filter') && isset($this->search_options['filter'][$filterName]) &&
                 in_array($term, $this->search_options['filter'][$filterName])) {
 
             function filter_me($value)
@@ -373,7 +373,7 @@ class DoofinderApi
         if (!$this->optionExists('filter')) {
             $this->search_options['filter'] = array($filterName => array());
         }
-        if (!Tools::getIsset($this->search_options['filter'][$filterName])) {
+        if (!isset($this->search_options['filter'][$filterName])) {
             $this->search_options['filter'][$filterName] = array();
         }
         if ($from) {
@@ -615,20 +615,20 @@ class DoofinderResults
             }
         }
         // doofinder status
-        $this->status = Tools::getIsset($this->properties['doofinder_status']) ?
+        $this->status = isset($this->properties['doofinder_status']) ?
                 $this->properties['doofinder_status'] : self::SUCCESS;
 
         // results
         $this->results = array();
 
-        if (Tools::getIsset($rawResults['results']) && is_array($rawResults['results'])) {
+        if (isset($rawResults['results']) && is_array($rawResults['results'])) {
             $this->results = $rawResults['results'];
         }
 
         // build a friendly filter array
         $this->filter = array();
         // reorder filter, before assigning it to $this
-        if (Tools::getIsset($rawResults['filter'])) {
+        if (isset($rawResults['filter'])) {
             foreach ($rawResults['filter'] as $filterType => $filters) {
                 foreach ($filters as $filterName => $filterProperties) {
                     $this->filter[$filterName] = $filterProperties;
@@ -638,7 +638,7 @@ class DoofinderResults
 
         // facets
         $this->facets = array();
-        if (Tools::getIsset($rawResults['facets'])) {
+        if (isset($rawResults['facets'])) {
             $this->facets = $rawResults['facets'];
 
             // mark "selected" true or false according to filters presence
@@ -646,7 +646,7 @@ class DoofinderResults
                 switch ($facetProperties['_type']) {
                     case 'terms':
                         foreach ($facetProperties['terms'] as $pos => $term) {
-                            if (Tools::getIsset($this->filter[$facetName]) && in_array($term['term'], $this->filter[$facetName])) {
+                            if (isset($this->filter[$facetName]) && in_array($term['term'], $this->filter[$facetName])) {
                                 $this->facets[$facetName]['terms'][$pos]['selected'] = true;
                             } else {
                                 $this->facets[$facetName]['terms'][$pos]['selected'] = false;
@@ -657,10 +657,10 @@ class DoofinderResults
                         foreach ($facetProperties['ranges'] as $pos => $range) {
                             $this->facets[$facetName]['ranges'][$pos]['selected_from'] = false;
                             $this->facets[$facetName]['ranges'][$pos]['selected_to'] = false;
-                            if (Tools::getIsset($this->filter[$facetName]) && Tools::getIsset($this->filter[$facetName]['gte'])) {
+                            if (isset($this->filter[$facetName]) && isset($this->filter[$facetName]['gte'])) {
                                 $this->facets[$facetName]['ranges'][$pos]['selected_from'] = $this->filter[$facetName]['gte'];
                             }
-                            if (Tools::getIsset($this->filter[$facetName]) && Tools::getIsset($this->filter[$facetName]['lte'])) {
+                            if (isset($this->filter[$facetName]) && isset($this->filter[$facetName]['lte'])) {
                                 $this->facets[$facetName]['ranges'][$pos]['selected_to'] = $this->filter[$facetName]['lte'];
                             }
                         }
