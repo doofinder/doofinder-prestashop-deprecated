@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Doofinder On-site Search Prestashop Module
  *
@@ -30,6 +29,7 @@
  *
  *       http://creativecommons.org/licenses/by-nc-sa/3.0/
  */
+
 require_once(dirname(__FILE__) . '/../../config/config.inc.php');
 require_once(dirname(__FILE__) . '/../../init.php');
 require_once(dirname(__FILE__) . '/doofinder.php');

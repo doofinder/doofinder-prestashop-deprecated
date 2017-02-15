@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Doofinder On-site Search Prestashop Module
  *
@@ -30,6 +29,7 @@
  *
  *       http://creativecommons.org/licenses/by-nc-sa/3.0/
  */
+
 require_once(dirname(__FILE__) . '/../../config/config.inc.php');
 require_once(dirname(__FILE__) . '/../../init.php');
 require_once(dirname(__FILE__) . '/doofinder.php');
@@ -46,34 +46,35 @@ $currencies = array_keys(dfTools::getAvailableCurrencies());
 $display_prices = (bool) dfTools::cfg($context->shop->id, 'DF_GS_DISPLAY_PRICES', true);
 $prices_with_taxes = (bool) dfTools::cfg($context->shop->id, 'DF_GS_PRICES_USE_TAX', true);
 
-foreach (Language::getLanguages(true, $context->shop->id) as $lang) {
-    $lang = Tools::strtoupper($lang['iso_code']);
-    $currency = dfTools::getCurrencyForLanguage($lang);
+foreach (Language::getLanguages(true, $context->shop->id) as $lang)
+{
+  $lang = strtoupper($lang['iso_code']);
+  $currency = dfTools::getCurrencyForLanguage($lang);
 
-    $languages[] = $lang;
-    $configurations[$lang] = array(
-        "language" => $lang,
-        "currency" => Tools::strtoupper($currency->iso_code),
-        "prices" => $display_prices,
-        "taxes" => $prices_with_taxes,
-    );
+  $languages[] = $lang;
+  $configurations[$lang] = array(
+    "language" => $lang,
+    "currency" => strtoupper($currency->iso_code),
+    "prices" => $display_prices,
+    "taxes" => $prices_with_taxes,
+  );
 }
 
 
 $cfg = array(
-    "platform" => array(
-        "name" => "Prestashop",
-        "version" => _PS_VERSION_
+  "platform" => array(
+    "name" => "Prestashop",
+    "version" => _PS_VERSION_
+  ),
+  "module" => array(
+    "version" => Doofinder::VERSION,
+    "feed" => dfTools::getModuleLink('feed.php'),
+    "options" => array(
+      "language" => $languages,
+      "currency" => $currencies,
     ),
-    "module" => array(
-        "version" => Doofinder::VERSION,
-        "feed" => dfTools::getModuleLink('feed.php'),
-        "options" => array(
-            "language" => $languages,
-            "currency" => $currencies,
-        ),
-        "configuration" => $configurations,
-    ),
+    "configuration" => $configurations,
+  ),
 );
 
 echo dfTools::json_encode($cfg);
