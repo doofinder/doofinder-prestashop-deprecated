@@ -823,7 +823,7 @@ class Doofinder extends Module
 				'.Product::sqlStock('p', 'product_attribute_shop', false, $context->shop) :  Product::sqlStock('p', 'product', false, Context::getContext()->shop)).'
 				LEFT JOIN `'._DB_PREFIX_.'manufacturer` m ON m.`id_manufacturer` = p.`id_manufacturer`
 				LEFT JOIN `'._DB_PREFIX_.'image` i ON (i.`id_product` = p.`id_product`) 
-                                LEFT JOIN `'._DB_PREFIX_.'product_attribute_image` pai ON (pai.`id_product_attribute` = product_attribute_shop.`id_product_attribute`) '.
+                                '.((Combination::isFeatureActive() && $show_variations) ? ' LEFT JOIN `'._DB_PREFIX_.'product_attribute_image` pai ON (pai.`id_product_attribute` = product_attribute_shop.`id_product_attribute`) ':' ').
 				Shop::addSqlAssociation('image', 'i', false, 'i.cover=1').' 
 				LEFT JOIN `'._DB_PREFIX_.'image_lang` il ON (i.`id_image` = il.`id_image` AND il.`id_lang` = '.(int)$id_lang.')
 				WHERE p.`id_product` IN ('.$product_pool.') '.
