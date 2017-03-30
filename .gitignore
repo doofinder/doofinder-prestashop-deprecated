@@ -6,3 +6,5 @@ node_modules
 doofinder.log
 test_doofinder.php
 /deploy
+/dist/*
+!/dist/*latest*.zip
