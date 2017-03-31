@@ -1,5 +1,4 @@
 config*.xml
-*.zip
 localconfig.json
 node_modules
 /nbproject/private/
@@ -7,3 +6,5 @@ node_modules
 doofinder.log
 test_doofinder.php
 /deploy
+/dist/*
+!/dist/*latest*.zip

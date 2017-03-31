@@ -29,7 +29,7 @@
 	  		dfLinks.forEach(function(item){
 	  			if(href.indexOf(item) > -1 && typeof(dfLayer) != 'undefined'){
 	  				var hashid = dfLayer.layerOptions.hashid;
-					var cookie = Cookies.getJSON('dfhit' + hashid);
+					var cookie = Cookies.getJSON('doofhit' + hashid);
 					var query = cookie.query;
 	  				dfLayer.controller.registerClick(dfProductLinks[item], {
 	  					"query": query

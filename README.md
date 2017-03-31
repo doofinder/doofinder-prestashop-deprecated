@@ -4,7 +4,7 @@ Plugin that allows to configure the [Doofinder](http://www.doofinder.com) search
 
 ## How to install
 
-The easiest way of installing the plugin is downloading it from our [support page](http://support.doofinder.com). If you want to download it from this page, you can download the latest release from the tags section, but you will have to prepare the module `.zip` file prior to installing it.
+The easiest way of installing the plugin is downloading it from our [support page](http://www.doofinder.com/support). If you want to download it from this page, you can download the latest release from the tags section, but you will have to prepare the module `.zip` file prior to installing it.
 
 If it is the case, there is an included `package.sh` script file (UNIX systems) that will create the package for you. If you are using Windows refer to that script to get hints on how to create the package.
 
