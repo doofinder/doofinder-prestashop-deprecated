@@ -477,8 +477,11 @@ class dfTools
         p.id_product
     ";
 
-    if (dfTools::cfg($id_shop, 'DF_SHOW_PRODUCT_VARIATIONS')){
+    if (dfTools::cfg($id_shop, 'DF_SHOW_PRODUCT_VARIATIONS') == 1){
       $sql = $sql_variations;
+    }else if(dfTools::cfg($id_shop, 'DF_SHOW_PRODUCT_VARIATIONS') == 2){
+      $m = Module::getInstanceByName('doofinder');
+      $sql = $m->getSQLOnlyProductsWithAttributes();
     }
 
     $mpn_field = dfTools::cfg($id_shop, 'DF_GS_MPN_FIELD', 'reference');
