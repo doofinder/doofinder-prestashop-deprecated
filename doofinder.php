@@ -277,7 +277,7 @@ class Doofinder extends Module
       }
     }
 
-    $cfgLangStrValues = array('DOOFINDER_SCRIPT_' => true, 'DF_GS_CURRENCY_' => false);
+    $cfgLangStrValues = array('DOOFINDER_SCRIPT_' => true, 'DF_GS_CURRENCY_' => false, 'DF_HASHID_' => false);
     foreach ($cfgLangStrValues as $prefix => $html)
     {
       foreach (Language::getLanguages(true, $this->context->shop->id) as $lang)
@@ -299,7 +299,6 @@ class Doofinder extends Module
     $cfgCodeStrValues = array(
         'DF_EXTRA_CSS',
         'DF_API_KEY',
-        'DF_HASHID',
         'DF_CUSTOMEXPLODEATTR'
       );
 
@@ -418,9 +417,26 @@ class Doofinder extends Module
 
     // DF_SHOW_PRODUCT_VARIATIONS
     $optname = 'DF_SHOW_PRODUCT_VARIATIONS';
-    $field = $this->getYesNoSelectFor($optname, $this->l('Include product variations in feed'));
-    $fields[] = $field;
-    $helper->fields_value[$optname] = $this->cfg($optname, self::NO);
+    $fields[] = array(
+      'label' => $this->l('Include product variations in feed'),
+
+      'type' => 'select',
+      'options' => array(
+        'query' => array(
+          array($optname => '0', 'name' => $this->l('No, only product')),
+          array($optname => '1', 'name' => $this->l('Yes, Include each variations')),
+          array($optname => '2', 'name' => $this->l('Only product but all possible attribute for them')),
+        ),
+
+        'id' => $optname,
+        'name' => 'name',
+        ),
+      'name' => $optname,
+      'required' => true,
+      );
+    $helper->fields_value[$optname] = $this->cfg($optname);
+    
+    
 
     // DF_SHOW_PRODUCT_FEATURES
     $optname = 'DF_SHOW_PRODUCT_FEATURES';
@@ -547,6 +563,18 @@ class Doofinder extends Module
         );
 
       $helper->fields_value[$realoptname] = $this->cfg($realoptname);
+      
+        // DF_HASHID_LANG
+        $real_optname_hash = 'DF_HASHID_'.strtoupper($lang['iso_code']);
+        $fields[] = array(
+          'label' => $this->l('Hash ID').' ('.strtoupper($lang['iso_code']).')',
+          'desc' => $this->l('Hash ID, needed to overwrite Search page.'),
+          'type' => 'text',
+          'name' => $real_optname_hash,
+          'required' => false,
+          'size' => 100,
+          );
+        $helper->fields_value[$real_optname_hash] = $this->cfg($real_optname_hash);
     }
 
     // DF_EXTRA_CSS
@@ -575,19 +603,7 @@ class Doofinder extends Module
     $helper->fields_value[$optname] = $this->cfg($optname);
 
     
-    // DF_HASHID
-    $optname = 'DF_HASHID';
-    $fields[] = array(
-      'label' => $this->l('Hash ID'),
-      'desc' => $this->l('Hash ID, needed to overwrite Search page.'),
-      'type' => 'text',
-      'name' => $optname,
-      'required' => false,
-      'size' => 100,
-      );
-    $helper->fields_value[$optname] = $this->cfg($optname);
-
-    $fields_form[1]['form']['input'] = $fields;
+    
     
     // DF_CUSTOMEXPLODEATTR
     $optname = 'DF_CUSTOMEXPLODEATTR';
@@ -678,7 +694,7 @@ class Doofinder extends Module
             $this->debug('Get Terms Options API Start');
         }
         
-        $hash_id = Configuration::get('DF_HASHID', null);
+        $hash_id = Configuration::get('DF_HASHID_'.strtoupper(Context::getContext()->language->iso_code), null);
         $api_key = Configuration::get('DF_API_KEY', null);
         if($hash_id && $api_key){
             $fail = false;
@@ -722,10 +738,12 @@ class Doofinder extends Module
           $this->debug('Search On API Start');
         }
         
-        $hash_id = Configuration::get('DF_HASHID', null);
+        $hash_id = Configuration::get('DF_HASHID_'.strtoupper(Context::getContext()->language->iso_code), null);
         $api_key = Configuration::get('DF_API_KEY', null);
         $show_variations = Configuration::get('DF_SHOW_PRODUCT_VARIATIONS', null);
-
+        if((int)$show_variations !== 1){
+            $show_variations = false;
+        }
         
         if($hash_id && $api_key){
             $fail = false;
@@ -804,7 +822,7 @@ class Doofinder extends Module
             $id_lang = $context->language->id;
             $sql = 'SELECT p.*, product_shop.*, stock.out_of_stock, IFNULL(stock.quantity, 0) as quantity,
 				pl.`description_short`, pl.`available_now`, pl.`available_later`, pl.`link_rewrite`, pl.`name`,
-			 '.(Combination::isFeatureActive() ? ' IF(pai.`id_image` IS NULL OR pai.`id_image` = 0, MAX(image_shop.`id_image`),pai.`id_image`) id_image, ':'i.id_image, '). '
+			 '.(Combination::isFeatureActive() && $show_variations ? ' IF(pai.`id_image` IS NULL OR pai.`id_image` = 0, MAX(image_shop.`id_image`),pai.`id_image`) id_image, ':'i.id_image, '). '
                          il.`legend`, m.`name` manufacturer_name '.(Combination::isFeatureActive() ? (($show_variations)?', MAX(product_attribute_shop.`id_product_attribute`) id_product_attribute':', product_attribute_shop.`id_product_attribute` id_product_attribute') : '').',
 				DATEDIFF(
 					p.`date_add`,
@@ -953,6 +971,11 @@ class Doofinder extends Module
             $facetsBlock[$key_o] = $facets[$key_o];
             $this->multi_rename_key($facetsBlock[$key_o]['terms']['buckets'],array("key","doc_count"), array("term","count"));
             $facetsBlock[$key_o]['terms'] = $facetsBlock[$key_o]['terms']['buckets'];
+            if(count($facetsBlock[$key_o]['terms'])){
+                foreach($facetsBlock[$key_o]['terms'] as $key_t => $value_t){
+                    $facetsBlock[$key_o]['terms'][$key_t]['selected'] = 0;
+                }
+            }
             $facetsBlock[$key_o]['_type'] = $t_facets[$key_o];
             if($t_facets[$key_o] == 'range'){
                 $facetsBlock[$key_o]['ranges'][0] = array(
@@ -1156,6 +1179,71 @@ class Doofinder extends Module
             }
         }
         return $array;
+    }
+    
+    function getSQLOnlyProductsWithAttributes(){
+        $attr_groups = AttributeGroup::getAttributesGroups((int)Configuration::get('PS_LANG_DEFAULT'));
+        
+        $sql_select_attributes = array();
+        $sql_from_attributes = array();
+        $sql_from_only = ' LEFT JOIN _DB_PREFIX_product_attribute pa ON (p.id_product = pa.id_product)
+                                        LEFT JOIN _DB_PREFIX_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) ';
+        foreach($attr_groups as $a_group){
+            $a_group_name = str_replace('-','_',Tools::str2url($a_group['name']));
+            $sql_select_attributes[] = ' GROUP_CONCAT(DISTINCT pal_'.$a_group['id_attribute_group'].'.name) as attributes_'.$a_group_name;
+            $sql_from_attributes[] = '  LEFT JOIN _DB_PREFIX_attribute pat_'.$a_group['id_attribute_group'].' ON (pat_'.$a_group['id_attribute_group'].'.id_attribute = pac.id_attribute AND pat_'.$a_group['id_attribute_group'].'.id_attribute_group = '.$a_group['id_attribute_group'].' )
+                                        LEFT JOIN _DB_PREFIX_attribute_lang pal_'.$a_group['id_attribute_group'].' ON (pal_'.$a_group['id_attribute_group'].'.id_attribute = pat_'.$a_group['id_attribute_group'].'.id_attribute AND pal_'.$a_group['id_attribute_group'].'.id_lang = '.(int)Configuration::get('PS_LANG_DEFAULT').') ';
+        
+        }
+        
+        $sql = "
+            SELECT
+              ps.id_product,
+              __ID_CATEGORY_DEFAULT__,
+
+              m.name AS manufacturer,
+
+              p.__MPN__ AS mpn,
+              p.ean13 AS ean13,
+
+              pl.name,
+              pl.description,
+              pl.description_short,
+              pl.meta_title,
+              pl.meta_keywords,
+              pl.meta_description,
+              GROUP_CONCAT(tag.name SEPARATOR '/') AS tags,
+              pl.link_rewrite,
+              cl.link_rewrite AS cat_link_rew,
+
+              im.id_image,
+
+              p.available_for_order ".(count($sql_select_attributes)?','.implode(',',$sql_select_attributes):'')."
+            FROM
+              _DB_PREFIX_product p
+              INNER JOIN _DB_PREFIX_product_shop ps
+                ON (p.id_product = ps.id_product AND ps.id_shop = _ID_SHOP_)
+              LEFT JOIN _DB_PREFIX_product_lang pl
+                ON (p.id_product = pl.id_product AND pl.id_shop = _ID_SHOP_ AND pl.id_lang = _ID_LANG_)
+              LEFT JOIN _DB_PREFIX_manufacturer m
+                ON (p.id_manufacturer = m.id_manufacturer)
+              LEFT JOIN _DB_PREFIX_category_lang cl
+                ON (p.id_category_default = cl.id_category AND cl.id_shop = _ID_SHOP_ AND cl.id_lang = _ID_LANG_)
+              LEFT JOIN (_DB_PREFIX_image im INNER JOIN _DB_PREFIX_image_shop ims ON im.id_image = ims.id_image)
+                ON (p.id_product = im.id_product AND ims.id_shop = _ID_SHOP_ AND _IMS_COVER_)
+              LEFT JOIN (_DB_PREFIX_tag tag INNER JOIN _DB_PREFIX_product_tag pt ON tag.id_tag = pt.id_tag AND tag.id_lang = _ID_LANG_)
+                ON (pt.id_product = p.id_product)
+                ".(count($sql_from_attributes)? $sql_from_only.implode(' ',$sql_from_attributes):'')."
+            WHERE
+              __IS_ACTIVE__
+              __VISIBILITY__
+            GROUP BY
+              p.id_product
+            ORDER BY
+              p.id_product
+          ";
+        
+        return $sql;
     }
     
 }

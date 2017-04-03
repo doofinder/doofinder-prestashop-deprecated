@@ -100,7 +100,7 @@ $cfg_display_prices = dfTools::getBooleanFromRequest('prices', (bool) dfTools::c
 $cfg_prices_w_taxes = dfTools::getBooleanFromRequest('taxes', (bool) dfTools::cfg($shop->id, 'DF_GS_PRICES_USE_TAX', Doofinder::YES));
 $cfg_image_size = dfTools::cfg($shop->id, 'DF_GS_IMAGE_SIZE');
 $cfg_mod_rewrite = dfTools::cfg($shop->id, 'PS_REWRITING_SETTINGS', Doofinder::YES);
-$cfg_product_variations = dfTools::cfg($shop->id, 'DF_SHOW_PRODUCT_VARIATIONS');
+$cfg_product_variations = (int)dfTools::cfg($shop->id, 'DF_SHOW_PRODUCT_VARIATIONS');
 $cfg_product_features = dfTools::cfg($shop->id, 'DF_SHOW_PRODUCT_FEATURES');
 $cfg_debug = dfTools::cfg($shop->id, 'DF_DEBUG');
 $cfg_features_shown = explode(',', dfTools::cfg($shop->id, 'DF_FEATURES_SHOWN'));
@@ -139,12 +139,18 @@ if ($cfg_display_prices)
   $header[] = 'sale_price';
 }
 
-if ($cfg_product_variations){
+if ($cfg_product_variations == 1){
   $header[] = 'variation_reference';
   $attribute_keys = dfTools::getAttributeKeysForShopAndLang($shop->id, $lang->id);
   foreach($attribute_keys as $key){
     $header[] = slugify($key);
   }
+}else if($cfg_product_variations == 2){
+    $attr_groups = AttributeGroup::getAttributesGroups((int)Configuration::get('PS_LANG_DEFAULT'));
+    foreach($attr_groups as $a_group){
+        $a_group_name = str_replace('-','_',Tools::str2url($a_group['name']));
+        $header[] = 'attributes_'.$a_group_name;
+    }
 }
 
 if($cfg_product_features){
@@ -161,13 +167,13 @@ if($cfg_product_features){
   $header[] = "attributes"; 
 }
 
+
+
 if (!$limit || ($offset !== false && intval($offset) === 0))
 {
   echo implode(TXT_SEPARATOR, $header).PHP_EOL;
   dfTools::flush();
 }
-
-
 
 // PRODUCTS
 foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, $offset) as $row)
@@ -176,7 +182,7 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
   if(intval($row['id_product']) > 0){
     // ID, TITLE, LINK
 
-    if($cfg_product_variations && isset($row['id_product_attribute']) && intval($row['id_product_attribute']) > 0){
+    if($cfg_product_variations == 1 && isset($row['id_product_attribute']) && intval($row['id_product_attribute']) > 0){
       // ID
       echo "VAR-".$row['id_product_attribute'].TXT_SEPARATOR;
       // TITLE
@@ -225,7 +231,7 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
 
     // IMAGE LINK
 
-    if($cfg_product_variations && isset($row['id_product_attribute']) and intval($row['id_product_attribute']) > 0){
+    if($cfg_product_variations == 1 && isset($row['id_product_attribute']) and intval($row['id_product_attribute']) > 0){
         $cover = Product::getCover($row['id_product_attribute']);
         $id_image = dfTools::getVariationImg($row['id_product'], $row['id_product_attribute']);
 
@@ -298,7 +304,7 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
     echo dfTools::cleanString($row['tags']);
 
     // PRODUCT PRICE & ON SALE PRICE
-    if ($cfg_display_prices && !$cfg_product_variations)
+    if ($cfg_display_prices && $cfg_product_variations !== 1)
     {
       echo TXT_SEPARATOR;
 
@@ -309,7 +315,7 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
       echo (($product_price && $onsale_price && $product_price != $onsale_price) ? Tools::convertPrice($onsale_price, $currency) : "");
     }
 
-    else if ($cfg_display_prices && $cfg_product_variations)
+    else if ($cfg_display_prices && $cfg_product_variations == 1)
     {
       echo TXT_SEPARATOR;
       $product_price = Product::getPriceStatic($row['id_product'], $cfg_prices_w_taxes, $row['id_product_attribute'], 2, null, false, false);
@@ -318,7 +324,7 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
       echo (($product_price && $onsale_price && $product_price != $onsale_price) ? Tools::convertPrice($onsale_price, $currency) : "");
     }
 
-    if ($cfg_product_variations)
+    if ($cfg_product_variations == 1)
     {  
       echo TXT_SEPARATOR;
       echo $row['variation_reference'];
@@ -326,6 +332,15 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
       foreach($variation_attributes as $attribute){
         echo TXT_SEPARATOR.dfTools::cleanString($attribute);
       }
+    }else if($cfg_product_variations == 2){
+        foreach($attr_groups as $a_group){
+            $a_group_name = str_replace('-','_',Tools::str2url($a_group['name']));
+            if(isset($row['attributes_'.$a_group_name])){
+                echo TXT_SEPARATOR.dfTools::cleanString($row['attributes_'.$a_group_name]);
+            }else{
+                echo TXT_SEPARATOR;
+            }
+        }
     }
 
     if ($cfg_product_features){

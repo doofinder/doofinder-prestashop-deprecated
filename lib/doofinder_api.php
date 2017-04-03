@@ -168,8 +168,12 @@ class DoofinderApi{
         curl_setopt($session, CURLOPT_HEADER, false); // Tell curl not to return headers
         curl_setopt($session, CURLOPT_RETURNTRANSFER, true); // Tell curl to return the response
         curl_setopt($session, CURLOPT_HTTPHEADER, $this->reqHeaders()); // Adding request headers
+        //IF YOU MAKE REQUEST FROM LOCALHOST OR HAVE SERVER CERTIFICATE ISSUE, UNCOMMENT THE 2 LINES BELOW
+        //curl_setopt($session, CURLOPT_SSL_VERIFYHOST, 0);
+	//curl_setopt($session, CURLOPT_SSL_VERIFYPEER, 0);
         $response = curl_exec($session);
         $httpCode = curl_getinfo($session, CURLINFO_HTTP_CODE);
+        //print curl_errno($session);
         curl_close($session);
 
         if (floor($httpCode / 100) == 2) {
@@ -635,6 +639,10 @@ class DoofinderResults{
 
             // mark "selected" true or false according to filters presence
             foreach($this->facets as $facetName => $facetProperties){
+                if(!isset($facetProperties['_type'])){
+                        $facetProperties['_type'] = null;
+                        //$facetProperties['_type'] = (array_key_exists('terms',$facetProperties)?'terms':((array_key_exists('range',$facetProperties))?'range':null));
+                }
                 switch($facetProperties['_type']){
                 case 'terms':
                     foreach($facetProperties['terms'] as $pos => $term){
