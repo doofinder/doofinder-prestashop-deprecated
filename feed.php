@@ -336,7 +336,7 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
         foreach($attr_groups as $a_group){
             $a_group_name = str_replace('-','_',Tools::str2url($a_group['name']));
             if(isset($row['attributes_'.$a_group_name])){
-                echo TXT_SEPARATOR.dfTools::cleanString($row['attributes_'.$a_group_name]);
+                echo str_replace(",", "/", TXT_SEPARATOR.dfTools::cleanString($row['attributes_'.$a_group_name]));
             }else{
                 echo TXT_SEPARATOR;
             }
