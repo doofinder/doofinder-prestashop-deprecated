@@ -1190,7 +1190,7 @@ class Doofinder extends Module
                                         LEFT JOIN _DB_PREFIX_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) ';
         foreach($attr_groups as $a_group){
             $a_group_name = str_replace('-','_',Tools::str2url($a_group['name']));
-            $sql_select_attributes[] = ' GROUP_CONCAT(DISTINCT pal_'.$a_group['id_attribute_group'].'.name) as attributes_'.$a_group_name;
+            $sql_select_attributes[] = ' GROUP_CONCAT(DISTINCT pal_'.$a_group['id_attribute_group'].'.name SEPARATOR \'/\') as attributes_'.$a_group_name;
             $sql_from_attributes[] = '  LEFT JOIN _DB_PREFIX_attribute pat_'.$a_group['id_attribute_group'].' ON (pat_'.$a_group['id_attribute_group'].'.id_attribute = pac.id_attribute AND pat_'.$a_group['id_attribute_group'].'.id_attribute_group = '.$a_group['id_attribute_group'].' )
                                         LEFT JOIN _DB_PREFIX_attribute_lang pal_'.$a_group['id_attribute_group'].' ON (pal_'.$a_group['id_attribute_group'].'.id_attribute = pat_'.$a_group['id_attribute_group'].'.id_attribute AND pal_'.$a_group['id_attribute_group'].'.id_lang = '.(int)Configuration::get('PS_LANG_DEFAULT').') ';
         
