@@ -841,7 +841,7 @@ class Doofinder extends Module
 				'.Shop::addSqlAssociation('product_attribute', 'pa', false, (($show_variations)?'':' product_attribute_shop.default_on = 1')).'
 				'.Product::sqlStock('p', 'product_attribute_shop', false, $context->shop) :  Product::sqlStock('p', 'product', false, Context::getContext()->shop)).'
 				LEFT JOIN `'._DB_PREFIX_.'manufacturer` m ON m.`id_manufacturer` = p.`id_manufacturer`
-				LEFT JOIN `'._DB_PREFIX_.'image` i ON (i.`id_product` = p.`id_product`) 
+				LEFT JOIN `'._DB_PREFIX_.'image` i ON (i.`id_product` = p.`id_product` '.((Combination::isFeatureActive() && $show_variations)?'':'AND i.cover=1').')  
                                 '.((Combination::isFeatureActive() && $show_variations) ? ' LEFT JOIN `'._DB_PREFIX_.'product_attribute_image` pai ON (pai.`id_product_attribute` = product_attribute_shop.`id_product_attribute`) ':' ').
 				Shop::addSqlAssociation('image', 'i', false, 'i.cover=1').' 
 				LEFT JOIN `'._DB_PREFIX_.'image_lang` il ON (i.`id_image` = il.`id_image` AND il.`id_lang` = '.(int)$id_lang.')
@@ -947,7 +947,7 @@ class Doofinder extends Module
     }
     
     public function getFilterBlock($facets,$filters){ 
-        $cacheOptionsDoofinderFileName = _PS_CACHE_DIR_.'smarty/compile/OptionsDoofinderFileName-'.Context::getContext()->shop->id.'-'.hash_hmac('sha256', 'OptionsDoofinderFileName', 'cache').'-'.date('Ymd').'.html';
+        $cacheOptionsDoofinderFileName = _PS_CACHE_DIR_.'smarty/compile/OptionsDoofinderFileName-'.Context::getContext()->shop->id.'-'.Context::getContext()->language->id.'-'.hash_hmac('sha256', 'OptionsDoofinderFileName', 'cache').'-'.date('Ymd').'.html';
         $optionsDoofinder = '';
         if(file_exists($cacheOptionsDoofinderFileName)){
             $optionsDoofinder = json_decode(file_get_contents($cacheOptionsDoofinderFileName),true);
@@ -1190,7 +1190,7 @@ class Doofinder extends Module
                                         LEFT JOIN _DB_PREFIX_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) ';
         foreach($attr_groups as $a_group){
             $a_group_name = str_replace('-','_',Tools::str2url($a_group['name']));
-            $sql_select_attributes[] = ' GROUP_CONCAT(DISTINCT pal_'.$a_group['id_attribute_group'].'.name SEPARATOR \'/\') as attributes_'.$a_group_name;
+            $sql_select_attributes[] = ' GROUP_CONCAT(DISTINCT REPLACE(pal_'.$a_group['id_attribute_group'].'.name,\'/\',\'\/\/\') SEPARATOR \'/\') as attributes_'.$a_group_name;
             $sql_from_attributes[] = '  LEFT JOIN _DB_PREFIX_attribute pat_'.$a_group['id_attribute_group'].' ON (pat_'.$a_group['id_attribute_group'].'.id_attribute = pac.id_attribute AND pat_'.$a_group['id_attribute_group'].'.id_attribute_group = '.$a_group['id_attribute_group'].' )
                                         LEFT JOIN _DB_PREFIX_attribute_lang pal_'.$a_group['id_attribute_group'].' ON (pal_'.$a_group['id_attribute_group'].'.id_attribute = pat_'.$a_group['id_attribute_group'].'.id_attribute AND pal_'.$a_group['id_attribute_group'].'.id_lang = '.(int)Configuration::get('PS_LANG_DEFAULT').') ';
         
