@@ -245,13 +245,16 @@ class Doofinder extends Module
       'DF_FEATURES_SHOWN' => array(
         'label' => 'Features',
         ),
+       'DF_GROUP_ATTRIBUTES_SHOWN' => array(
+        'label' => 'Attribute Groups',
+        ),
       );
 
     foreach ($cfgStrSelectValues as $optname => $cfg)
     {
       $optvalue = Tools::getValue($optname);
       
-      if ($optname === "DF_FEATURES_SHOWN")
+      if ($optname === "DF_FEATURES_SHOWN" || $optname === "DF_GROUP_ATTRIBUTES_SHOWN")
       {
         if($optvalue)
           Configuration::updateValue($optname, implode(',', $optvalue));
@@ -523,8 +526,36 @@ class Doofinder extends Module
 
     $helper->fields_value[$optname . '[]'] = explode(',', $this->cfg($optname));
     
-    $fields_form[0]['form']['input'] = $fields;
 
+    // DF_GROUP_ATTRIBUTES_SHOWN
+    $optname = 'DF_GROUP_ATTRIBUTES_SHOWN';
+    $group_attributes = AttributeGroup::getAttributesGroups($lang['id_lang']);
+    $opts = array();
+    
+    foreach($group_attributes as $a_group)
+    {  
+        $opts[] = array($optname => $a_group['id_attribute_group'], 'name' => $a_group['name']);
+    }
+
+    $fields[] = array(
+      'label' => 'Select attributes groups will be shown in feed',
+      'type' => 'select',
+      'multiple' => true,
+      'options' => array(
+        'query' => $opts,
+
+        'id' => $optname,
+        'name' => 'name',
+        ),
+      'name' => $optname.'[]',
+      'required' => false
+
+    );
+
+    $helper->fields_value[$optname . '[]'] = explode(',', $this->cfg($optname));
+    
+    $fields_form[0]['form']['input'] = $fields;
+    
 
     //
     // DOOFINDER SCRIPTS

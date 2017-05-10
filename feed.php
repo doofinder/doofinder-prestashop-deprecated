@@ -105,6 +105,22 @@ $cfg_product_features = dfTools::cfg($shop->id, 'DF_SHOW_PRODUCT_FEATURES');
 $cfg_debug = dfTools::cfg($shop->id, 'DF_DEBUG');
 $cfg_features_shown = explode(',', dfTools::cfg($shop->id, 'DF_FEATURES_SHOWN'));
 
+$cfg_group_attributes_shown = explode(',', dfTools::cfg($shop->id, 'DF_GROUP_ATTRIBUTES_SHOWN'));
+
+$limit_group_attributes = false;
+if(isset($cfg_group_attributes_shown) && count($cfg_group_attributes_shown) > 0 && $cfg_group_attributes_shown[0] !== ""){
+    $group_attributes = AttributeGroup::getAttributesGroups($lang->id);
+    $group_attributes_slug = array();
+    foreach($group_attributes as $g){
+        if(in_array($g['id_attribute_group'], $cfg_group_attributes_shown)){
+            $group_attributes_slug[] = slugify($g['name']);
+        }
+    }
+    $limit_group_attributes = true;
+}
+
+
+
 $debug = dfTools::getBooleanFromRequest('debug', false);
 $limit = Tools::getValue('limit', false);
 $offset = Tools::getValue('offset', false);
@@ -142,12 +158,22 @@ if ($cfg_display_prices)
 if ($cfg_product_variations == 1){
   $header[] = 'variation_reference';
   $attribute_keys = dfTools::getAttributeKeysForShopAndLang($shop->id, $lang->id);
+  $alt_attribute_keys = array();
   foreach($attribute_keys as $key){
-    $header[] = slugify($key);
+    $header_value = slugify($key);
+    if($limit_group_attributes && !in_array($header_value, $group_attributes_slug)){
+        continue;
+    }
+    $alt_attribute_keys[] = $key;
+    $header[] = $header_value;
   }
+  $attribute_keys = $alt_attribute_keys;
 }else if($cfg_product_variations == 2){
     $attr_groups = AttributeGroup::getAttributesGroups((int)Configuration::get('PS_LANG_DEFAULT'));
     foreach($attr_groups as $a_group){
+        if($limit_group_attributes && !in_array($a_group['id_attribute_group'], $cfg_group_attributes_shown)){
+            continue;
+        }
         $a_group_name = str_replace('-','_',Tools::str2url($a_group['name']));
         $header[] = 'attributes_'.$a_group_name;
     }
@@ -334,6 +360,9 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
       }
     }else if($cfg_product_variations == 2){
         foreach($attr_groups as $a_group){
+            if($limit_group_attributes && !in_array($a_group['id_attribute_group'], $cfg_group_attributes_shown)){
+                continue;
+            }
             $a_group_name = str_replace('-','_',Tools::str2url($a_group['name']));
             if(isset($row['attributes_'.$a_group_name])){
                 echo TXT_SEPARATOR.dfTools::cleanString($row['attributes_'.$a_group_name]);
