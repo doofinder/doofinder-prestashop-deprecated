@@ -1214,12 +1214,18 @@ class Doofinder extends Module
     
     function getSQLOnlyProductsWithAttributes(){
         $attr_groups = AttributeGroup::getAttributesGroups((int)Configuration::get('PS_LANG_DEFAULT'));
+        $cfg_group_attributes_shown = explode(',', dfTools::cfg(Context::getContext()->shop->id, 'DF_GROUP_ATTRIBUTES_SHOWN'));
         
         $sql_select_attributes = array();
         $sql_from_attributes = array();
         $sql_from_only = ' LEFT JOIN _DB_PREFIX_product_attribute pa ON (p.id_product = pa.id_product)
                                         LEFT JOIN _DB_PREFIX_product_attribute_combination pac ON (pa.id_product_attribute = pac.id_product_attribute) ';
         foreach($attr_groups as $a_group){
+            if(isset($cfg_group_attributes_shown) && count($cfg_group_attributes_shown) > 0 
+                    && $cfg_group_attributes_shown[0] !== "" 
+                    && !in_array($a_group['id_attribute_group'], $cfg_group_attributes_shown)){
+                continue;
+            }
             $a_group_name = str_replace('-','_',Tools::str2url($a_group['name']));
             $sql_select_attributes[] = ' GROUP_CONCAT(DISTINCT REPLACE(pal_'.$a_group['id_attribute_group'].'.name,\'/\',\'\/\/\') SEPARATOR \'/\') as attributes_'.$a_group_name;
             $sql_from_attributes[] = '  LEFT JOIN _DB_PREFIX_attribute pat_'.$a_group['id_attribute_group'].' ON (pat_'.$a_group['id_attribute_group'].'.id_attribute = pac.id_attribute AND pat_'.$a_group['id_attribute_group'].'.id_attribute_group = '.$a_group['id_attribute_group'].' )
