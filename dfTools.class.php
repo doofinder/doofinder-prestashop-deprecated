@@ -253,23 +253,25 @@ class dfTools
    * @return array of rows (assoc arrays).
    */
   public static function getVariationImg($id_product, $id_product_attribute){
-    $sql = 
-      "select i.id_image
+    $sql = "
+      SELECT i.id_image
             from
             (
-            select pa.id_product, pa.id_product_attribute,paic.id_attribute,min(i.position) as posicion
-            from ps_product_attribute pa
-             inner join ps_product_attribute_image pai
+            select pa.id_product, pa.id_product_attribute,paic.id_attribute,min(i.position) as min_position
+            from _DB_PREFIX_product_attribute pa
+             inner join _DB_PREFIX_product_attribute_image pai
                on pai.id_product_attribute = pa.id_product_attribute
-             inner join  ps_product_attribute_combination paic
+             inner join  _DB_PREFIX_product_attribute_combination paic
                on pai.id_product_attribute = paic.id_product_attribute
-             inner join ps_image i
+             inner join _DB_PREFIX_image i
                on pai.id_image = i.id_image   
             where pa.id_product = $id_product and pa.id_product_attribute = $id_product_attribute      
             group by pa.id_product, pa.id_product_attribute,paic.id_attribute
             ) as P
-            inner join ps_image i
-             on i.id_product = P.id_product and i.position =  P.posicion";
+            inner join _DB_PREFIX_image i
+             on i.id_product = P.id_product and i.position =  P.min_position
+            ";
+    $sql = self::prepareSQL($sql, array());
     $result = Db::getInstance(_PS_USE_SQL_SLAVE_)->executeS($sql);
     if(isset($result[0]))
       return $result[0]['id_image'];
