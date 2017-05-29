@@ -28,6 +28,7 @@
 <script type="text/javascript">
 var current_friendly_url = '#';
 var param_product_url = '';
+var df_query_name = '{$df_query_name}';
 </script>
 <div id="layered_block_left" class="block">
 	<div class="block_content">

@@ -764,6 +764,7 @@ class Doofinder extends Module
     }
     
     public function searchOnApi($string,$page=1,$page_size=12,$timeout=8000,$filters = null,$return_facets = false){
+        $query_name = Tools::getValue('df_query_name',false);
         $debug = Configuration::get('DF_DEBUG', null);
         if (isset($debug) && $debug){
           $this->debug('Search On API Start');
@@ -783,11 +784,15 @@ class Doofinder extends Module
                     include_once dirname(__FILE__) . '/lib/doofinder_api.php';
                 }
                 $df = new DoofinderApi($hash_id, $api_key,false,array('apiVersion'=>'5'));
-                $dfResults = $df->query($string, $page, array('rpp' => $page_size,         // results per page
+                $queryParams = array('rpp' => $page_size,         // results per page
                                  'timeout' => $timeout,  // timeout in milisecs
                                  'types' => array(   // types of item 
                                      'product',
-                                 ), 'transformer'=>'dflayer', 'filter' => $filters));
+                                 ), 'transformer'=>'dflayer', 'filter' => $filters);
+                if($query_name){
+                    $queryParams['query_name'] = $query_name;
+                }
+                $dfResults = $df->query($string, $page, $queryParams);
             }
             catch(Exception $e){
                 $fail = true;
@@ -899,9 +904,9 @@ class Doofinder extends Module
     }
 
                 if($return_facets){
-                    return array('total' => $dfResults->getProperty('total'),'result' => $result_properties, 'facets' => $dfResults->getFacets(), 'filters'=> $df->getFilters());
+                    return array('total' => $dfResults->getProperty('total'),'result' => $result_properties, 'facets' => $dfResults->getFacets(), 'filters'=> $df->getFilters(),'df_query_name' => $dfResults->getProperty('query_name'));
                 }
-		return array('total' => $dfResults->getProperty('total'),'result' => $result_properties);
+		return array('total' => $dfResults->getProperty('total'),'result' => $result_properties,'df_query_name' => $dfResults->getProperty('query_name'));
         }else{
             return false;
         }
@@ -949,16 +954,16 @@ class Doofinder extends Module
                     return $search;
                 }
                 
-                return $this->generateFiltersBlock($search['facets'],$search['filters']);
+                return $this->generateFiltersBlock($search['facets'],$search['filters'],$search['df_query_name']);
             }else{
                 return false;
             }
         }
     }
     
-    public function generateFiltersBlock($facets,$filters){
+    public function generateFiltersBlock($facets,$filters,$query_name=false){
         global $smarty;
-        if ($filter_block = $this->getFilterBlock($facets,$filters)) {
+        if ($filter_block = $this->getFilterBlock($facets,$filters,$query_name)) {
             if ($filter_block['nbr_filterBlocks'] == 0)
                 return false;
 
@@ -977,7 +982,7 @@ class Doofinder extends Module
             return false;
     }
     
-    public function getFilterBlock($facets,$filters){ 
+    public function getFilterBlock($facets,$filters,$query_name){ 
         $cacheOptionsDoofinderFileName = _PS_CACHE_DIR_.'smarty/compile/OptionsDoofinderFileName-'.Context::getContext()->shop->id.'-'.Context::getContext()->language->id.'-'.hash_hmac('sha256', 'OptionsDoofinderFileName', 'cache').'-'.date('Ymd').'.html';
         $optionsDoofinder = '';
         if(file_exists($cacheOptionsDoofinderFileName)){
@@ -1028,7 +1033,8 @@ class Doofinder extends Module
         return array('options'=>$r_facets,
             'facets'=>$facets,
             'filters'=>$filters,
-            'nbr_filterBlocks' => 1);
+            'nbr_filterBlocks' => 1,
+            'df_query_name' => $query_name);
                 
         
         return false;

@@ -415,6 +415,9 @@ function reloadContent(params_plus)
                 n = '&n=' + option.value;
         });
     }
+    if(df_query_name != undefined){
+        data+= '&df_query_name='+df_query_name;
+    }
     ajaxQuery = $.ajax(
             {
                 type: 'POST',
