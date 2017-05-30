@@ -314,7 +314,11 @@ class DoofinderApi{
      * @return array assoc array filterName => filterConditions
      */
     public function getFilters(){
-        return $this->search_options['filter'];
+        if(isset($this->search_options['filter'])){
+            return $this->search_options['filter'];
+        }else{
+            return false;
+        }
     }
 
 

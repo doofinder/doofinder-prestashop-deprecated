@@ -788,9 +788,12 @@ class Doofinder extends Module
                                  'timeout' => $timeout,  // timeout in milisecs
                                  'types' => array(   // types of item 
                                      'product',
-                                 ), 'transformer'=>'dflayer', 'filter' => $filters);
+                                 ), 'transformer'=>'basic');
                 if($query_name){
                     $queryParams['query_name'] = $query_name;
+                }
+                if(!empty($filters)){
+                    $queryParams['filter'] = $filters;
                 }
                 $dfResults = $df->query($string, $page, $queryParams);
             }
