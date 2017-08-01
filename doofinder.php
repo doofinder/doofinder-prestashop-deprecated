@@ -44,7 +44,7 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "2.2.5";
+  const VERSION = "2.2.7";
   const YES = 1;
   const NO = 0;
 
@@ -286,15 +286,8 @@ class Doofinder extends Module
       foreach (Language::getLanguages(true, $this->context->shop->id) as $lang)
       {
         $optname = $prefix.strtoupper($lang['iso_code']);
-        // Cleaning script tags
-        if ('DOOFINDER_SCRIPT_' === $prefix){
-          $value = str_replace('<script type="text/javascript">', '', Tools::getValue($optname));
-          $value = str_replace("<script type='text/javascript'>", '', Tools::getValue($optname));
-          $value = str_replace('</script>', '', $value);
-        }
-        else{
-          $value = Tools::getValue($optname);
-        }
+        $value = Tools::getValue($optname);
+        
         Configuration::updateValue($optname, $value, $html);
       }
     }
