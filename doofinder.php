@@ -1013,8 +1013,8 @@ class Doofinder extends Module
                 $facetsBlock[$key_o]['ranges'][0] = array(
                     'from' => $facets[$key_o]['range']['buckets'][0]['from'],
                     'count' => $facets[$key_o]['range']['buckets'][0]['doc_count'],
-                    'min' => $facets[$key_o]['range']['buckets'][0]['stats']['min'],
-                    'max' => $facets[$key_o]['range']['buckets'][0]['stats']['max'],
+                    'min' => floor($facets[$key_o]['range']['buckets'][0]['stats']['min']),
+                    'max' => ceil($facets[$key_o]['range']['buckets'][0]['stats']['max']),
                     'total_count' => $facets[$key_o]['range']['buckets'][0]['stats']['count'],
                     'total' => $facets[$key_o]['range']['buckets'][0]['stats']['sum'],
                     'mean' => $facets[$key_o]['range']['buckets'][0]['stats']['avg'],
