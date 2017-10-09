@@ -1251,7 +1251,7 @@ class Doofinder extends Module
               pl.meta_title,
               pl.meta_keywords,
               pl.meta_description,
-              GROUP_CONCAT(tag.name SEPARATOR '/') AS tags,
+              GROUP_CONCAT(DISTINCT tag.name SEPARATOR '/') AS tags,
               pl.link_rewrite,
               cl.link_rewrite AS cat_link_rew,
 
