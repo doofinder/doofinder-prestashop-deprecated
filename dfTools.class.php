@@ -437,8 +437,8 @@ class dfTools
 
         m.name AS manufacturer,
 
-        p.__MPN__ AS mpn,
-        p.ean13 AS ean13,
+        pa.__MPN__ AS mpn,
+        pa.ean13 AS ean13,
 
         pl.name,
         pl.description,
