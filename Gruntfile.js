@@ -37,8 +37,9 @@ module.exports = function(grunt) {
                     {expand: true, src: 'css/**', dest: 'release/doofinder'},
                     {expand: true, src: 'js/**', dest: 'release/doofinder'},
                     {expand: true, src: 'translations/**', dest: 'release/doofinder'},
-        		    {expand: true, src: 'override/**', dest: 'release/doofinder'},
-        		    {expand: true, src: 'lib/**', dest: 'release/doofinder'},
+                    {expand: true, src: 'src/**', dest: 'release/doofinder'},
+                    {expand: true, src: 'override/**', dest: 'release/doofinder'},
+                    {expand: true, src: 'lib/**', dest: 'release/doofinder'},
                     {expand: true, src: 'views/**', dest: 'release/doofinder'}
                 ]
             },
@@ -51,20 +52,21 @@ module.exports = function(grunt) {
                     {expand: true, src: 'css/**', dest: 'release/doofinder'},
                     {expand: true, src: 'js/**', dest: 'release/doofinder'},
                     {expand: true, src: 'translations/**', dest: 'release/doofinder'},
+                    {expand: true, src: 'src/**', dest: 'release/doofinder'},
                     {expand: true, src: 'lib/**', dest: 'release/doofinder'},
                     {expand: true, src: 'views/**', dest: 'release/doofinder'}
                 ]
             },
             latest_to_version: {
                 files: [
-                    {src: 'dist/doofinder-p1.7-latest.zip', dest: 'dist/doofinder-p1.7-<%= packageconfig.version %>.zip'}
+                    {src: 'dist/doofinder-p1.5-latest.zip', dest: 'dist/doofinder-p1.5-<%= packageconfig.version %>.zip'}
                 ]
             }
         },
         compress: {
             release: {
                 options: {
-                    archive: 'dist/doofinder-p1.7-latest.zip'
+                    archive: 'dist/doofinder-p1.5-latest.zip'
                 },
                 files: [
                     {expand: true, cwd: 'release', src: '**/*'}
@@ -72,7 +74,7 @@ module.exports = function(grunt) {
             },
             release_no_full: {
                 options: {
-                    archive: 'dist/doofinder-p1.7-latest-no-full.zip'
+                    archive: 'dist/doofinder-p1.5-latest-no-full.zip'
                 },
                 files: [
                     {expand: true, cwd: 'release', src: '**/*'}
