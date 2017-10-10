@@ -57,14 +57,14 @@ module.exports = function(grunt) {
             },
             latest_to_version: {
                 files: [
-                    {src: 'dist/doofinder-p1.5-latest.zip', dest: 'dist/doofinder-p1.5-<%= packageconfig.version %>.zip'}
+                    {src: 'dist/doofinder-p1.7-latest.zip', dest: 'dist/doofinder-p1.7-<%= packageconfig.version %>.zip'}
                 ]
             }
         },
         compress: {
             release: {
                 options: {
-                    archive: 'dist/doofinder-p1.5-latest.zip'
+                    archive: 'dist/doofinder-p1.7-latest.zip'
                 },
                 files: [
                     {expand: true, cwd: 'release', src: '**/*'}
@@ -72,7 +72,7 @@ module.exports = function(grunt) {
             },
             release_no_full: {
                 options: {
-                    archive: 'dist/doofinder-p1.5-latest-no-full.zip'
+                    archive: 'dist/doofinder-p1.7-latest-no-full.zip'
                 },
                 files: [
                     {expand: true, cwd: 'release', src: '**/*'}
