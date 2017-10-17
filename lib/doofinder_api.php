@@ -595,6 +595,7 @@ class DoofinderResults{
     private $results = null;
     private $facets = null;
     private $filter = null;
+    private $banner = null;
     public $status = null;
 
     /**
@@ -619,6 +620,11 @@ class DoofinderResults{
         if(isset($rawResults['results']) && is_array($rawResults['results']))
         {
             $this->results = $rawResults['results'];
+        }
+        
+        if(isset($rawResults['banner']) && is_array($rawResults['banner']))
+        {
+            $this->banner = $rawResults['banner'];
         }
 
         // build a friendly filter array
@@ -806,6 +812,10 @@ class DoofinderResults{
      */
     public function isOk(){
         return $this->status == self::SUCCESS;
+    }
+    
+    public function getBanner(){
+        return $this->banner;
     }
 }
 

@@ -14,6 +14,7 @@
 <script>
   var dfProductLinks = {$productLinks|json_encode nofilter};
   var dfLinks = Object.keys(dfProductLinks);
+  var doofinderAppendAfterBanner = "{$doofinder_banner_append}";
 </script>  
 {/if}
   <!-- END OF TO REGISTER CLICKS -->

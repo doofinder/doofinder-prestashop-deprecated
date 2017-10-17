@@ -56,11 +56,12 @@ class Doofinder extends Module
 
   const GS_SHORT_DESCRIPTION = 1;
   const GS_LONG_DESCRIPTION = 2;
-  const VERSION = "2.3";
+  const VERSION = "2.2.8";
   const YES = 1;
   const NO = 0;
   
   var $ps_layered_full_tree = true;
+  var $searchBanner = false;
   
   public function __construct()
   {
@@ -106,6 +107,7 @@ class Doofinder extends Module
     
     if (!parent::install() ||
         !$this->registerHook('header') ||
+        !$this->registerHook('displayFooter') ||
         !$this->registerHook('displayMobileTopSiteMap'))
       return false;
 
@@ -126,6 +128,10 @@ class Doofinder extends Module
       'productLinks' => $this->_productLinks,
       'self' => dirname(__FILE__),
     ));
+    $appendTo = Configuration::get('DF_APPEND_BANNER');
+    if($appendTo){
+        $this->smarty->assign('doofinder_banner_append', $appendTo);
+    }
 
     return true;
   }
@@ -160,16 +166,16 @@ class Doofinder extends Module
                 $this->context->controller->addJS(($this->_path) . 'js/doofinder_facets.js');
             }
             $this->context->controller->addJS(($this->_path) . 'js/js.cookie.js');
-            $this->context->controller->addJS(($this->_path) . 'js/doofinder-links.js');
             $this->context->controller->addJQueryUI('ui.slider');
             $this->context->controller->addJQueryUI('ui.accordion');
             $this->context->controller->addJqueryPlugin('multiaccordion');
             $this->context->controller->addJQueryUI('ui.sortable');
             $this->context->controller->addJqueryPlugin('jscrollpane');
-
             $this->context->controller->addJQueryPlugin('scrollTo');
         }
+        $this->context->controller->addJS(($this->_path) . 'js/doofinder-links.js');
     }
+    
     if(version_compare(_PS_VERSION_, '1.7', '<')){
         return $this->display(__FILE__, 'views/templates/front/script_16.tpl');
     }
@@ -329,7 +335,8 @@ class Doofinder extends Module
     $cfgCodeStrValues = array(
         'DF_EXTRA_CSS',
         'DF_API_KEY',
-        'DF_CUSTOMEXPLODEATTR'
+        'DF_CUSTOMEXPLODEATTR',
+        'DF_APPEND_BANNER'
       );
 
     foreach ($cfgCodeStrValues as $optname)
@@ -485,6 +492,17 @@ class Doofinder extends Module
     $field = $this->getYesNoSelectFor($optname, $this->l('Enable facets on Overwrite Search Page'));
     $fields[] = $field;
     $helper->fields_value[$optname] = $this->cfg($optname, self::NO);
+    
+    // DF_APPEND_BANNER
+    $optname = 'DF_APPEND_BANNER';
+    $fields[] = array(
+      'label' => $this->l('"Append after" banner on Overwrite Search Page'),
+      'desc' => $this->l('Need to write "jQuery" identifier where to append after the banner. If empty or not valid, not banner will show. Example: "#content-wrapper #main h2"'),
+      'type' => 'text',
+      'name' => $optname,
+      'required' => false,
+      );
+    $helper->fields_value[$optname] = $this->cfg($optname);
     
     // DF_ENABLE_HASH
     $optname = 'DF_ENABLE_HASH';
@@ -936,6 +954,7 @@ class Doofinder extends Module
                     $result_properties = $result;
                 }
             }
+            $this->searchBanner = $dfResults->getBanner();
 
             if($return_facets){
                 return array('doofinder_results' => $dfResultsArray, 'total' => $dfResults->getProperty('total'),'result' => $result_properties, 'facets' => $dfResults->getFacets(), 'filters'=> $df->getFilters(),'df_query_name' => $dfResults->getProperty('query_name'));
@@ -1279,9 +1298,9 @@ class Doofinder extends Module
               __ID_CATEGORY_DEFAULT__,
 
               m.name AS manufacturer,
-
-              p.__MPN__ AS mpn,
-              p.ean13 AS ean13,
+              
+              IF(isnull(pa.id_product), p.__MPN__ , GROUP_CONCAT(DISTINCT pa.__MPN__ SEPARATOR '/')) AS mpn,
+              IF(isnull(pa.id_product), p.ean13 , GROUP_CONCAT(DISTINCT pa.ean13 SEPARATOR '/')) AS ean13,
 
               pl.name,
               pl.description,
@@ -1360,6 +1379,23 @@ class Doofinder extends Module
       }
 
       return $text;
+    }
+    
+    public function hookDisplayFooter($params=false)
+    {
+        if(isset($this->context->controller->php_self) && $this->context->controller->php_self == 'search' ){
+            $appendTo = Configuration::get('DF_APPEND_BANNER');
+            if(!empty($this->searchBanner) && !empty($appendTo)){
+                $this->context->smarty->assign(array(
+                    'doofinder_banner_image' => $this->searchBanner['image'],
+                    'doofinder_banner_blank' => $this->searchBanner['blank'],
+                    'doofinder_banner_id' => $this->searchBanner['id'],
+                    'doofinder_banner_link' => $this->searchBanner['link'],                
+                ));
+                return $this->display(__FILE__, 'views/templates/hook/footer.tpl');
+            }
+        }
+        return false;
     }
    
 }
