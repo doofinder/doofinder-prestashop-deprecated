@@ -437,8 +437,8 @@ class dfTools
 
         m.name AS manufacturer,
 
-        pa.__MPN__ AS mpn,
-        pa.ean13 AS ean13,
+        IF(isnull(pa.id_product), p.__MPN__ , pa.__MPN__) AS mpn,
+        IF(isnull(pa.id_product), p.ean13 , pa.ean13) AS ean13,
 
         pl.name,
         pl.description,
