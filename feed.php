@@ -225,6 +225,10 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
     }
 
     else{
+      $eanLink = $row['ean13'];
+      if($cfg_product_variations == 2){
+          $eanLink = $row['simple_ean13'];
+      }
       // ID
       echo $row['id_product'].TXT_SEPARATOR;
       // TITLE
@@ -233,7 +237,7 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
       echo dfTools::cleanURL($context->link->getProductLink(intval($row['id_product']),
                                      $row['link_rewrite'],
                                      $row['cat_link_rew'],
-                                     $row['ean13'],
+                                     $eanLink,
                                      $lang->id,
                                      $shop->id,
                                      0,
