@@ -1301,7 +1301,8 @@ class Doofinder extends Module
               
               IF(isnull(pa.id_product), p.__MPN__ , GROUP_CONCAT(DISTINCT pa.__MPN__ SEPARATOR '/')) AS mpn,
               IF(isnull(pa.id_product), p.ean13 , GROUP_CONCAT(DISTINCT pa.ean13 SEPARATOR '/')) AS ean13,
-
+              p.ean13 AS simple_ean13,
+              p.__MPN__ AS simple_mpn,
               pl.name,
               pl.description,
               pl.description_short,
