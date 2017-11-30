@@ -129,9 +129,10 @@ class Doofinder extends Module
       'self' => dirname(__FILE__),
     ));
     $appendTo = Configuration::get('DF_APPEND_BANNER');
-    if($appendTo){
-        $this->smarty->assign('doofinder_banner_append', $appendTo);
+    if(empty($appendTo)){
+        $appendTo = 'none';
     }
+    $this->smarty->assign('doofinder_banner_append', $appendTo);
 
     return true;
   }
