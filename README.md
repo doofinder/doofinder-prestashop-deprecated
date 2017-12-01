@@ -88,4 +88,4 @@ If you decide to put the search box included with this plugin for the top of the
 
 ## Special Thanks
 
-- Thanks to the guys at [o2source](http://www.o2sources.com/) for their bugfixes and enhancements.
+- Thanks to the guys at [o2sources](http://www.o2sources.com/) for their bugfixes and enhancements.
