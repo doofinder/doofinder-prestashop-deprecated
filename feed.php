@@ -88,16 +88,33 @@ function slugify($text)
  *  Merge multidemensionnal array by value on each row
  *  https://stackoverflow.com/questions/7973915/php-merge-arrays-by-value
  */
-function array_merge_callback($array1, $array2, $predicate)
+function array_merge_by_id_product($array1 = array(), $array2 = array())
 {
+    $sub_key = 'id_product';
     $result = array();
+    $result_row = array();
+
+    if (empty($array1)) {
+      return $array2;
+    }
+    if (empty($array2)) {
+      return $array1;
+    }
 
     foreach ($array1 as $item1) {
-        foreach ($array2 as $item2) {
-            if ($predicate($item1, $item2)) {
-                $result[] = array_merge($item1, $item2);
+        $result_row = array();
+        //Merge data
+        foreach ($array2 as $key => $item2) {
+            if($item1[$sub_key] == $item2[$sub_key]) {
+              $result_row = array_merge($item1, $item2);
+              break;
             }
         }
+        //If no array merged
+        if (empty($result_row)) {
+            $result_row = $item1;
+        }
+        $result[] = $result_row;
     }
 
     return $result;
@@ -250,9 +267,7 @@ if (!$limit || ($offset !== false && intval($offset) === 0))
 // PRODUCTS
 $rows = dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, $offset);
 if (!empty($extra_rows)) {
-    $rows = array_merge_callback($rows, $extra_rows, function ($item1, $item2) {
-        return (int)$item1['id_product'] == (int)$item2['id_product'];
-    });
+    $rows = array_merge_by_id_product($rows, $extra_rows);
 }
 
 foreach ($rows as $row) {
@@ -437,7 +452,7 @@ foreach ($rows as $row) {
 
     foreach ($extra_header as $extra) {
         echo TXT_SEPARATOR;
-        echo $row[$extra];
+        echo isset($row[$extra]) ? $row[$extra] : "";
     }
 
     echo PHP_EOL;
