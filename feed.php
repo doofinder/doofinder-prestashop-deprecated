@@ -86,6 +86,7 @@ function slugify($text)
 
 /**
  *  Merge multidemensionnal array by value on each row
+ *  https://stackoverflow.com/questions/7973915/php-merge-arrays-by-value
  */
 function array_merge_callback($array1, $array2, $predicate)
 {
@@ -211,6 +212,20 @@ if($cfg_product_features){
 }
 
 
+/*
+ * Extend doofinder feed
+ *
+ * To add an new header, module can do an array_merge on $extra_header
+ * To add an new data to a product, module must create a multidemensionnal array as this :
+ * array(
+ *   index => array(
+ *    'id_product' => value,
+ *    'new_header_column_name' => 'value related to the new column'
+ *   ),
+ *   [...]
+ * )
+ * As each module can extend $extra_header and $extra_rows don't forget to merge them
+ */
 $extra_header = array();
 $extra_row = array();
 Hook::exec('actionDoofinderExtendFeed', array(
