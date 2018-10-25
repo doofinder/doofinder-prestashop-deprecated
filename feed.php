@@ -84,6 +84,23 @@ function slugify($text)
   return $text;
 }
 
+/**
+ *  Merge multidemensionnal array by value on each row
+ */
+function array_merge_callback($array1, $array2, $predicate)
+{
+    $result = array();
+
+    foreach ($array1 as $item1) {
+        foreach ($array2 as $item2) {
+            if ($predicate($item1, $item2)) {
+                $result[] = array_merge($item1, $item2);
+            }
+        }
+    }
+
+    return $result;
+}
 
 $context = Context::getContext();
 
@@ -194,6 +211,20 @@ if($cfg_product_features){
 }
 
 
+$extra_header = array();
+$extra_row = array();
+Hook::exec('actionDoofinderExtendFeed', array(
+    'extra_header'   => &$extra_header,
+    'extra_rows' => &$extra_rows,
+    'id_lang' => $lang->id,
+    'id_shop' => $shop->id,
+    'limit' => $limit,
+    'offset' => $offset,
+));
+
+if (!empty($extra_header)) {
+    $header = array_merge($header, $extra_header);
+}
 
 if (!$limit || ($offset !== false && intval($offset) === 0))
 {
@@ -202,9 +233,14 @@ if (!$limit || ($offset !== false && intval($offset) === 0))
 }
 
 // PRODUCTS
-foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, $offset) as $row)
-{
+$rows = dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, $offset);
+if (!empty($extra_rows)) {
+    $rows = array_merge_callback($rows, $extra_rows, function ($item1, $item2) {
+        return (int)$item1['id_product'] == (int)$item2['id_product'];
+    });
+}
 
+foreach ($rows as $row) {
   if(intval($row['id_product']) > 0){
     // ID, TITLE, LINK
 
@@ -381,7 +417,12 @@ foreach (dfTools::getAvailableProductsForLanguage($lang->id, $shop->id, $limit, 
       foreach(dfTools::getFeaturesForProduct($row['id_product'], $lang->id, $feature_keys) as $key => $value){
         echo slugify($key)."=".dfTools::cleanString($value)."/";
       }
-        
+
+    }
+
+    foreach ($extra_header as $extra) {
+        echo TXT_SEPARATOR;
+        echo $row[$extra];
     }
 
     echo PHP_EOL;
