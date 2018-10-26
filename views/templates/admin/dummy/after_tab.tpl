@@ -11,6 +11,4 @@
 * @copyright Doofinder
 * @license   GPLv3
 *}
-<div id="product_list" class="product_list" class="clear">
-	<p class="warning">{l s='There are no products.' mod='doofinder'}</p>
 </div>

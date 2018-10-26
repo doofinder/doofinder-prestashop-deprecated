@@ -85,7 +85,3 @@ There are three other parameters you probably will want to customize:
 - `dtop`: Is the vertical displacement of the layer from the point where it is placed automatically. You can use a positive or negative number without quotes around it.
 
 If you decide to put the search box included with this plugin for the top of the page you probably will have to adjust these parameters. Remember to do it for each script.
-
-## Special Thanks
-
-- Thanks to the guys at [o2source](http://www.o2sources.com/) for their bugfixes and enhancements.

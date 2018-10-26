@@ -11,6 +11,4 @@
 * @copyright Doofinder
 * @license   GPLv3
 *}
-<div id="product_list" class="product_list" class="clear">
-	<p class="warning">{l s='There are no products.' mod='doofinder'}</p>
-</div>
+<div class="tab-pane {if $id_tab == 'data_feed_tab'}active{/if}" id="{$id_tab|escape:'htmlall':'UTF-8'}">

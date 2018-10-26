@@ -10,7 +10,7 @@
 * @author    Doofinder
 * @copyright Doofinder
 * @license   GPLv3
-*}
-<div id="product_list" class="product_list" class="clear">
-	<p class="warning">{l s='There are no products.' mod='doofinder'}</p>
+*}	
+	<div class="tab-pane" id="support_tab">{include file='./support_tab.tpl'}</div>
 </div>
+<!-- End Tab panes -->
